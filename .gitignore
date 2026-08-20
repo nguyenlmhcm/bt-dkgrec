@@ -1,0 +1,21 @@
+# ── Dữ liệu: KHÔNG BAO GIỜ commit (raw ~1.3 GB) ─────────────────────
+# Neo o goc repo: mau 'data/' khong neo se nuot ca configs/data/ va src/data/.
+/data/
+/Datasets_RetailRocket_Raw/
+
+# ── Run artifact: sinh ra khi train, không commit ───────────────────
+experiments/runs/*
+!experiments/runs/.gitkeep
+
+# ── Python ─────────────────────────────────────────────────────────
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+*.egg-info/
+
+# ── Hệ điều hành / editor ──────────────────────────────────────────
+.DS_Store
+.vscode/
+.idea/

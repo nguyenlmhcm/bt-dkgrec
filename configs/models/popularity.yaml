@@ -1,0 +1,7 @@
+# Moc san tuyet doi. Khong ca nhan hoa, khong hoc.
+# Tra loi cau hoi hoi dong so 1: "mo hinh co hon cach lam ngay tho khong?"
+model:
+  name: popularity
+  kind: heuristic
+  use_side_info: false
+  trainable: false

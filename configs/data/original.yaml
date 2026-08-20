@@ -1,0 +1,4 @@
+# Cohort Original — tap danh gia CHINH cua de tai.
+cohort:
+  name: original
+  min_active_events: 0    # khong loc nguoi dung

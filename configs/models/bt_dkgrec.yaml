@@ -1,0 +1,10 @@
+# Mo hinh de xuat — day du.
+# edge_weight() = alpha_b * exp(-lambda * delta_t)  (cong thuc 3.17)
+# Tham so alpha/lambda nam o configs/base.yaml muc `weighting`.
+model:
+  name: bt_dkgrec
+  kind: gcn
+  use_side_info: true
+  trainable: true
+  embedding_dim: 32
+  num_layers: 2

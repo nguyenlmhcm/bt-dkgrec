@@ -1,0 +1,9 @@
+# Moc san co yeu to thoi gian — co lap dong gop cua "tinh gan day"
+# khoi dong gop cua "cau truc do thi".
+model:
+  name: recent_popularity
+  kind: heuristic
+  use_side_info: false
+  trainable: false
+  # Cua so gan day, tinh nguoc tu T_train. Chon trong {7, 14, 30} theo valid NDCG@20.
+  recent_window_days: 30

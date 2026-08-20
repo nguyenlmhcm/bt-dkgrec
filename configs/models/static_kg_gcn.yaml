@@ -1,0 +1,10 @@
+# Ablation: CO side info (category, property), KHONG behavior-time weighting.
+# Lop StaticKGGCN KE THUA BTDKGRec va override DUNG MOT ham: edge_weight() -> 1.0.
+# Khac bt_dkgrec dung mot bien => so sanh co kiem soat tuyet doi (cau hoi hoi dong so 3).
+model:
+  name: static_kg_gcn
+  kind: gcn
+  use_side_info: true
+  trainable: true
+  embedding_dim: 32
+  num_layers: 2

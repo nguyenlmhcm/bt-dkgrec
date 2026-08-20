@@ -1,0 +1,4 @@
+# Phụ thuộc huấn luyện — cài trên Colab (có GPU).
+# Trên VPS 3 GB RAM không GPU, chỉ cài khi cần chạy thử smoke test CPU.
+-r requirements.txt
+torch==2.5.1

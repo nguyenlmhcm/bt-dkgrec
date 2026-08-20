@@ -1,0 +1,6 @@
+{
+  "seeds": [2020, 2021, 2022],
+  "note_vi": "Moi mo hinh chay tren DUNG bo seed nay. Khong duoc chon seed cho ket qua dep (quy tac liem chinh so 12). Script sinh bang doc toan bo run, khong co tham so loc seed.",
+  "legacy_seed_v11": 2026,
+  "legacy_note_vi": "Ban v11 chi chay mot seed duy nhat (2026) nen khong phan biet duoc cai thien that voi nhieu. Seed 2026 KHONG nam trong bo seed moi; giu lai day chi de truy nguyen."
+}

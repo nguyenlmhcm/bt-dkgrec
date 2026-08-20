@@ -1,0 +1,7 @@
+# Cohort Active — |E_u^train| >= 5.
+# Nguong nay duoc chot TRUOC khi dung lai mapping/graph.
+# Ket qua tren cohort nay la PHAN TICH PHAN NHOM THAM DO,
+# khong thay the tap danh gia chinh (Original).
+cohort:
+  name: active
+  min_active_events: 5

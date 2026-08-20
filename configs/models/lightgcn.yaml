@@ -1,0 +1,11 @@
+# Baseline hoc thuat duy nhat [He et al., SIGIR 2020].
+# Graph CF thuan: chi canh user-item, KHONG side info, KHONG behavior-time weighting.
+# edge_weight() = 1.0 do LOP MODEL quy dinh, khong phai do config.
+# PHAI train toi hoi tu — curves.csv phai cho thay plateau.
+model:
+  name: lightgcn
+  kind: gcn
+  use_side_info: false
+  trainable: true
+  embedding_dim: 32
+  num_layers: 2
