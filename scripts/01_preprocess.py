@@ -30,6 +30,7 @@ from src.data.loader import audit_events, load_category_tree, load_events  # noq
 from src.data.mapping import IdMapping, write_node_offsets  # noqa: E402
 from src.data.side_info import extract_side_info  # noqa: E402
 from src.data.splitter import split_events  # noqa: E402
+from src.guards.leakage import run_preprocess_guards  # noqa: E402
 from src.utils.config import load_config  # noqa: E402
 from src.utils.logging import get_logger, setup_logging  # noqa: E402
 
@@ -158,6 +159,23 @@ def main() -> int:
         + audit["n_category_parent_edges"]
     )
 
+    # ── GATE: chay guard chong ro ri ngay tren cau truc trong bo nho ──────
+    print("\nGUARD (trong bo nho)")
+    passed = run_preprocess_guards(
+        events=events,
+        visitor_ids=mapping.visitor_ids,
+        item_ids=mapping.item_ids,
+        item_category=side.item_category,
+        item_property=side.item_property,
+        t_train=boundaries.t_train,
+        t_valid_end=boundaries.t_valid_end,
+        monitor=cfg.training.monitor,
+    )
+    for name in passed:
+        print(f"  PASS  {name}")
+    print("  n/a   rule 5 (candidate) va rule 6 (negative sampling) — chua co artefact")
+    print("        o buoc tien xu ly; se chay o evaluator (Buoc 5) va sampler (Buoc 6)")
+
     events.to_parquet(out_dir / "events.parquet", index=False)
     side.item_category.to_parquet(out_dir / "side_item_category.parquet", index=False)
     side.item_property.to_parquet(out_dir / "side_item_property.parquet", index=False)
@@ -166,6 +184,21 @@ def main() -> int:
     side.category_parent.to_parquet(out_dir / "side_category_parent.parquet", index=False)
     (out_dir / "split.json").write_text(json.dumps(boundaries.as_dict(), indent=2), encoding="utf-8")
     (out_dir / "audit.json").write_text(json.dumps(audit, indent=2), encoding="utf-8")
+
+    # ── GATE: chay lai tren chinh file da ghi (bat loi serialize) ─────────
+    print("\nGUARD (doc lai tu Parquet)")
+    reloaded_mapping = IdMapping.load(out_dir)
+    run_preprocess_guards(
+        events=pd.read_parquet(out_dir / "events.parquet"),
+        visitor_ids=reloaded_mapping.visitor_ids,
+        item_ids=reloaded_mapping.item_ids,
+        item_category=pd.read_parquet(out_dir / "side_item_category.parquet"),
+        item_property=pd.read_parquet(out_dir / "side_item_property.parquet"),
+        t_train=boundaries.t_train,
+        t_valid_end=boundaries.t_valid_end,
+        monitor=cfg.training.monitor,
+    )
+    print(f"  PASS  toan bo {len(passed)} guard tren file da ghi")
 
     reference = REFERENCE[args.cohort]
     print_audit(

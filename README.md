@@ -33,7 +33,7 @@ nếu mất.
 
 - [x] **Bước 1** — Khung dự án, config loader, Makefile
 - [x] **Bước 2** — Tầng dữ liệu (loader, splitter, mapping, side_info, cohort)
-- [ ] Bước 3 — Leakage guards
+- [x] **Bước 3** — Leakage guards (7 rule + gate trong preprocess)
 - [ ] Bước 4 — Tầng đồ thị
 - [ ] Bước 5 — Interface + popularity
 - [ ] Bước 6 — bt_dkgrec + training

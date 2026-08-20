@@ -26,6 +26,7 @@ import pandas as pd
 from src.data.loader import iter_item_properties
 from src.data.mapping import IdMapping
 from src.data.splitter import TemporalSplit
+from src.guards.leakage import assert_latest_record_selected
 from src.utils.config import Config
 from src.utils.logging import get_logger
 
@@ -39,8 +40,9 @@ class SideInfo:
     """Side information tables, already restricted to train items and T_train.
 
     Attributes:
-        item_category: ``[item_idx, category_id]`` -- at most one row per item.
-        item_property: ``[item_idx, pv_idx]`` -- HAS_PROPERTY edges.
+        item_category: ``[item_idx, category_id, category_idx, valid_from]`` --
+            at most one row per item.
+        item_property: ``[item_idx, pv_idx, valid_from]`` -- HAS_PROPERTY edges.
         property_values: ``[pv_idx, prop_key, prop_value, pv_id, freq]``.
         categories: ``[category_id, idx, depth, is_root]``.
         category_parent: ``[category_idx, parent_idx]`` -- PARENT_CATEGORY edges.
@@ -188,7 +190,7 @@ def extract_side_info(
 
     # ── Rule 4: newest admissible record per (item, property) ─────────────
     item_category = _resolve_categories(cat_item, cat_value, cat_ts, mapping)
-    pv_table = _resolve_property_values(pv_item, pv_prop, pv_hash, pv_ts)
+    pv_table = _resolve_property_values(pv_item, pv_prop, pv_hash, pv_ts, mapping)
 
     # ── PV filtering: freq >= min_pv_freq, then top max_property_nodes ─────
     keys, freq = np.unique(pv_table["key"], return_counts=True)
@@ -218,6 +220,7 @@ def extract_side_info(
         {
             "item_idx": pv_table["item_idx"][surviving],
             "pv_idx": np.searchsorted(keys, pv_table["key"][surviving]).astype("int32"),
+            "valid_from": pv_table["valid_from"][surviving],
         }
     )
     property_values = pd.DataFrame(
@@ -247,7 +250,7 @@ def extract_side_info(
         "n_items_with_property": int(item_property["item_idx"].nunique()),
     }
     return SideInfo(
-        item_category=item_category[["item_idx", "category_id", "idx"]].rename(
+        item_category=item_category[["item_idx", "category_id", "idx", "valid_from"]].rename(
             columns={"idx": "category_idx"}
         ),
         item_property=item_property,
@@ -281,10 +284,12 @@ def _resolve_categories(
     item_ids, category_ids, timestamps = item_ids[valid], category_ids[valid], timestamps[valid]
 
     last = _latest_per_group([item_ids], timestamps)
+    assert_latest_record_selected([item_ids], timestamps, last, rule="4 (item-category)")
     return pd.DataFrame(
         {
             "item_idx": np.searchsorted(mapping.item_ids, item_ids[last]).astype("int32"),
             "category_id": category_ids[last].astype("int32"),
+            "valid_from": timestamps[last].astype("int64"),
         }
     )
 
@@ -294,18 +299,28 @@ def _resolve_property_values(
     props: list[np.ndarray],
     hashes: list[np.ndarray],
     stamps: list[np.ndarray],
+    mapping: IdMapping,
 ) -> dict[str, np.ndarray]:
-    """Keep the newest value per ``(item, property)`` (leakage rule 4)."""
+    """Keep the newest value per ``(item, property)`` (leakage rule 4).
+
+    ``item_idx`` is the *matrix index* from the train mapping, never the raw
+    ``itemid``: the graph layer indexes rows by position.
+    """
     item_ids = np.concatenate(items)
     prop_codes = np.concatenate(props)
     keys = np.concatenate(hashes)
     timestamps = np.concatenate(stamps)
     last = _latest_per_group([item_ids, prop_codes], timestamps)
+    assert_latest_record_selected([item_ids, prop_codes], timestamps, last, rule="4 (item-property)")
     log.info(
         "rule 4: %s dong PV -> %s cap (item, property) duy nhat",
         f"{len(item_ids):,}", f"{len(last):,}",
     )
-    return {"item_id": item_ids[last], "item_idx": item_ids[last], "key": keys[last]}
+    return {
+        "item_idx": np.searchsorted(mapping.item_ids, item_ids[last]).astype("int32"),
+        "key": keys[last],
+        "valid_from": timestamps[last].astype("int64"),
+    }
 
 
 def _resolve_pv_labels(

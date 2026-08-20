@@ -240,3 +240,28 @@ Audit mới in **cả hai dòng** để không so nhầm định nghĩa:
 Lưu ý: con số entity của v11 giữa hai cohort không nhất quán với nhau dưới bất kỳ định
 nghĩa đơn nhất nào (original hàm ý ~8.000 PV, active hàm ý ~43.000 PV — ngược chiều trực
 giác), nên dòng này chỉ dùng tham khảo lỏng.
+
+---
+
+## D14. Guard chạy như GATE, không phải test-only — và không có đường tắt
+
+**Quyết định.** `run_preprocess_guards()` được gọi **hai lần** trong mỗi lần
+`01_preprocess.py` chạy:
+1. trên cấu trúc còn trong bộ nhớ (ngay sau khi dựng)
+2. **đọc lại từ file Parquet đã ghi**
+
+**Lý do có lượt thứ hai.** Lượt này bắt được lỗi ở khâu ghi/đọc mà lượt in-memory
+không thấy. Đúng lúc làm Bước 3 nó có ích ngay: `side_item_property.parquet` đang lưu
+**item_id thô** trong cột tên `item_idx` (giá trị lớn nhất 466.864 trong khi mapping chỉ
+có 205.106 item). Số liệu audit không đổi (đếm `nunique` giống nhau) nên bảng audit của
+Bước 2 vẫn đúng, nhưng bước dựng ma trận kề ở Bước 4 sẽ địa chỉ sai hàng. Đã sửa và bổ
+sung guard `assert_index_within_mapping` để lỗi loại này không tái diễn.
+
+**Không có cờ `--skip-guards`.** Cố tình không cài, để không tồn tại cách nào chạy
+pipeline vòng qua guard.
+
+**Rule 5 và rule 6 KHÔNG nằm trong gate tiền xử lý.** Ở thời điểm tiền xử lý chưa có
+candidate set lẫn negative sampler; nếu vẫn gọi thì assertion trở thành
+`I_train ⊆ I_train` — luôn đúng, in ra PASS mà không kiểm chứng gì, tạo cảm giác an toàn
+giả. Hai rule này có hàm + test đầy đủ, sẽ gắn vào đúng nơi có artefact:
+evaluator (Bước 5) và sampler (Bước 6).
