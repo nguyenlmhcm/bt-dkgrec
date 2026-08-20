@@ -177,3 +177,66 @@ pydantic/pytest) — chạy được trên VPS không GPU. `requirements-train.t
 
 **Lý do.** VPS 3 GB RAM / 13 GB đĩa không train được; cài torch trên VPS chỉ tốn tài
 nguyên. Việc tách này giữ cho `make setup` và `make test` chạy nhanh trên VPS.
+
+---
+
+## D11. Bằng chứng: bản v11 nhiều khả năng **không áp mốc `T_train`** cho `item_properties`
+
+**Bối cảnh.** Số cạnh item-property mới ra 2.922.197, thấp hơn v11 (3.307.294) **−11,6%**.
+Em truy nguyên bằng cách chạy lại đúng pipeline với **một** thay đổi duy nhất: bỏ điều
+kiện `timestamp <= T_train`.
+
+| Cách dựng | Cặp (item, property) | PV node | Cạnh item-property | So với v11 |
+|---|---|---|---|---|
+| **Có áp `T_train`** (đúng quy tắc 3) | 3.946.253 | 28.237 | **2.922.197** | −11,6% |
+| Bỏ mốc thời gian (rò rỉ) | 4.414.856 | 30.187 | **3.344.887** | **+1,1%** |
+
+**Diễn giải.** Đây là bằng chứng mạnh — không phải chứng minh tuyệt đối — rằng bản v11
+đã nạp thuộc tính sản phẩm ở **mọi** thời điểm, kể cả sau `T_train`, tức là đồ thị huấn
+luyện đã nhìn thấy trạng thái tương lai của sản phẩm. Đó chính là **vi phạm quy tắc
+chống rò rỉ số 3**.
+
+**Quyết định.** Giữ cách đúng (áp mốc). Chấp nhận số cạnh thấp hơn v11.
+
+**Viết vào luận văn.** Đây là một luận điểm có lợi: bản mới chặt chẽ hơn về mặt giao thức.
+Nêu rõ số cạnh giảm ~11,6% là **hệ quả của việc siết quy tắc chống rò rỉ**, không phải
+mất mát thông tin do lỗi kỹ thuật.
+
+---
+
+## D12. Tần suất PropertyValue tính trên **item trong train**, sau khi đã áp quy tắc 4
+
+**Quyết định.** `freq(pv)` = số **item trong train** mang PV đó, tính trên bảng đã lấy
+bản ghi mới nhất ≤ `T_train` cho mỗi cặp (item, property).
+
+**Đo thực tế hai cách diễn giải:**
+
+| Phạm vi tính tần suất | PV có freq ≥ 5 | Cap 50.000 | PV node giữ lại | Cạnh item-property |
+|---|---|---|---|---|
+| **Item trong train (đã chọn)** | 28.237 | không ràng buộc | 28.237 | 2.922.197 |
+| Toàn bộ item | 71.060 | có ràng buộc | 50.000 | 2.948.778 |
+
+**Lý do chọn.** Hai cách cho số cạnh gần như nhau (lệch 0,9%), nhưng cách thứ hai thêm
+21.763 PV node mà chỉ đóng góp 26.581 cạnh — tức bậc trung bình ~1,2, gần như node cô lập,
+không có ích cho lan truyền mà còn làm loãng đồ thị. Cách đã chọn cho `freq` đúng nghĩa
+**bậc của node PV trong đồ thị thật**.
+
+**Hệ quả cần công khai.** Với cách này, tham số `max_property_nodes = 50.000`
+**không bao giờ ràng buộc** (chỉ có 28.237 PV vượt ngưỡng tần suất). Phải ghi rõ điều
+này trong luận văn thay vì để người đọc tưởng cap đang có tác dụng.
+
+---
+
+## D13. Dòng "tổng entity" của v11 **không tính node Visitor**
+
+Bảng 4.2 của v11 ghi "Entity count của graph học được" = 214.396 (original).
+Đối chiếu ngược: 214.396 − 205.106 item ≈ 9.290, tức chỉ còn chỗ cho category + PV.
+Vậy con số này **không bao gồm 1.027.985 Visitor**.
+
+Audit mới in **cả hai dòng** để không so nhầm định nghĩa:
+- `entity (item+category+PV)` — so được với v11
+- `tổng node kể cả visitor` — con số thật của đồ thị huấn luyện
+
+Lưu ý: con số entity của v11 giữa hai cohort không nhất quán với nhau dưới bất kỳ định
+nghĩa đơn nhất nào (original hàm ý ~8.000 PV, active hàm ý ~43.000 PV — ngược chiều trực
+giác), nên dòng này chỉ dùng tham khảo lỏng.

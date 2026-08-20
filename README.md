@@ -32,7 +32,7 @@ nếu mất.
 ## Tiến độ
 
 - [x] **Bước 1** — Khung dự án, config loader, Makefile
-- [ ] Bước 2 — Tầng dữ liệu
+- [x] **Bước 2** — Tầng dữ liệu (loader, splitter, mapping, side_info, cohort)
 - [ ] Bước 3 — Leakage guards
 - [ ] Bước 4 — Tầng đồ thị
 - [ ] Bước 5 — Interface + popularity
