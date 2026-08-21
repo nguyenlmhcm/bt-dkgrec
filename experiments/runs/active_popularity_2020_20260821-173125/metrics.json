@@ -1,0 +1,79 @@
+{
+  "run_id": "active_popularity_2020_20260821-173125",
+  "cohort": "active",
+  "model": "popularity",
+  "seed": 2020,
+  "model_description": {
+    "model": "popularity",
+    "supports_cold_start": true,
+    "popularity_signal": "target"
+  },
+  "n_train_items": 86659,
+  "n_train_visitors": 60559,
+  "valid": {
+    "n_users": {
+      "warm": 234,
+      "cold": 0,
+      "all": 234
+    },
+    "unrankable_targets": {
+      "item_not_in_train": 72,
+      "removed_as_already_seen": 198,
+      "total_targets": 961
+    },
+    "warm": {
+      "recall@10": 0.00610986620883157,
+      "ndcg@10": 0.00874336763235887,
+      "hit_rate@10": 0.02564102564102564,
+      "coverage@10": 0.0003346449878258461,
+      "recall@20": 0.006822116921082283,
+      "ndcg@20": 0.008209062590922354,
+      "hit_rate@20": 0.029914529914529916,
+      "coverage@20": 0.000576974116941114
+    },
+    "cold": null,
+    "all": {
+      "recall@10": 0.00610986620883157,
+      "ndcg@10": 0.00874336763235887,
+      "hit_rate@10": 0.02564102564102564,
+      "coverage@10": 0.0003346449878258461,
+      "recall@20": 0.006822116921082283,
+      "ndcg@20": 0.008209062590922354,
+      "hit_rate@20": 0.029914529914529916,
+      "coverage@20": 0.000576974116941114
+    }
+  },
+  "test": {
+    "n_users": {
+      "warm": 234,
+      "cold": 0,
+      "all": 234
+    },
+    "unrankable_targets": {
+      "item_not_in_train": 179,
+      "removed_as_already_seen": 145,
+      "total_targets": 1128
+    },
+    "warm": {
+      "recall@10": 0.003983711525991941,
+      "ndcg@10": 0.00573536830811251,
+      "hit_rate@10": 0.02564102564102564,
+      "coverage@10": 0.0003461844701646684,
+      "recall@20": 0.006993349642013036,
+      "ndcg@20": 0.00605267043649453,
+      "hit_rate@20": 0.038461538461538464,
+      "coverage@20": 0.0005654346346022917
+    },
+    "cold": null,
+    "all": {
+      "recall@10": 0.003983711525991941,
+      "ndcg@10": 0.00573536830811251,
+      "hit_rate@10": 0.02564102564102564,
+      "coverage@10": 0.0003461844701646684,
+      "recall@20": 0.006993349642013036,
+      "ndcg@20": 0.00605267043649453,
+      "hit_rate@20": 0.038461538461538464,
+      "coverage@20": 0.0005654346346022917
+    }
+  }
+}
