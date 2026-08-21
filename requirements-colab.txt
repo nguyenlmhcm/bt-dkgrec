@@ -1,0 +1,19 @@
+# Moi truong Colab — CHI dat SAN (>=), tuyet doi KHONG ghim '=='.
+#
+# Ly do: runtime Colab da cai san numpy / pandas / scipy / torch, va ban torch
+# la ban CUDA khop voi driver cua may. Ghim '==' khien pip:
+#   - HA CAP torch (2.11+cu128 -> 2.5.1) => lech voi torchvision va driver;
+#   - THAY numpy giua phien => tien trinh dang chay con giu .so cu, nen
+#     'import scipy.sparse' vo numpy._core.umath va vo ID.
+# Xem DECISIONS.md D25.
+#
+# Truy nguyen khong dua vao pin: moi run ghi env.json chua ban THUC TE da chay.
+numpy>=1.26
+pandas>=2.0
+scipy>=1.11
+pyarrow>=14
+PyYAML>=6.0
+pydantic>=2.7,<3
+matplotlib>=3.8
+pytest>=7.4
+torch>=2.1

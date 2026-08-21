@@ -540,3 +540,46 @@ Có test khẳng định lớp này **không** chứa bất kỳ trường nào 
 
 **Mặc định giữ nguyên yêu cầu in ấn:** `show_value_labels = True` (nhãn số là thứ giúp đọc
 được hình khi in đen trắng), xuất cả PNG lẫn PDF, 300 dpi.
+
+---
+
+## D25 — Trên Colab: đặt sàn `>=`, không ghim `==`; bù lại mỗi run ghi `env.json`
+
+**Bối cảnh: lỗi thật, đã xảy ra trên Colab.** Ô cài môi trường chạy
+`pip install -r requirements-train.txt`, mà file đó ghim `==`. pip báo bốn xung đột và
+runtime hỏng ngay sau đó:
+
+```
+numba 0.60.0 requires numpy<2.1,>=1.22, but you have numpy 2.1.3
+torchvision 0.26.0+cu128 requires torch==2.11.0, but you have torch 2.5.1
+google-genai 2.12.1 requires pydantic>=2.12.5, but you have pydantic 2.10.3
+...
+ImportError: cannot import name '_center' from 'numpy._core.umath'
+```
+
+**Cơ chế của lỗi.** pip thay numpy **trên đĩa** giữa phiên, nhưng tiến trình Python đang
+chạy vẫn giữ phần biên dịch (`.so`) của bản cũ đã nạp từ trước. Phần `.py` và phần `.so`
+lệch nhau, nên lệnh `import scipy.sparse` — vốn đi qua `numpy._core.strings` — chết. Lỗi
+**không** lộ ra ở ô pip (pip chỉ cảnh báo), mà lộ ra nhiều ô sau đó, ở một chỗ trông không
+liên quan gì đến pip. Nghiêm trọng hơn: torch bị hạ từ 2.11+cu128 xuống 2.5.1, lệch với
+driver CUDA và với torchvision của máy — thứ sẽ cắn ở Bước 6–8 chứ không phải bây giờ.
+
+**Quyết định.** Thêm `requirements-colab.txt` **chỉ đặt sàn `>=`**, và ô cài đặt chỉ cài
+đúng gói còn thiếu hoặc quá cũ. Trường hợp bình thường trên Colab: **không cài gì**, vì
+runtime đã có sẵn tất cả. Nếu có cài thật thì ô đó **tự khởi động lại runtime** — vì một
+runtime vỡ ID còn tệ hơn một lần khởi động lại, và cache trên Drive khiến chạy lại từ đầu
+gần như miễn phí.
+
+`requirements.txt` / `requirements-train.txt` **giữ nguyên bản ghim `==`** cho VPS: ở đó ta
+sở hữu môi trường nên ghim là đúng. Colab thì không — ta là khách trong môi trường của họ.
+
+**Cái giá và cách bù.** Đặt sàn thì không còn tái lập được môi trường từ file requirements.
+Nên mỗi run **ghi thêm `env.json`** (Python, hệ điều hành, numpy/pandas/scipy/pyarrow/
+pydantic/torch, phiên bản CUDA và tên GPU). Truy nguyên chuyển từ *lời hứa trước khi chạy*
+sang *bằng chứng sau khi chạy* — và đây mới là thứ trả lời được câu hỏi hội đồng có thể
+hỏi: "kết quả này chạy trên đâu, bằng bản nào?". `env.json` là file nhẹ nên đi theo Git
+cùng `metrics.json`, không nằm ở Drive.
+
+**Không đụng đến kết quả.** Sàn được đặt ở mức các API mà mã nguồn thực sự dùng
+(`np.argpartition`, `np.take_along_axis`, `searchsorted`, ... — đều ổn định từ lâu). Sàn
+không phải là bản đã kiểm thử; bản đã kiểm thử nằm trong `env.json` của từng run.

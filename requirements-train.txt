@@ -1,4 +1,7 @@
-# Phụ thuộc huấn luyện — cài trên Colab (có GPU).
-# Trên VPS 3 GB RAM không GPU, chỉ cài khi cần chạy thử smoke test CPU.
+# Phu thuoc huan luyen tren VPS (ghim ==, tai lap chinh xac duoc).
+#
+# KHONG dung file nay tren Colab. Colab da co san torch ban CUDA khop driver;
+# ghim == se ha cap torch va thay numpy giua phien, lam hong runtime.
+# Tren Colab dung requirements-colab.txt (chi dat san >=) — xem DECISIONS.md D25.
 -r requirements.txt
 torch==2.5.1

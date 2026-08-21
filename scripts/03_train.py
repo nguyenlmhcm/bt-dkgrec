@@ -5,8 +5,8 @@ path in Buoc 6 without changing the evaluation protocol, which is the point of
 the shared :class:`~src.models.base.Recommender` interface.
 
 Produces ``experiments/runs/<cohort>_<model>_<seed>_<timestamp>/`` with
-``config.yaml``, ``seed.txt``, ``metrics.json``, ``topk.csv``, ``curves.csv``
-and ``train.log``.
+``config.yaml``, ``seed.txt``, ``env.json``, ``metrics.json``, ``topk.csv``,
+``curves.csv`` va ``train.log``.
 
 Usage::
 
@@ -32,6 +32,7 @@ from src.models.base import ModelContext  # noqa: E402
 from src.models.popularity import HEURISTIC_MODELS  # noqa: E402
 from src.training.seeding import set_seed  # noqa: E402
 from src.utils.config import Config, load_config  # noqa: E402
+from src.utils.environment import environment_record  # noqa: E402
 from src.utils.logging import get_logger, setup_logging  # noqa: E402
 
 log = get_logger("train")
@@ -155,6 +156,11 @@ def main() -> int:
         json.dumps(metrics, indent=2, ensure_ascii=False), encoding="utf-8"
     )
     (run_dir / "seed.txt").write_text(f"{cfg.seed}\n", encoding="utf-8")
+    # Colab khong ghim phien ban thu vien (D25), nen ban THUC TE phai di
+    # cung con so — neu khong, khong ai tai dung duoc run nay.
+    (run_dir / "env.json").write_text(
+        json.dumps(environment_record(), indent=2, ensure_ascii=False), encoding="utf-8"
+    )
     (run_dir / "config.yaml").write_text(cfg.to_yaml(), encoding="utf-8")
 
     for split in ("valid", "test"):
