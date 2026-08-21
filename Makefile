@@ -17,7 +17,8 @@ help:
 	@echo "  make setup-train                              # them torch (Colab / GPU)"
 	@echo "  make test                                     # pytest"
 	@echo "  make preprocess COHORT=original               # [Buoc 2]"
-	@echo "  make graph COHORT=original                    # [Buoc 4]"
+	@echo "  make graph COHORT=original                    # dung ca 3 bien the"
+	@echo "  make graph-one COHORT=original MODEL=bt_dkgrec"
 	@echo "  make train MODEL=bt_dkgrec SEED=2020 COHORT=original   # [Buoc 6]"
 	@echo "  make evaluate RUN=<run_id>                    # [Buoc 5]"
 	@echo "  make multiseed                                # [Buoc 9]"
@@ -49,9 +50,13 @@ preprocess:
 	@test -f scripts/01_preprocess.py || { echo "CHUA TRIEN KHAI: scripts/01_preprocess.py (Buoc 2)"; exit 1; }
 	$(PY) scripts/01_preprocess.py --cohort $(COHORT)
 
+# Dung ca ba bien the co graph (lightgcn, static_kg_gcn, bt_dkgrec) de bao dam
+# chung duoc sinh tu cung mot tap interim trong cung mot lan chay.
 graph:
-	@test -f scripts/02_build_graph.py || { echo "CHUA TRIEN KHAI: scripts/02_build_graph.py (Buoc 4)"; exit 1; }
-	$(PY) scripts/02_build_graph.py --cohort $(COHORT)
+	$(PY) scripts/02_build_graph.py --cohort $(COHORT) --all
+
+graph-one:
+	$(PY) scripts/02_build_graph.py --cohort $(COHORT) --model $(MODEL)
 
 train:
 	@test -f scripts/03_train.py || { echo "CHUA TRIEN KHAI: scripts/03_train.py (Buoc 6)"; exit 1; }
