@@ -30,7 +30,12 @@ VPS  viết code ──git push──▶ GitHub ──git pull──▶ Colab  t
 | `metrics.json`, `curves.csv`, `config.yaml`, `seed.txt` | Git | Nhẹ, cần version control, `make tables` đọc lại |
 | `topk.csv`, `train.log` | Drive | Nặng; chỉ demo và chẩn đoán cần |
 
-Chi tiết: `docs/DECISIONS.md` mục D20, D23.
+Bảng và biểu đồ do `src/evaluation/{reporting,figures}.py` sinh ra — dùng chung với
+`make tables` ở Bước 9 nên số liệu không bao giờ lệch nhau. Notebook có một ô
+`figures.OPTIONS` để chỉnh **hình thức** (tắt tiêu đề khi luận văn đã có chú thích, đổi cỡ
+chữ, đổi định dạng xuất) mà không đụng vào con số.
+
+Chi tiết: `docs/DECISIONS.md` mục D20, D23, D24.
 
 ## Tài liệu
 

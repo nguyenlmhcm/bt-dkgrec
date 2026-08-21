@@ -510,3 +510,33 @@ cá nhân.
 `!python scripts/...` dùng chung môi trường). Notebook có ô kiểm chứng in ra: mốc sàn cần
 numpy/pandas/scipy — đủ; mô hình GCN cần thêm torch + CUDA — và báo rõ nếu chưa bật GPU.
 Không phân mảnh môi trường.
+
+---
+
+## D24. Code vẽ hình ở `src/`, notebook chỉnh hình thức qua `FigureOptions`
+
+**Câu hỏi đặt ra.** Bảng và biểu đồ nên viết thẳng trong notebook, hay để ở `src/` rồi
+notebook gọi vào?
+
+**Quyết định.** Logic ở `src/evaluation/{reporting,figures}.py`; notebook gọi vào và có
+**một ô tuỳ chỉnh hình thức** (`figures.OPTIONS`).
+
+**Vì sao không viết thẳng trong notebook.** Bước 9 có `make tables` — script sinh bảng cho
+luận văn, chạy trên VPS. Nếu code bảng/biểu đồ nằm trong notebook thì Bước 9 phải viết lại
+lần hai, và hai bản đó sẽ lệch nhau lúc nào không ai biết. Khi đó **bảng dán vào luận văn
+và bảng in ra trên Colab sẽ ra số khác nhau** — đúng loại lỗi mà CLAUDE.md đặt ra quy tắc
+"metric định nghĩa MỘT chỗ" để tránh. Thêm nữa, code trong `src/` có test; code trong ô
+notebook thì không.
+
+**Vì sao vẫn cần ô tuỳ chỉnh.** Luận văn tiếng Việt có **chú thích bên dưới hình**
+("Hình 4.1. So sánh các chỉ số..."). Nếu bản thân hình lại in tiêu đề ở trên thì trùng lặp,
+và đây là thứ giáo viên hướng dẫn hay bắt sửa. Không nên phải sửa `src/` → commit → push →
+pull chỉ để tắt một dòng tiêu đề.
+
+**Ranh giới cứng.** `FigureOptions` chỉ chứa tham số hình thức: `show_title`,
+`show_value_labels`, `width_scale`, `height_scale`, `font_scale`, `formats`, `dpi`.
+Có test khẳng định lớp này **không** chứa bất kỳ trường nào tên `k`, `metric`, `data`,
+`segment`, `split`, `seed` — tức không tuỳ chọn nào đổi được con số, chỉ đổi được hình thức.
+
+**Mặc định giữ nguyên yêu cầu in ấn:** `show_value_labels = True` (nhãn số là thứ giúp đọc
+được hình khi in đen trắng), xuất cả PNG lẫn PDF, 300 dpi.

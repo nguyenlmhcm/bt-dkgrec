@@ -155,3 +155,53 @@ def test_comparison_figure_is_written_in_both_formats(runs_dir, tmp_path) -> Non
     png = plot_model_comparison(frame, "original", tmp_path / "figs", k=20)
     assert png.exists() and png.stat().st_size > 0
     assert png.with_suffix(".pdf").exists()
+
+
+# ── Tuy chinh hinh tu notebook ──────────────────────────────────────────
+
+
+def test_figure_options_can_suppress_the_in_figure_title(runs_dir, tmp_path) -> None:
+    """The thesis caption already names the figure; the title must be optional."""
+    from src.evaluation import figures
+
+    frame = load_runs(runs_dir, "test", "warm")
+    default_size = plot_model_comparison(frame, "original", tmp_path / "a", k=20).stat().st_size
+
+    figures.OPTIONS.show_title = False
+    try:
+        no_title = plot_model_comparison(frame, "original", tmp_path / "b", k=20)
+        assert no_title.exists()
+        assert no_title.stat().st_size != default_size
+    finally:
+        figures.OPTIONS = figures.FigureOptions()
+
+
+def test_figure_options_control_formats(runs_dir, tmp_path) -> None:
+    from src.evaluation import figures
+
+    frame = load_runs(runs_dir, "test", "warm")
+    figures.OPTIONS.formats = ("png",)
+    try:
+        png = plot_model_comparison(frame, "original", tmp_path / "png-only", k=20)
+        assert png.exists()
+        assert not png.with_suffix(".pdf").exists()
+    finally:
+        figures.OPTIONS = figures.FigureOptions()
+
+
+def test_figure_options_defaults_suit_a_printed_thesis() -> None:
+    """Defaults must stay greyscale-safe: value labels on, PDF exported, 300 dpi."""
+    from src.evaluation.figures import FigureOptions
+
+    defaults = FigureOptions()
+    assert defaults.show_value_labels is True
+    assert "pdf" in defaults.formats and "png" in defaults.formats
+    assert defaults.dpi == 300
+
+
+def test_figure_options_cannot_change_the_numbers() -> None:
+    """Cosmetic knobs only: no option may touch data, metric or cut-off."""
+    from src.evaluation.figures import FigureOptions
+
+    forbidden = {"k", "metric", "metrics", "data", "frame", "segment", "split", "seed"}
+    assert not (set(FigureOptions().__dataclass_fields__) & forbidden)
