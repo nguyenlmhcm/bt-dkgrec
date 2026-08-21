@@ -119,7 +119,7 @@ tổng số ô Top-K là 593 × 20 = 11.860. Hợp lý → cách diễn giải �
 
 | Tham số | Giá trị | Ghi chú |
 |---|---|---|
-| `recent_popularity.recent_window_days` | 30 | Chọn trong {7, 14, 30} theo **valid** NDCG@20 |
+| `recent_popularity.recent_window_days` | **14** | Đã chọn theo **valid** NDCG@20 — xem D19 |
 | `training.monitor` | `ndcg@20` trên **valid** | Không bao giờ đọc test (quy tắc 7) |
 | `training.patience` | 20 lần eval | |
 | `training.eval_every` | 5 epoch | |
@@ -265,3 +265,96 @@ candidate set lẫn negative sampler; nếu vẫn gọi thì assertion trở th�
 `I_train ⊆ I_train` — luôn đúng, in ra PASS mà không kiểm chứng gì, tạo cảm giác an toàn
 giả. Hai rule này có hàm + test đầy đủ, sẽ gắn vào đúng nơi có artefact:
 evaluator (Bước 5) và sampler (Bước 6).
+
+---
+
+## D15. `popularity` xếp hạng theo **hành vi mục tiêu**, không phải theo mọi tương tác
+
+**Quyết định.** Điểm phổ biến = số sự kiện `addtocart OR transaction` của item trong
+train. Cấu hình `popularity_signal: target` (đặt `all` để kiểm tra độ nhạy).
+
+**Lý do.** Bài toán là dự báo **hành vi mục tiêu**. Nếu mốc sàn xếp hạng theo tổng lượt
+tương tác (chủ yếu là view) thì nó đang trả lời một câu hỏi khác, và so sánh sẽ không
+cùng đơn vị. Mốc sàn phải mạnh nhất có thể trong phạm vi "không cá nhân hoá" — mốc sàn
+yếu giả tạo sẽ thổi phồng đóng góp của mô hình đề xuất.
+
+**Kiểm chứng.** Trên cohort Active, cách này tái lập **chính xác** ba trên bốn chỉ số của
+v11 (xem D16), nên nhiều khả năng v11 cũng dùng tín hiệu này.
+
+---
+
+## D16. Cohort `original` KHÔNG lọc visitor — nếu không sẽ không còn cold user để báo cáo
+
+**Lỗi đã sửa.** Bước 2 gọi `apply_cohort()` cho **cả hai** cohort. Với `original`
+(`min_active_events = 0`), tập visitor lấy từ `value_counts` của train nên chỉ gồm người
+**có mặt trong train** — kéo theo mọi sự kiện valid/test của **cold user bị xoá sạch**.
+Hệ quả: phân đoạn cold luôn rỗng, trong khi CLAUDE.md yêu cầu báo cáo riêng phân đoạn này.
+
+**Sau khi sửa** (chỉ lọc khi `min_active_events > 0`):
+
+| | valid | test |
+|---|---|---|
+| warm | 552 | 593 |
+| **cold** | **3.136** | **6.786** |
+
+Bảng audit khối B vẫn **lệch 0** so với v11 vì cold user theo định nghĩa không có sự kiện
+train, nên không đụng tới bất kỳ con số train nào.
+
+**Cohort `active` có cold = 0 theo cấu tạo** — mọi user được đánh giá đều phải có ≥5 sự
+kiện train nên đều là warm. Đây là tính chất, không phải lỗi; cần ghi chú khi trình bày bảng.
+
+---
+
+## D17. `evaluation.batch_size = 64` — đã từng làm OOM ở 256
+
+**Sự cố.** Chạy `popularity` trên cohort original bị kernel giết:
+`Out of memory: Killed process (python) anon-rss:1.317GB`.
+
+**Nguyên nhân.** `np.argpartition` trả về mảng chỉ số **int64**:
+
+| Thành phần | batch 256 × 205.106 item |
+|---|---|
+| `scores` float32 | 210 MB |
+| `-scores` (bản sao do phép phủ định) | 210 MB |
+| `argpartition` int64 | **420 MB** |
+| tổng | **~840 MB** |
+
+**Sửa hai chỗ.** (1) Phân hoạch trực tiếp trên `scores` với `kth = n - K` thay vì trên
+`-scores`, bỏ hẳn một bản sao. (2) Hạ `batch_size` xuống 64 → ~160 MB. Đo lại: RAM đỉnh
+**0,73 GB**, chạy 214 giây cho cohort original.
+
+**Ghi chú vận hành.** Lỗi này chỉ lộ ra vì chạy trên VPS 3 GB. Trên Colab 12 GB nó sẽ ẩn
+đi rồi bùng lên ở cấu hình lớn hơn.
+
+---
+
+## D18. Item đã bị lọc không bao giờ được lọt vào Top-K
+
+Điểm của item đã xem bị đặt `-inf`, nhưng nếu số ứng viên ít hơn K thì phép sắp xếp vẫn
+trả về đủ danh sách **kể cả các ô `-inf`**. Đã sửa: mọi vị trí có điểm không hữu hạn bị
+đổi thành `-1` (ô trống), và `coverage_at_k` bỏ qua ô `-1` để không thổi phồng độ phủ.
+
+Trên dữ liệu thật (205.106 item, K = 20) nhánh này không kích hoạt, nhưng nó sẽ kích hoạt
+ở bất kỳ thí nghiệm nào có tập ứng viên nhỏ — và khi đó sẽ sai âm thầm.
+
+---
+
+## D19. `recent_window_days = 14` — chọn trên valid, cả hai cohort đều đồng thuận
+
+**Cách chọn.** Huấn luyện `recent_popularity` với cửa sổ ∈ {7, 14, 30} ngày, chấm điểm
+trên **valid warm**, chọn theo NDCG@20. **Không bao giờ đọc test** (quy tắc 7).
+
+| Cửa sổ | original — valid NDCG@20 | active — valid NDCG@20 |
+|---|---|---|
+| 7 ngày | 0,020521 | 0,007678 |
+| **14 ngày** | **0,021333** ★ | **0,007735** ★ |
+| 30 ngày | 0,020644 | 0,007707 |
+
+**Vì sao quan trọng.** Hai cohort chọn cùng một giá trị nên dùng chung `14` — giao thức
+đồng nhất giữa hai bảng kết quả. Nếu hai cohort chọn khác nhau thì phải công khai rằng
+baseline được cấu hình riêng cho từng cohort, và điều đó làm hai bảng khó so với nhau
+(đúng loại vấn đề mà D2 đã phải xử lý với hàm mất mát).
+
+**Ghi chú.** Chênh lệch giữa ba cửa sổ rất nhỏ (~4%), nên baseline này không nhạy với
+tham số. Đó là tin tốt: kết quả của nó là mốc sàn ổn định, không phải sản phẩm của việc
+dò tham số.

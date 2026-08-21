@@ -5,5 +5,10 @@ model:
   kind: heuristic
   use_side_info: false
   trainable: false
-  # Cua so gan day, tinh nguoc tu T_train. Chon trong {7, 14, 30} theo valid NDCG@20.
-  recent_window_days: 30
+  popularity_signal: target
+  # Cua so gan day, tinh nguoc tu T_train.
+  # DA CHON tren VALID NDCG@20 (khong bao gio doc test — quy tac 7):
+  #   original: 7d=0.020521  14d=0.021333  30d=0.020644
+  #   active  : 7d=0.007678  14d=0.007735  30d=0.007707
+  # Ca hai cohort deu chon 14 => dung chung mot gia tri, giao thuc dong nhat.
+  recent_window_days: 14

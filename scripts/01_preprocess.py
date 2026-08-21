@@ -115,8 +115,15 @@ def main() -> int:
     events, boundaries = split_events(events, cfg.data.split)
     train_all = events[events["split"] == "train"]
 
-    visitors = select_cohort_visitors(train_all, cfg.cohort)
-    events = apply_cohort(events, visitors)
+    # Cohort 'original' giu NGUYEN moi visitor. Loc theo tap train o day se xoa
+    # luon su kien cua cold user (nguoi chi xuat hien o valid/test), khien phan
+    # doan cold khong con gi de bao cao — trong khi CLAUDE.md yeu cau bao cao
+    # rieng phan doan nay. Chi cohort 'active' moi loc.
+    if cfg.cohort.min_active_events > 0:
+        visitors = select_cohort_visitors(train_all, cfg.cohort)
+        events = apply_cohort(events, visitors)
+    else:
+        log.info("cohort %r: giu nguyen toan bo visitor, ke ca cold user", cfg.cohort.name)
     train = events[events["split"] == "train"]
 
     mapping = IdMapping.from_train_events(train.drop(columns="split"))

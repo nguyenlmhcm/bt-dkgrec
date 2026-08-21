@@ -5,3 +5,7 @@ model:
   kind: heuristic
   use_side_info: false
   trainable: false
+  # Tin hieu do pho bien: dem su kien HANH VI MUC TIEU trong train.
+  # Bai toan la du bao hanh vi muc tieu nen moc san cung phai xep hang theo
+  # chinh tin hieu do; dat "all" de kiem tra do nhay (docs/DECISIONS.md D15).
+  popularity_signal: target

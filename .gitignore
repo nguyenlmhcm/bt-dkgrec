@@ -7,6 +7,9 @@
 experiments/runs/*
 !experiments/runs/.gitkeep
 
+# ── Paper co ban quyen: giu local, KHONG commit ─────────────────────
+*.pdf
+
 # ── Python ─────────────────────────────────────────────────────────
 .venv/
 __pycache__/

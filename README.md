@@ -35,7 +35,7 @@ nếu mất.
 - [x] **Bước 2** — Tầng dữ liệu (loader, splitter, mapping, side_info, cohort)
 - [x] **Bước 3** — Leakage guards (7 rule + gate trong preprocess)
 - [x] **Bước 4** — Tầng đồ thị (weighting, builder, normalize)
-- [ ] Bước 5 — Interface + popularity
+- [x] **Bước 5** — Interface + metrics + evaluator + popularity
 - [ ] Bước 6 — bt_dkgrec + training
 - [ ] Bước 7 — static_kg_gcn (subclass)
 - [ ] Bước 8 — lightgcn (train tới hội tụ)

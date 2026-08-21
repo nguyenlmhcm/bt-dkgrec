@@ -143,6 +143,7 @@ class ModelConfig(_Strict):
     embedding_dim: int | None = Field(default=None, gt=0)
     num_layers: int | None = Field(default=None, ge=1)
     recent_window_days: int | None = Field(default=None, gt=0)
+    popularity_signal: Literal["target", "all"] | None = None
 
     @model_validator(mode="after")
     def _gcn_needs_dims(self) -> "ModelConfig":
@@ -175,6 +176,7 @@ class TrainingConfig(_Strict):
 
 
 class EvaluationConfig(_Strict):
+    batch_size: int = Field(gt=0)
     k_values: list[int]
     primary_k: int
     filter_seen: bool

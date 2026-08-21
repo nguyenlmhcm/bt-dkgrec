@@ -74,6 +74,10 @@ training:
   device: cuda              # Colab; VPS smoke test dat cpu qua CLI override
 
 evaluation:
+  # So user cham diem moi lo. Chi phi lon nhat la mang chi so int64 cua
+  # argpartition: batch x n_item x 8 byte. Voi n_item = 205.106, batch 64 ton
+  # ~160 MB; batch 256 ton ~840 MB va da lam OOM tren VPS 3 GB.
+  batch_size: 64
   k_values: [10, 20]
   primary_k: 20
   filter_seen: true             # loai item da tuong tac trong train khoi Top-K

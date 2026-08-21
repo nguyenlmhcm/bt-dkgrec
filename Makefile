@@ -59,7 +59,6 @@ graph-one:
 	$(PY) scripts/02_build_graph.py --cohort $(COHORT) --model $(MODEL)
 
 train:
-	@test -f scripts/03_train.py || { echo "CHUA TRIEN KHAI: scripts/03_train.py (Buoc 6)"; exit 1; }
 	$(PY) scripts/03_train.py --model $(MODEL) --cohort $(COHORT) --seed $(SEED) --device $(DEVICE)
 
 evaluate:
