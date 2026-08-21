@@ -1,0 +1,327 @@
+"""Publication-quality figures for the thesis.
+
+Design decisions, fixed once so every figure in the thesis reads as one system:
+
+* **Colour follows the model, never its rank.** ``MODEL_COLORS`` is a fixed
+  assignment; a figure that shows only three models keeps each one's colour.
+  The five hues were checked with a colour-vision-deficiency validator and pass
+  the lightness band, chroma floor, adjacent-pair CVD separation (worst 9.2 dE,
+  target >= 8) and normal-vision floor (worst 27.6, floor 15) on a light surface.
+* **Secondary encoding for print.** A thesis gets photocopied in greyscale, so
+  every bar also carries a hatch pattern and a printed value label. That also
+  discharges the contrast warning on the aqua slot.
+* **No dual axes, ever.** Two measures of different scale get two panels.
+* **Recessive grid.** Light horizontal grid only; no vertical grid, no frame on
+  the top and right.
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+import matplotlib
+import numpy as np
+import pandas as pd
+
+matplotlib.use("Agg")  # headless: VPS and Colab both run without a display
+import matplotlib.pyplot as plt  # noqa: E402
+
+from src.evaluation.reporting import (  # noqa: E402
+    METRIC_LABELS,
+    METRICS,
+    MODEL_LABELS,
+    MODEL_ORDER,
+)
+from src.utils.logging import get_logger  # noqa: E402
+
+log = get_logger(__name__)
+
+#: Validated categorical palette, one fixed hue per model.
+MODEL_COLORS = {
+    "popularity": "#2a78d6",         # blue
+    "recent_popularity": "#eb6834",  # orange
+    "lightgcn": "#1baf7a",           # aqua
+    "static_kg_gcn": "#4a3aa7",      # violet
+    "bt_dkgrec": "#e34948",          # red
+}
+#: Greyscale-safe secondary encoding, so print readers keep the identity.
+MODEL_HATCH = {
+    "popularity": "",
+    "recent_popularity": "//",
+    "lightgcn": "\\\\",
+    "static_kg_gcn": "xx",
+    "bt_dkgrec": "..",
+}
+
+INK = "#1a1a19"
+INK_MUTED = "#52514e"
+GRID = "#dcdcd8"
+SURFACE = "#ffffff"
+
+
+def apply_style() -> None:
+    """Set the shared rcParams. Call once before drawing."""
+    plt.rcParams.update(
+        {
+            "figure.facecolor": SURFACE,
+            "axes.facecolor": SURFACE,
+            "axes.edgecolor": GRID,
+            "axes.labelcolor": INK,
+            "axes.titlesize": 11,
+            "axes.titleweight": "bold",
+            "axes.labelsize": 9.5,
+            "axes.spines.top": False,
+            "axes.spines.right": False,
+            "axes.grid": True,
+            "axes.axisbelow": True,
+            "grid.color": GRID,
+            "grid.linewidth": 0.6,
+            "xtick.color": INK_MUTED,
+            "ytick.color": INK_MUTED,
+            "xtick.labelsize": 8.5,
+            "ytick.labelsize": 8.5,
+            "legend.frameon": False,
+            "legend.fontsize": 9,
+            "font.family": "DejaVu Sans",
+            "figure.dpi": 110,
+            "savefig.dpi": 300,
+            "savefig.bbox": "tight",
+        }
+    )
+
+
+def _save(fig: plt.Figure, out_dir: Path, name: str) -> Path:
+    """Write PNG (for the document) and PDF (vector, for LaTeX)."""
+    out_dir.mkdir(parents=True, exist_ok=True)
+    png = out_dir / f"{name}.png"
+    fig.savefig(png)
+    fig.savefig(out_dir / f"{name}.pdf")
+    plt.close(fig)
+    log.info("da ve %s", png)
+    return png
+
+
+def _format_value(value: float) -> str:
+    """Three significant digits, so Coverage (~2.5e-4) keeps its information.
+
+    A fixed 4-decimal format collapses 0.000249 and 0.000268 into "0.0002" and
+    "0.0003", which reads as a bigger gap than there is.
+    """
+    if value == 0:
+        return "0"
+    if abs(value) < 1e-3:
+        return f"{value:.2e}".replace("e-0", "e-")
+    return f"{value:.4g}"
+
+
+def _label_bars(ax, positions, values, errors, rotate: bool) -> None:
+    """Print each value just above its bar, clear of the error bar."""
+    for position, value, error in zip(positions, values, errors, strict=True):
+        ax.annotate(
+            _format_value(value),
+            xy=(position, value + (error or 0)),
+            xytext=(0, 4), textcoords="offset points",
+            ha="center", va="bottom", fontsize=7.5, color=INK,
+            rotation=90 if rotate else 0,
+        )
+
+
+def _models_present(frame: pd.DataFrame) -> list[str]:
+    """Models in canonical order, restricted to those actually run."""
+    present = set(frame["model"])
+    return [m for m in MODEL_ORDER if m in present]
+
+
+def plot_model_comparison(
+    frame: pd.DataFrame, cohort: str, out_dir: Path, k: int = 20
+) -> Path:
+    """Grouped bars: every model on every metric, for one cohort.
+
+    Error bars are the standard deviation across seeds. Deterministic baselines
+    show none because their std is exactly 0 -- stated in the caption rather
+    than left for the reader to wonder about.
+    """
+    apply_style()
+    subset = frame[frame["cohort"] == cohort]
+    models = _models_present(subset)
+    metrics = [m for m in METRICS if f"{m}@{k}" in subset.columns]
+
+    fig, axes = plt.subplots(1, len(metrics), figsize=(3.1 * len(metrics), 3.5))
+    axes = np.atleast_1d(axes)
+
+    for ax, metric in zip(axes, metrics, strict=True):
+        column = f"{metric}@{k}"
+        means = [subset[subset["model"] == m][column].mean() for m in models]
+        stds = [subset[subset["model"] == m][column].std(ddof=0) for m in models]
+        positions = np.arange(len(models))
+
+        for position, model, mean, std in zip(positions, models, means, stds, strict=True):
+            ax.bar(
+                position, mean, width=0.68, yerr=std if std > 0 else None,
+                color=MODEL_COLORS[model], hatch=MODEL_HATCH[model],
+                edgecolor=SURFACE, linewidth=1.4, capsize=3,
+                error_kw={"ecolor": INK_MUTED, "elinewidth": 1},
+            )
+        # Direct labels also discharge the low-contrast warning on the aqua slot.
+        _label_bars(ax, positions, means, stds, rotate=len(models) > 3)
+
+        ax.set_title(f"{METRIC_LABELS[metric]}@{k}")
+        ax.set_xticks(positions)
+        ax.set_xticklabels([])
+        headroom = 1.30 if len(models) > 3 else 1.18
+        ax.set_ylim(0, max(means) * headroom if max(means) > 0 else 1)
+        ax.grid(axis="x", visible=False)
+        ax.tick_params(axis="x", length=0)
+
+    handles = [
+        plt.Rectangle(
+            (0, 0), 1, 1, facecolor=MODEL_COLORS[m], hatch=MODEL_HATCH[m],
+            edgecolor=SURFACE, linewidth=1.2, label=MODEL_LABELS[m],
+        )
+        for m in models
+    ]
+    fig.legend(handles=handles, loc="lower center", ncol=min(len(models), 5),
+               bbox_to_anchor=(0.5, -0.09))
+    fig.suptitle(
+        f"Kết quả test trên cohort {cohort} (phân đoạn warm, K={k})",
+        fontsize=12, fontweight="bold", y=1.04,
+    )
+    return _save(fig, out_dir, f"fig_compare_{cohort}_k{k}")
+
+
+def plot_ablation_pair(
+    frame: pd.DataFrame, out_dir: Path, k: int = 20,
+    pair: tuple[str, str] = ("static_kg_gcn", "bt_dkgrec"),
+) -> Path:
+    """The thesis's central comparison: static knowledge graph vs dynamic.
+
+    These two models share dataset, split, mapping, candidate set, evaluator and
+    training budget. The only difference is ``edge_weight()``, so any gap here is
+    attributable to behaviour-time weighting and nothing else.
+    """
+    apply_style()
+    metrics = [m for m in METRICS if f"{m}@{k}" in frame.columns]
+    cohorts = sorted(frame["cohort"].unique())
+
+    fig, axes = plt.subplots(1, len(cohorts), figsize=(4.6 * len(cohorts), 3.6), squeeze=False)
+    for ax, cohort in zip(axes[0], cohorts, strict=True):
+        subset = frame[frame["cohort"] == cohort]
+        width, positions = 0.36, np.arange(len(metrics))
+        for offset, model in zip((-width / 2, width / 2), pair, strict=True):
+            values = [subset[subset["model"] == model][f"{m}@{k}"].mean() for m in metrics]
+            errors = [subset[subset["model"] == model][f"{m}@{k}"].std(ddof=0) for m in metrics]
+            ax.bar(
+                positions + offset, values, width=width,
+                yerr=[e if e > 0 else 0 for e in errors],
+                color=MODEL_COLORS[model], hatch=MODEL_HATCH[model],
+                edgecolor=SURFACE, linewidth=1.4, capsize=3,
+                label=MODEL_LABELS[model],
+                error_kw={"ecolor": INK_MUTED, "elinewidth": 1},
+            )
+            _label_bars(ax, positions + offset, values,
+                        [e if e > 0 else 0 for e in errors], rotate=True)
+
+        ax.set_title(f"cohort {cohort}")
+        ax.set_xticks(positions)
+        ax.set_xticklabels([f"{METRIC_LABELS[m]}@{k}" for m in metrics], fontsize=8.5)
+        ax.grid(axis="x", visible=False)
+        ax.tick_params(axis="x", length=0)
+        ax.margins(y=0.28)
+
+    axes[0][0].legend(loc="upper left")
+    fig.suptitle(
+        "Đồ thị tri thức ĐỘNG so với TĨNH — khác đúng một biến: edge_weight()",
+        fontsize=12, fontweight="bold", y=1.02,
+    )
+    return _save(fig, out_dir, f"fig_ablation_dynamic_vs_static_k{k}")
+
+
+def plot_warm_cold(
+    warm: pd.DataFrame, cold: pd.DataFrame, cohort: str, out_dir: Path, k: int = 20
+) -> Path | None:
+    """Warm versus cold visitors, reported side by side but never averaged together.
+
+    Returns ``None`` when no model measured the cold segment -- an empty figure
+    would imply the segment was measured and found to be zero.
+    """
+    apply_style()
+    warm_subset = warm[warm["cohort"] == cohort]
+    cold_subset = cold[cold["cohort"] == cohort]
+    if cold_subset.empty:
+        log.info("cohort %s khong co user cold do duoc — bo qua hinh warm/cold", cohort)
+        return None
+
+    models = [m for m in _models_present(warm_subset) if m in set(cold_subset["model"])]
+    metrics = [m for m in METRICS if f"{m}@{k}" in warm_subset.columns]
+
+    fig, axes = plt.subplots(1, len(metrics), figsize=(3.1 * len(metrics), 3.4))
+    axes = np.atleast_1d(axes)
+    width, positions = 0.36, np.arange(len(models))
+
+    for ax, metric in zip(axes, metrics, strict=True):
+        column = f"{metric}@{k}"
+        for offset, source, alpha, label in (
+            (-width / 2, warm_subset, 1.0, "warm"),
+            (width / 2, cold_subset, 0.45, "cold"),
+        ):
+            values = [source[source["model"] == m][column].mean() for m in models]
+            ax.bar(
+                positions + offset, values, width=width, alpha=alpha,
+                color=[MODEL_COLORS[m] for m in models],
+                edgecolor=SURFACE, linewidth=1.3, label=label,
+            )
+        ax.set_title(f"{METRIC_LABELS[metric]}@{k}")
+        ax.set_xticks(positions)
+        ax.set_xticklabels([MODEL_LABELS[m] for m in models], rotation=30,
+                           ha="right", fontsize=7.5)
+        ax.grid(axis="x", visible=False)
+        ax.tick_params(axis="x", length=0)
+
+    solid = plt.Rectangle((0, 0), 1, 1, facecolor=INK_MUTED, label="warm")
+    faded = plt.Rectangle((0, 0), 1, 1, facecolor=INK_MUTED, alpha=0.45, label="cold")
+    fig.legend(handles=[solid, faded], loc="lower center", ncol=2, bbox_to_anchor=(0.5, -0.12))
+    fig.suptitle(
+        f"Warm so với cold — cohort {cohort} (báo riêng, không trộn chung)",
+        fontsize=12, fontweight="bold", y=1.03,
+    )
+    return _save(fig, out_dir, f"fig_warm_cold_{cohort}_k{k}")
+
+
+def plot_training_curves(runs_dir: Path, cohort: str, out_dir: Path) -> Path | None:
+    """Loss and validation metric per epoch -- the evidence that a model converged.
+
+    The committee is likely to ask whether LightGCN was stopped early; this is
+    the figure that answers it. Runs without a real training curve (the
+    deterministic baselines) are skipped.
+    """
+    apply_style()
+    curves: dict[str, pd.DataFrame] = {}
+    for path in sorted(runs_dir.glob(f"{cohort}_*/curves.csv")):
+        frame = pd.read_csv(path)
+        if len(frame) < 2 or frame["loss"].isna().all():
+            continue  # heuristic baseline: nothing was trained
+        model = path.parent.name.split("_")[1:-2]
+        curves.setdefault("_".join(model), frame)
+
+    if not curves:
+        log.info("chua co run nao co duong hoi tu that (moc san khong hoc)")
+        return None
+
+    metric_columns = [c for c in next(iter(curves.values())).columns if c.startswith("valid_")]
+    fig, axes = plt.subplots(1, 2, figsize=(9.5, 3.6))
+
+    for model, frame in curves.items():
+        color = MODEL_COLORS.get(model, INK_MUTED)
+        axes[0].plot(frame["epoch"], frame["loss"], color=color, linewidth=2,
+                     label=MODEL_LABELS.get(model, model))
+        if metric_columns:
+            axes[1].plot(frame["epoch"], frame[metric_columns[0]], color=color,
+                         linewidth=2, label=MODEL_LABELS.get(model, model))
+
+    axes[0].set_title("Loss huấn luyện")
+    axes[0].set_xlabel("epoch")
+    axes[1].set_title(metric_columns[0] if metric_columns else "valid metric")
+    axes[1].set_xlabel("epoch")
+    axes[0].legend(loc="upper right")
+    fig.suptitle(f"Đường hội tụ — cohort {cohort}", fontsize=12, fontweight="bold", y=1.03)
+    return _save(fig, out_dir, f"fig_curves_{cohort}")

@@ -388,3 +388,63 @@ hỏi không cần thiết khi bảo vệ. Một môi trường duy nhất thì 
 **`evaluation.batch_size`.** Giữ 16 trong `configs/base.yaml` để VPS vẫn chạy được khi cần
 thử nhanh; notebook Colab ghi đè bằng `--eval-batch-size 512`. Đây là tham số hạ tầng, không
 ảnh hưởng kết quả — chỉ đổi số user chấm điểm mỗi lô.
+
+---
+
+## D21. Notebook Colab phải chống được việc bị ngắt giữa chừng
+
+**Vấn đề.** Colab dừng đột ngột là chuyện bình thường (hết phiên, mất kết nối, hết hạn mức
+GPU). Nếu notebook chỉ lưu kết quả ở cuối thì mất sạch, phải chạy lại từ đầu.
+
+**Ba lớp checkpoint, tất cả đặt trên Drive:**
+
+| Giai đoạn | Lưu ở | Khi chạy lại |
+|---|---|---|
+| Tiền xử lý (`data/interim`) | `cache/interim` | Nạp lại, bỏ qua bước tính |
+| Đồ thị (`data/processed`) | `cache/processed` | Nạp lại, bỏ qua bước tính |
+| Từng run | `runs/` | Run đã xong thì bỏ qua |
+
+**Cache gắn với commit.** Mỗi thư mục cache đi kèm một file `<tên>.commit` ghi commit đã
+sinh ra nó. Notebook chỉ dùng lại cache khi commit khớp với commit đang chạy. Đổi code →
+commit đổi → cache tự hết hiệu lực, tính lại.
+
+Đây là điểm quan trọng về mặt liêm chính, không chỉ tiện lợi: **không bao giờ có chuyện
+kết quả được sinh từ dữ liệu trung gian của một phiên bản code khác** mà không ai biết.
+
+**Run được đồng bộ NGAY sau khi xong**, không đợi đến cuối notebook. Colab chết giữa chừng
+thì những run đã hoàn thành vẫn còn nguyên trên Drive.
+
+---
+
+## D22. Chuẩn trình bày biểu đồ cho luận văn
+
+Toàn bộ hình do `src/evaluation/figures.py` sinh ra, không vẽ rời rạc trong notebook — để
+mọi hình trong luận văn nhất quán và để `scripts/06_make_tables.py` (Bước 9) dùng lại đúng
+mã đó.
+
+**Màu gắn với mô hình, không gắn với thứ hạng.** `MODEL_COLORS` cố định: một hình chỉ có ba
+mô hình vẫn giữ nguyên màu của từng mô hình. Nếu màu chạy theo thứ hạng thì hai hình cạnh
+nhau sẽ có cùng màu chỉ đôi ý nghĩa — người đọc so sánh sai mà không biết.
+
+| Mô hình | Màu | Hoa văn |
+|---|---|---|
+| Popularity | `#2a78d6` xanh dương | (đặc) |
+| Recent Popularity | `#eb6834` cam | `//` |
+| LightGCN | `#1baf7a` xanh ngọc | `\\` |
+| Static KG-GCN | `#4a3aa7` tím | `xx` |
+| BT-DKGRec-GCN | `#e34948` đỏ | `..` |
+
+**Đã kiểm định mù màu** (không phải ước lượng bằng mắt): CVD ΔE cặp liền kề xấu nhất **9,2**
+(ngưỡng ≥ 8), normal-vision ΔE **27,6** (sàn ≥ 15), dải độ sáng và sàn chroma đều đạt. Một
+cảnh báo tương phản ở màu xanh ngọc được giải bằng **nhãn số in trực tiếp trên cột** — vốn
+cũng là thứ luận văn cần.
+
+**Hoa văn + nhãn số = mã hoá thứ cấp.** Luận văn in đen trắng hoặc photocopy vẫn phân biệt
+được mô hình, không phụ thuộc màu.
+
+**Không bao giờ dùng hai trục y.** Hai đại lượng khác thang thì tách thành hai panel.
+
+**Định dạng số thích nghi.** Coverage ~2,5e-4; nếu in cứng 4 chữ số thập phân thì 0,000249
+và 0,000268 đều thành "0.0002" — mất thông tin và tạo cảm giác sai. Dùng 3 chữ số có nghĩa.
+
+**Xuất cả PNG 300 dpi và PDF vector** — Word dùng PNG, LaTeX dùng PDF.
