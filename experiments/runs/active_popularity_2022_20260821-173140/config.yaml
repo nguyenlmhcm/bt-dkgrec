@@ -1,0 +1,82 @@
+project:
+  name: bt-dkgrec-gcn
+  thesis: Xay dung ung dung du bao hanh vi khach hang su dung do thi tri thuc dong
+paths:
+  raw: data/raw
+  interim: data/interim
+  processed: data/processed
+  runs: experiments/runs
+data:
+  events_file: events.csv
+  item_properties_files:
+  - item_properties_part1.csv
+  - item_properties_part2.csv
+  category_tree_file: category_tree.csv
+  chunksize: 1000000
+  history_behaviors:
+  - view
+  - addtocart
+  - transaction
+  target_behaviors:
+  - addtocart
+  - transaction
+  split:
+    mode: time_span
+    train_ratio: 0.7
+    valid_ratio: 0.1
+    test_ratio: 0.2
+    boundary_inclusive: true
+cohort:
+  name: active
+  min_active_events: 5
+graph:
+  min_pv_freq: 5
+  max_property_nodes: 50000
+  drop_properties:
+  - categoryid
+  - available
+  rel_weight_item_category: 1.0
+  rel_weight_item_property: 1.0
+  rel_weight_category_parent: 1.0
+weighting:
+  alpha:
+    view: 1.0
+    addtocart: 2.0
+    transaction: 3.0
+  lambda_decay: 0.01
+  d_day: 86400000
+model:
+  name: popularity
+  kind: heuristic
+  use_side_info: false
+  trainable: false
+  embedding_dim: null
+  num_layers: null
+  recent_window_days: null
+  popularity_signal: target
+training:
+  loss: bpr
+  num_negatives: 1
+  batch_size: 65536
+  learning_rate: 0.005
+  reg_weight: 0.0001
+  max_epochs: 1000
+  eval_every: 5
+  patience: 20
+  monitor: ndcg@20
+  monitor_mode: max
+  device: cuda
+evaluation:
+  batch_size: 256
+  k_values:
+  - 10
+  - 20
+  primary_k: 20
+  filter_seen: true
+  candidate_scope: train_items
+  coverage_denominator: train_items
+  segments:
+  - warm
+  - cold
+  - all
+seed: 2022
