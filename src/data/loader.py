@@ -2,8 +2,9 @@
 
 All readers declare explicit dtypes and read only the columns that are used.
 ``item_properties`` (20.3M rows / 852 MB across two files) is never loaded whole:
-it is streamed in chunks and filtered inside each chunk, because preprocessing
-runs on a 3 GB VPS. See docs/DECISIONS.md muc D9.
+it is streamed in chunks and filtered inside each chunk, so peak memory stays
+proportional to one chunk rather than to the whole file. See docs/DECISIONS.md
+muc D9.
 """
 
 from __future__ import annotations

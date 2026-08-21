@@ -3,9 +3,16 @@
 /data/
 /Datasets_RetailRocket_Raw/
 
-# ── Run artifact: sinh ra khi train, không commit ───────────────────
-experiments/runs/*
-!experiments/runs/.gitkeep
+# ── Run artifact: tách theo độ nặng ─────────────────────────────────
+# Git   metrics.json, curves.csv, config.yaml, seed.txt
+#       → nhẹ, cần version control, Bước 9 `make tables` đọc lại từ đây
+# Drive topk.csv, train.log
+#       → nặng; topk.csv chỉ demo cần đọc, train.log chỉ dùng khi chẩn đoán
+experiments/runs/**/topk.csv
+experiments/runs/**/train.log
+
+# ── Hình: sinh lại được từ run artifact, không commit ───────────────
+experiments/figures/
 
 # ── Paper co ban quyen: giu local, KHONG commit ─────────────────────
 *.pdf

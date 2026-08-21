@@ -23,7 +23,7 @@ import matplotlib
 import numpy as np
 import pandas as pd
 
-matplotlib.use("Agg")  # headless: VPS and Colab both run without a display
+matplotlib.use("Agg")  # headless: no display on Colab or in CI
 import matplotlib.pyplot as plt  # noqa: E402
 
 from src.evaluation.reporting import (  # noqa: E402

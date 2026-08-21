@@ -18,7 +18,8 @@ data:
     - item_properties_part1.csv
     - item_properties_part2.csv
   category_tree_file: category_tree.csv
-  # Doc CSV theo chunk — VPS chi co 3 GB RAM, item_properties co 20,3 trieu dong.
+  # item_properties co 20,3 trieu dong / 852 MB. Doc theo chunk va loc ngay trong
+  # tung chunk de dinh bo nho ty le voi MOT chunk, khong ty le voi ca file.
   chunksize: 1000000
   # Hanh vi dung lam tin hieu lich su (canh tuong tac trong graph train).
   history_behaviors: [view, addtocart, transaction]
@@ -71,14 +72,12 @@ training:
   patience: 20              # so lan eval khong cai thien truoc khi dung
   monitor: ndcg@20          # chi doc valid — khong bao gio doc test
   monitor_mode: max
-  device: cuda              # Colab; VPS smoke test dat cpu qua CLI override
+  device: cuda              # moi thuc nghiem chay tren GPU Colab
 
 evaluation:
-  # So user cham diem moi lo. Chi phi lon nhat la mang chi so int64 cua
-  # argpartition: batch x n_item x 8 byte. Voi n_item = 205.106:
-  #   batch 256 -> ~840 MB (da lam OOM), batch 64 -> ~160 MB, batch 16 -> ~40 MB.
-  # VPS nay thuc te chi con ~350 MB kha dung nen dung 16. Tang len tren Colab.
-  batch_size: 16
+  # So user cham diem moi lo khi danh gia. Tham so HA TANG, khong anh huong
+  # ket qua: doi no chi doi so user xu ly moi lan, khong doi diem hay thu hang.
+  batch_size: 256
   k_values: [10, 20]
   primary_k: 20
   filter_seen: true             # loai item da tuong tac trong train khoi Top-K

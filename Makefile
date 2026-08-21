@@ -13,6 +13,9 @@ DEVICE    ?= cuda
 help:
 	@echo "BT-DKGRec-GCN"
 	@echo ""
+	@echo "  Moi thuc nghiem chay tren Colab: notebooks/run_all.ipynb"
+	@echo "  Tren VPS chi dung: setup, test, tables, neo4j, app"
+	@echo ""
 	@echo "  make setup                                    # venv + thu vien loi + kiem tra Buoc 1"
 	@echo "  make setup-train                              # them torch (Colab / GPU)"
 	@echo "  make test                                     # pytest"

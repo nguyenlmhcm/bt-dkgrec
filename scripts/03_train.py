@@ -75,7 +75,7 @@ def main() -> int:
     parser.add_argument("--device", default=None)
     parser.add_argument(
         "--eval-batch-size", type=int, default=None,
-        help="ghi de evaluation.batch_size — tang len tren may nhieu RAM (Colab)",
+        help="ghi de evaluation.batch_size (tham so ha tang, khong doi ket qua)",
     )
     args = parser.parse_args()
 

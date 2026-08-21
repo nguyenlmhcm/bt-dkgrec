@@ -14,9 +14,23 @@ make help         # xem toàn bộ lệnh
 
 ## Chạy thực nghiệm
 
-**Mọi thực nghiệm chạy trên Google Colab**, không chạy trên VPS — xem
-`notebooks/train_colab.ipynb`. VPS chỉ giữ mã nguồn, notebook và phần dựng KG cho demo
-(lý do: `docs/DECISIONS.md` mục D20).
+**Mọi thực nghiệm chạy trên Google Colab**, không chạy trên VPS — mở
+`notebooks/run_all.ipynb`. VPS chỉ giữ mã nguồn, notebook và phần demo.
+
+```
+VPS  viết code ──git push──▶ GitHub ──git pull──▶ Colab  train GPU
+                                ▲                    │
+                                └──commit ngược──────┤ metrics.json, curves.csv,
+                                                     │ config.yaml, seed.txt
+                                   Google Drive ◀────┘ topk.csv, train.log
+```
+
+| Artifact | Về đâu | Lý do |
+|---|---|---|
+| `metrics.json`, `curves.csv`, `config.yaml`, `seed.txt` | Git | Nhẹ, cần version control, `make tables` đọc lại |
+| `topk.csv`, `train.log` | Drive | Nặng; chỉ demo và chẩn đoán cần |
+
+Chi tiết: `docs/DECISIONS.md` mục D20, D23.
 
 ## Tài liệu
 
@@ -44,5 +58,5 @@ nếu mất.
 - [ ] Bước 7 — static_kg_gcn (subclass)
 - [ ] Bước 8 — lightgcn (train tới hội tụ)
 - [ ] Bước 9 — Multi-seed + bảng kết quả
-- [x] **Bước 10** — Colab notebook (`notebooks/train_colab.ipynb`)
+- [x] **Bước 10** — Colab notebook (`notebooks/run_all.ipynb`)
 - [ ] Bước 11 — Export Neo4j + demo

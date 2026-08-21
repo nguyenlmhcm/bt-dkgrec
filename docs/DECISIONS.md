@@ -448,3 +448,65 @@ cũng là thứ luận văn cần.
 và 0,000268 đều thành "0.0002" — mất thông tin và tạo cảm giác sai. Dùng 3 chữ số có nghĩa.
 
 **Xuất cả PNG 300 dpi và PDF vector** — Word dùng PNG, LaTeX dùng PDF.
+
+---
+
+## D23. Chốt hạ tầng: Colab train qua GitHub, artifact quay về theo hai đường
+
+**Luồng.** VPS viết code → `git push` → Colab `git pull` → train GPU → artifact quay về.
+VPS **không train**, kể cả mốc sàn.
+
+### Hoàn nguyên mọi chỉnh tạm cho VPS
+
+| Tham số | Từng bị hạ | Nay | Ghi chú |
+|---|---|---|---|
+| `training.batch_size` | (không đụng) | **65536** | Đúng chuẩn CLAUDE.md từ đầu |
+| `evaluation.batch_size` | 256 → 64 → 16 | **256** | Đã hoàn nguyên |
+| `training.device` | ghi chú "VPS smoke test cpu" | **cuda** | Bỏ ghi chú |
+
+`configs/`, `src/`, `scripts/`, `Makefile` đã quét sạch, không còn chuỗi "VPS" nào.
+
+### Artifact quay về theo hai đường
+
+| File | Về đâu | Lý do |
+|---|---|---|
+| `metrics.json`, `curves.csv`, `config.yaml`, `seed.txt` | **Git** | Nhẹ; cần version control; Bước 9 `make tables` đọc **toàn bộ** run từ repo |
+| `topk.csv`, `train.log` | **Drive** | Nặng; `topk.csv` chỉ demo Bước 11 cần đọc, `train.log` chỉ dùng khi chẩn đoán |
+
+`train.log` không nằm trong bảng phân loại ban đầu. Xếp về Drive vì với `max_epochs = 1000`
+nó sẽ phình to, mà nội dung chỉ hữu ích khi chẩn đoán — bằng chứng hội tụ nằm ở `curves.csv`,
+và file đó về Git.
+
+`.gitignore` chỉ chặn đúng hai mẫu `experiments/runs/**/topk.csv` và
+`experiments/runs/**/train.log`, thay cho mẫu chặn toàn bộ `experiments/runs/*` trước đây.
+Đã kiểm chứng bằng `git check-ignore` cho cả sáu file.
+
+**Commit ngược sau MỖI run**, không gom cuối buổi. Colab timeout giữa chừng thì phần đã chạy
+vẫn nằm an toàn trên GitHub.
+
+### Trạng thái tiến độ nằm trong chính repo
+
+Một run coi là xong khi `metrics.json` của nó có mặt trong repo. Nên mở phiên Colab mới,
+`git pull`, là chạy tiếp đúng chỗ dừng — kể cả trên máy khác. Không cần file trạng thái riêng,
+không có chuyện trạng thái lệch với thực tế.
+
+### Thông tin đăng nhập
+
+Token đọc theo thứ tự: **Colab Secrets** (`GITHUB_TOKEN`, khuyến nghị) → `getpass` nhập tay.
+
+Ba ràng buộc được giữ trong code:
+- Token **không nằm trong notebook**, không nằm trong bất kỳ file nào của repo
+- Token **không ghi vào `.git/config`** — URL push dựng trong bộ nhớ và truyền thẳng cho
+  `git push`, không dùng `git remote set-url`
+- Mọi thông báo lỗi đi qua hàm `redact()` trước khi in
+
+Đường dẫn Drive dùng `/content/drive/MyDrive/bt-dkgrec` — chuẩn Colab, không chứa thông tin
+cá nhân.
+
+### Một runtime cho cả hai nhóm mô hình
+
+`requirements-train.txt` = thư viện lõi + PyTorch, cài một lần vào Python của runtime
+(không dùng `make setup` vì Makefile tạo virtualenv riêng, còn trên Colab cần notebook và
+`!python scripts/...` dùng chung môi trường). Notebook có ô kiểm chứng in ra: mốc sàn cần
+numpy/pandas/scipy — đủ; mô hình GCN cần thêm torch + CUDA — và báo rõ nếu chưa bật GPU.
+Không phân mảnh môi trường.
