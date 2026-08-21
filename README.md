@@ -12,7 +12,11 @@ make test         # pytest
 make help         # xem toàn bộ lệnh
 ```
 
-Trên Colab (có GPU) chạy thêm `make setup-train` để cài PyTorch.
+## Chạy thực nghiệm
+
+**Mọi thực nghiệm chạy trên Google Colab**, không chạy trên VPS — xem
+`notebooks/train_colab.ipynb`. VPS chỉ giữ mã nguồn, notebook và phần dựng KG cho demo
+(lý do: `docs/DECISIONS.md` mục D20).
 
 ## Tài liệu
 
@@ -40,5 +44,5 @@ nếu mất.
 - [ ] Bước 7 — static_kg_gcn (subclass)
 - [ ] Bước 8 — lightgcn (train tới hội tụ)
 - [ ] Bước 9 — Multi-seed + bảng kết quả
-- [ ] Bước 10 — Colab notebook
+- [x] **Bước 10** — Colab notebook (`notebooks/train_colab.ipynb`)
 - [ ] Bước 11 — Export Neo4j + demo

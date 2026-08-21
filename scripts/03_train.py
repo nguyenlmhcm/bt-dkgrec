@@ -16,6 +16,7 @@ Usage::
 from __future__ import annotations
 
 import argparse
+import gc
 import json
 import sys
 from pathlib import Path
@@ -42,7 +43,11 @@ def build_context(cfg: Config, interim_dir: Path) -> tuple[ModelContext, pd.Data
     mapping = IdMapping.load(interim_dir)
     events["visitor_idx"] = mapping.visitor_index(events["visitorid"])
     events["item_idx"] = mapping.item_index(events["itemid"])
-    train = events[events["split"] == "train"]
+    # Copy so the parent frame can be released later: a pandas slice keeps the
+    # whole original alive, which defeats the point of freeing it.
+    train = events[events["split"] == "train"][
+        ["visitor_idx", "item_idx", "behavior", "timestamp"]
+    ].copy()
 
     edges_path = cfg.paths.resolved()["processed"] / cfg.cohort.name / cfg.model.name
     edges = (
@@ -68,9 +73,18 @@ def main() -> int:
     parser.add_argument("--cohort", choices=["original", "active"], default="original")
     parser.add_argument("--seed", type=int, default=2020)
     parser.add_argument("--device", default=None)
+    parser.add_argument(
+        "--eval-batch-size", type=int, default=None,
+        help="ghi de evaluation.batch_size — tang len tren may nhieu RAM (Colab)",
+    )
     args = parser.parse_args()
 
-    overrides = {"training": {"device": args.device}} if args.device else None
+    overrides: dict = {}
+    if args.device:
+        overrides["training"] = {"device": args.device}
+    if args.eval_batch_size:
+        overrides["evaluation"] = {"batch_size": args.eval_batch_size}
+    overrides = overrides or None
     cfg = load_config(model=args.model, cohort=args.cohort, seed=args.seed, overrides=overrides)
 
     run_dir = cfg.paths.resolved()["runs"] / cfg.run_id
@@ -106,14 +120,20 @@ def main() -> int:
         "n_train_items": mapping.n_items,
         "n_train_visitors": mapping.n_visitors,
     }
+    # Dung xong ground truth thi tra lai bo nho cho buoc cham diem: bang events
+    # chiem hang tram MB va khong con can nua khi da co eval set.
+    eval_sets = {
+        split: build_evaluation_set(events, mapping, split, cfg, seen)
+        for split in ("valid", "test")
+    }
+    del events
+    gc.collect()
+
     rankings_by_split = {}
-    eval_sets = {}
     for split in ("valid", "test"):
-        eval_set = build_evaluation_set(events, mapping, split, cfg, seen)
-        split_metrics, rankings = evaluator.evaluate(model, eval_set)
+        split_metrics, rankings = evaluator.evaluate(model, eval_sets[split])
         metrics[split] = split_metrics
         rankings_by_split[split] = rankings
-        eval_sets[split] = eval_set
 
     # Model selection reads validation only (leakage rule 7). Heuristics have
     # nothing to select, but the curve file is still written so every run

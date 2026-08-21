@@ -358,3 +358,33 @@ baseline được cấu hình riêng cho từng cohort, và điều đó làm ha
 **Ghi chú.** Chênh lệch giữa ba cửa sổ rất nhỏ (~4%), nên baseline này không nhạy với
 tham số. Đó là tin tốt: kết quả của nó là mốc sàn ổn định, không phải sản phẩm của việc
 dò tham số.
+
+---
+
+## D20. Đổi phân công hạ tầng: **mọi thực nghiệm chạy trên Colab**, kể cả mốc sàn
+
+**Quyết định (21/8/2026).** Phân công lại:
+
+| | Việc |
+|---|---|
+| VPS | Viết code, cấu trúc dự án, notebook, dựng KG phục vụ demo, đẩy lên GitHub |
+| **Colab** | **Chạy toàn bộ thực nghiệm — mọi mô hình, mọi seed, mọi cohort** |
+
+Trước đó `popularity` và `recent_popularity` chạy trên VPS vì chúng không cần GPU.
+
+**Lý do kỹ thuật.** VPS có 3,9 GB RAM nhưng VS Code server và các tiến trình nền chiếm
+~2,6 GB, chỉ còn **343–768 MB** cho pipeline. Hai run `original/recent_popularity` bị
+kernel giết (`exit 137`) ở mức rss chỉ 370–477 MB. Đã hạ `evaluation.batch_size` từ 256 →
+64 → 16 nhưng biên an toàn vẫn quá mỏng và phụ thuộc vào việc lúc đó máy đang rảnh hay bận.
+
+**Lý do học thuật — quan trọng hơn.** Chạy một phần thực nghiệm trên VPS và phần còn lại
+trên Colab tạo ra bảng kết quả **trộn hai môi trường**. Với mô hình tất định thì con số
+không đổi, nhưng nó phá vỡ nguyên tắc "mọi mô hình dùng chung giao thức" và tạo ra một câu
+hỏi không cần thiết khi bảo vệ. Một môi trường duy nhất thì không có gì để hỏi.
+
+**Hệ quả đã thực hiện.** 10 run đã chạy trên VPS bị **loại khỏi** `experiments/runs/`
+(chuyển ra ngoài, không xoá). Kết quả chính thức sẽ được sinh lại toàn bộ trên Colab.
+
+**`evaluation.batch_size`.** Giữ 16 trong `configs/base.yaml` để VPS vẫn chạy được khi cần
+thử nhanh; notebook Colab ghi đè bằng `--eval-batch-size 512`. Đây là tham số hạ tầng, không
+ảnh hưởng kết quả — chỉ đổi số user chấm điểm mỗi lô.
