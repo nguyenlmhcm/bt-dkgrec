@@ -252,3 +252,122 @@ def test_baselines_are_deterministic_so_seed_std_is_zero(context) -> None:
     first.fit(context)
     second.fit(context)
     assert np.array_equal(first.score(np.array([0])), second.score(np.array([0])))
+
+
+# ══ Tie-breaking ═════════════════════════════════════════════════════════
+#
+# Popularity scores are interaction counts, so ties are the rule rather than
+# the exception: on cohort Original, 205.106 items share 73 distinct scores.
+# Without a fixed rule the winner at the Top-K boundary is whatever the
+# compiled kernel happens to pick, and the same run measures differently on
+# two machines.
+
+
+def _evaluator(mapping: IdMapping, n_items: int, k_values=(2, 3)) -> Evaluator:
+    cfg = load_config(
+        model="popularity",
+        overrides={"evaluation": {"k_values": list(k_values), "primary_k": max(k_values)}},
+    )
+    seen = build_seen_matrix(
+        pd.DataFrame({"visitor_idx": [], "item_idx": []}, dtype="int64"), mapping
+    )
+    return Evaluator(cfg, mapping, seen)
+
+
+def _mapping_of(n_items: int) -> IdMapping:
+    return IdMapping(
+        visitor_ids=np.array([1], dtype="int32"),
+        item_ids=np.arange(10, 10 + n_items, dtype="int32"),
+    )
+
+
+def test_ties_are_broken_by_ascending_item_index() -> None:
+    """★ Equal scores: the smaller index wins, on every machine."""
+    mapping = _mapping_of(6)
+    evaluator = _evaluator(mapping, 6)
+    #                 idx: 0    1    2    3    4    5
+    scores = np.array([[1.0, 9.0, 5.0, 9.0, 5.0, 5.0]], dtype="float32")
+
+    ranked = evaluator._top_k_indices(scores)
+
+    # 9 at indices 1 and 3 -> 1 first. 5 at 2, 4, 5 -> 2 first.
+    assert ranked[0].tolist() == [1, 3, 2]
+
+
+def test_the_contested_boundary_admits_the_smaller_index() -> None:
+    """The real shape of the bug: two items tied exactly at rank K."""
+    mapping = _mapping_of(5)
+    evaluator = _evaluator(mapping, 5, k_values=(2,))
+    #                 idx: 0    1    2    3    4
+    scores = np.array([[3.0, 7.0, 9.0, 7.0, 1.0]], dtype="float32")
+
+    ranked = evaluator._top_k_indices(scores)
+
+    # Rank 1 is index 2 (score 9). Rank 2 is contested between 1 and 3, both
+    # scoring 7 -- exactly the situation that made Colab and the VPS disagree.
+    assert ranked[0].tolist() == [2, 1]
+
+
+def test_ranking_matches_a_brute_force_reference_on_heavily_tied_scores() -> None:
+    """Property check against an independent, obviously-correct implementation."""
+    rng = np.random.default_rng(2020)
+    n_rows, n_items, k = 40, 200, 20
+    mapping = _mapping_of(n_items)
+    evaluator = _evaluator(mapping, n_items, k_values=(k,))
+    # Integers in a narrow range: about ten items share every score.
+    scores = rng.integers(0, 20, size=(n_rows, n_items)).astype("float32")
+
+    ranked = evaluator._top_k_indices(scores)
+
+    for row in range(n_rows):
+        # lexsort: last key is primary. Sort by score descending, index ascending.
+        reference = np.lexsort((np.arange(n_items), -scores[row]))[:k]
+        assert ranked[row].tolist() == reference.tolist()
+
+
+def test_filtered_items_sort_last_rather_than_first() -> None:
+    """Seen-filtering writes -inf; negating for the sort must not float it up."""
+    mapping = _mapping_of(4)
+    evaluator = _evaluator(mapping, 4, k_values=(3,))
+    scores = np.array([[-np.inf, 2.0, -np.inf, 8.0]], dtype="float32")
+
+    ranked = evaluator._top_k_indices(scores)
+
+    assert ranked[0].tolist()[:2] == [3, 1]
+    assert np.isneginf(scores[0, ranked[0, 2]])
+
+
+def test_ranking_is_unchanged_when_the_same_row_is_scored_in_a_different_batch() -> None:
+    """Row independence: batching is infrastructure and must not move a result."""
+    mapping = _mapping_of(50)
+    evaluator = _evaluator(mapping, 50, k_values=(10,))
+    rng = np.random.default_rng(7)
+    scores = rng.integers(0, 5, size=(8, 50)).astype("float32")
+
+    together = evaluator._top_k_indices(scores)
+    alone = np.vstack([evaluator._top_k_indices(scores[row : row + 1]) for row in range(8)])
+
+    assert np.array_equal(together, alone)
+
+
+def test_ranking_handles_a_universe_smaller_than_k() -> None:
+    mapping = _mapping_of(3)
+    evaluator = _evaluator(mapping, 3, k_values=(10,))
+    scores = np.array([[4.0, 4.0, 9.0]], dtype="float32")
+
+    ranked = evaluator._top_k_indices(scores)
+
+    assert ranked[0].tolist() == [2, 0, 1]
+
+
+def test_every_item_tied_at_the_same_score_still_yields_k_items() -> None:
+    """The degenerate case: 90% of Original's items are tied at zero."""
+    mapping = _mapping_of(100)
+    evaluator = _evaluator(mapping, 100, k_values=(20,))
+    scores = np.zeros((3, 100), dtype="float32")
+
+    ranked = evaluator._top_k_indices(scores)
+
+    assert ranked.shape == (3, 20)
+    for row in range(3):
+        assert ranked[row].tolist() == list(range(20))

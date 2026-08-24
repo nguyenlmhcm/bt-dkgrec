@@ -846,3 +846,64 @@ metric giám sát từ `metrics.json` của chính run đó, và chỉ vẽ nh�
 
 **Chi phí:** 0 giây tính toán thêm. `curves.csv` từ ~60 dòng lên ~300 dòng — vài chục KB.
 
+---
+
+## D32 — Phá hòa cố định: điểm bằng nhau thì **item_id nhỏ hơn** xếp trước
+
+**Triệu chứng.** Cùng mô hình, cùng seed, cùng file dữ liệu, cùng code (`git diff` rỗng),
+chạy hai máy ra hai số:
+
+| | valid warm ndcg@20 |
+|---|---|
+| Colab (Python 3.13, scipy 1.16) | 0,021099 |
+| VPS (Python 3.12, scipy 1.14) | 0,021224 |
+
+**Nguyên nhân.** `popularity` chấm điểm bằng cách **đếm** — điểm là số nguyên. Trên cohort
+Original, 205.106 item chỉ có **73 mức điểm khác nhau**, riêng điểm 0 đã có 185.535 item.
+Ở K=20, điểm tại biên là 67 và có **2 item cùng điểm đó** (item 9877 và 318333) tranh một
+chỗ.
+
+`np.argpartition` chỉ hứa "khối trả về chứa K giá trị lớn nhất". Nó **không hứa** item nào
+trong nhóm hòa được chọn, và `argsort` mặc định (quicksort) cũng không hứa thứ tự của chúng.
+Khi không có lời hứa, kết quả phụ thuộc bản numpy được biên dịch cho Python nào — nên đổi máy
+là đổi số.
+
+**Vì sao không bỏ qua được.** `src/evaluation/reporting.py` có
+`DETERMINISTIC_MODELS = ("popularity", "recent_popularity")` và tự động chú thích *"hai mô hình
+này tất định nên std = 0"*. Câu đó chỉ đúng **trong cùng một máy**. Bảng kết quả ghi
+`± 0,0000` là một tuyên bố mạnh hơn sự thật; ai tải code về chạy lại sẽ ra số khác.
+
+**Quyết định.** Xếp theo (điểm giảm dần, **chỉ số item tăng dần**). Vì `IdMapping` gán chỉ số
+từ `np.sort(unique(item_ids))`, chỉ số tăng dần **chính là item_id tăng dần** — quy tắc sống
+sót qua việc dựng lại mapping và giống nhau trên mọi máy.
+
+Cài đặt: lọc O(n) lấy đúng K ứng viên (item hơn hẳn biên + những item hòa biên có chỉ số nhỏ
+nhất), rồi sắp **ổn định** 20 phần tử. Không sắp toàn cục 205 nghìn item.
+
+**Ba phép kiểm chứng trên dữ liệu thật, không phải trên fixture:**
+
+| Câu hỏi | Kết quả |
+|---|---|
+| Khớp brute-force `np.lexsort` trên 120 user thật? | 120/120, 0 lệch |
+| Điểm **không** hòa → có giữ nguyên kết quả cũ? | Giống hệt từng phần tử |
+| VPS sau khi sửa có ra số của Colab? | ndcg@20 trùng khít tới chữ số cuối |
+
+Phép thứ hai quan trọng: nó chứng minh **chỉ** trường hợp hòa bị đổi, không có tác dụng phụ
+lên đường đi thông thường. Ba mô hình đồ thị chấm điểm bằng tích vô hướng float — hòa đúng tới
+từng bit gần như không xảy ra — nên chúng không bị ảnh hưởng.
+
+**Hệ quả: 12 run baseline ngày 21/08 phải chạy lại.** Đã đối chiếu từng run bằng evaluator mới:
+cả 12 đều lệch, chỗ nặng nhất không hề nhỏ.
+
+| Run | Chỗ lệch nặng nhất | Cũ | Mới | Lệch |
+|---|---|---|---|---|
+| active/recent_popularity | valid warm hit_rate@10 | 0,017094 | 0,021368 | **25,0%** |
+| original/popularity | test cold hit_rate@20 | 0,019894 | 0,021515 | 8,1% |
+
+**Một điều phải nói thẳng trong luận văn.** Quy tắc này ưu tiên item_id nhỏ, mà item_id nhỏ
+trong RetailRocket là item vào catalog sớm — thường nhiều lịch sử hơn và hay là target hơn.
+Nên baseline **mạnh lên** sau khi sửa (mọi con số đổi đều đổi theo hướng tăng). Đây là hướng
+*bất lợi* cho mô hình đề xuất, tức là hướng bảo thủ — chọn nó là chọn tự làm khó mình, không
+phải tự ưu ái. Phương án thay thế (hoán vị ngẫu nhiên có seed cố định) trung tính hơn về kỳ
+vọng nhưng khó giải thích hơn và không tự nhiên hơn; nếu hội đồng hỏi, câu trả lời là: mọi quy
+tắc phá hòa đều tùy tiện, cái đáng bảo vệ là nó **cố định và công khai**.

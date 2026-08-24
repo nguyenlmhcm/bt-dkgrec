@@ -180,17 +180,7 @@ class Evaluator:
                     visitor_idx = evaluation_set.visitor_indices[position]
                     if visitor_idx >= 0:
                         scores[offset, self.seen[visitor_idx].indices] = -np.inf
-            # Partition on the scores themselves rather than on ``-scores``:
-            # negating would duplicate a (batch x n_item) array, and the int64
-            # index array argpartition returns is already the dominant cost.
-            n_items = scores.shape[1]
-            if n_items <= self.max_k:
-                ranked = np.argsort(scores, axis=1)[:, ::-1]
-            else:
-                kth = n_items - self.max_k
-                top = np.argpartition(scores, kth, axis=1)[:, kth:]
-                order = np.take_along_axis(scores, top, axis=1).argsort(axis=1)[:, ::-1]
-                ranked = np.take_along_axis(top, order, axis=1)
+            ranked = self._top_k_indices(scores)
 
             # A filtered item carries -inf and must never surface, however few
             # candidates remain. Its slot becomes -1: an empty slot, not item 0.
@@ -206,6 +196,70 @@ class Evaluator:
                 self.mapping.item_ids[recommended], np.sort(self.mapping.item_ids)
             )
         return rankings
+
+    def _top_k_indices(self, scores: np.ndarray) -> np.ndarray:
+        """Top-K item indices per row, ties broken by **ascending item index**.
+
+        Why this is not ``argpartition`` any more
+        -----------------------------------------
+        ``np.argpartition`` promises only that the returned block holds the K
+        largest values. It promises nothing about *which* of several equal
+        values lands inside, and neither does ``argsort``'s default quicksort
+        about their order. That is fine when scores are distinct, and wrong
+        here: ``popularity`` scores are interaction **counts**, so on cohort
+        Original 205.106 items carry only 73 distinct scores and 185.535 of
+        them are tied at zero. At K=20 the boundary score is shared by two
+        items and exactly one can be admitted.
+
+        With no tie-break rule the winner is decided by whichever compiled
+        kernel numpy happens to use, which differs between environments. The
+        same model, seed and data measured ``ndcg@20 = 0.021099`` on Colab and
+        ``0.021224`` on the VPS -- a 0,6% swing from nothing but the machine.
+        That contradicts the ``std = 0`` footnote the report attaches to the
+        deterministic baselines (:mod:`src.evaluation.reporting`).
+
+        The rule
+        --------
+        Rank by score descending, then by item index ascending. Because
+        ``IdMapping`` assigns indices from ``np.sort(unique(item_ids))``, an
+        ascending index is an ascending **item id**: the rule survives a
+        rebuild of the mapping and is stable across machines.
+
+        Args:
+            scores: ``(batch, n_items)`` float32; already seen-filtered, so a
+                removed item carries ``-inf``.
+
+        Returns:
+            ``(batch, k)`` int index array, best first, where ``k`` is
+            ``min(max_k, n_items)``.
+        """
+        n_rows, n_items = scores.shape
+        k = min(self.max_k, n_items)
+
+        if n_items <= self.max_k:
+            selected = np.tile(np.arange(n_items), (n_rows, 1))
+        else:
+            # Value at rank k. Items above it are certainly in; items equal to
+            # it are the contested group.
+            boundary = np.partition(scores, n_items - k, axis=1)[:, n_items - k][:, None]
+            greater = scores > boundary
+            equal = scores == boundary
+            # Rank within the tied group, counted left to right, so "keep the
+            # first few" means "keep the smallest item indices".
+            position_in_tie = np.cumsum(equal, axis=1, dtype="int32") - 1
+            room_left = k - greater.sum(axis=1, dtype="int32")[:, None]
+            chosen = greater | (equal & (position_in_tie < room_left))
+            # Exactly k per row: at most k-1 items beat the boundary, and at
+            # least k items reach it. flatnonzero walks row-major, so each
+            # row's indices come out already sorted ascending.
+            selected = np.flatnonzero(chosen).reshape(n_rows, k) % n_items
+
+        # Stable sort keeps the ascending-index order among equal scores.
+        # Negating is safe for -inf: it becomes +inf and sorts last, which is
+        # exactly where a filtered item belongs.
+        chosen_scores = np.take_along_axis(scores, selected, axis=1)
+        order = np.argsort(-chosen_scores, axis=1, kind="stable")
+        return np.take_along_axis(selected, order, axis=1)
 
     def evaluate(
         self, model: Recommender, evaluation_set: EvaluationSet
