@@ -686,3 +686,38 @@ notebook dừng thật.
    `Â²` tự nó đã mang cấu trúc cộng đồng — lan truyền trên embedding ngẫu nhiên đã tách
    khối sẵn. Bài test đo lan truyền chứ không đo học, và chính nó che mất lỗi số 1.
    Đã thay bằng so sánh trước/sau `fit()` từ cùng một seed.
+
+---
+
+## D29 — Cache gắn với commit của **file quyết định ra nó**, không phải commit của cả repo
+
+**Vấn đề.** `cache_valid()` so dấu đóng của cache với `COMMIT` — hash của toàn repo. Nên
+sửa một dòng trong `src/models/`, thêm một bài test, hay sửa `DECISIONS.md` cũng làm cache
+tiền xử lý hết hiệu lực. Colab phải đọc lại `events.csv` và 20,3 triệu dòng
+`item_properties` (852 MB), dựng lại 6 đồ thị — 25–35 phút — **để ra đúng kết quả cũ**.
+
+Đo thật: từ `16c6bc8` đến `ebafdbd` có **84 file thay đổi**, trong đó **0 file** thuộc
+`src/data/`, `src/graph/`, `configs/` hay `scripts/01,02`. Cache hoàn toàn còn dùng được,
+nhưng cơ chế cũ sẽ vứt đi.
+
+**Quyết định.** Không so hash nữa, mà **hỏi thẳng git**: giữa commit đã đóng dấu và HEAD,
+có file phụ thuộc nào thay đổi không?
+
+```python
+git diff --name-only <stamp>..HEAD -- <danh sach phu thuoc>
+```
+
+Rỗng thì cache còn dùng được. Cách này tự nhận ra cache cũ vẫn hợp lệ nên không cần đổi
+định dạng dấu đóng, và không tốn một lần tính lại để "chuyển đổi".
+
+**Danh sách phụ thuộc cố ý rộng hơn mức tối thiểu.** `src/utils/` nằm trong đó dù chỉ
+`config.py` mới thật sự ảnh hưởng. Lý do: bỏ sót một phụ thuộc → dùng nhầm cache cũ → **sai
+kết quả trong im lặng**; thừa một phụ thuộc → chỉ tốn thêm thời gian. Hai loại lỗi này
+không ngang giá nhau.
+
+**Ba trường hợp không trả lời được đều coi là không dùng được cache**, không đoán mò: chưa
+có cache trên Drive; commit đã đóng dấu không còn trong lịch sử (sau force-push); lệnh git
+lỗi. Đã kiểm cả bốn tình huống trên lịch sử thật của repo trước khi đưa vào notebook.
+
+**Ô 17 phải in ra lý do.** Nếu tính lại, nó nêu tên file đã đổi. Một cache tự vô hiệu mà
+không nói vì sao thì lần sau không ai biết nên tin nó hay không.
