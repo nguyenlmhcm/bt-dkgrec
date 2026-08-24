@@ -258,31 +258,75 @@ def test_fit_lowers_the_bpr_loss(setup) -> None:
     assert result.losses[-1] < 0.5 * result.losses[0]
 
 
-def _block_preference(model: BTDKGRec) -> float:
-    """Share of visitors who score their own item block above every other block."""
+def _own_block_mask(visitor: int) -> np.ndarray:
+    """Items belonging to the block visitor ``v`` actually interacts with."""
     block_size = N_ITEMS // N_BLOCKS
-    visitors = np.arange(N_VISITORS)
-    scores = model.score(visitors)
-    own_block = np.zeros(N_ITEMS, dtype=bool)
+    mask = np.zeros(N_ITEMS, dtype=bool)
+    start = (visitor % N_BLOCKS) * block_size
+    mask[start : start + block_size] = True
+    return mask
 
-    better = 0
-    for visitor in visitors:
-        own_block[:] = False
-        start = (visitor % N_BLOCKS) * block_size
-        own_block[start : start + block_size] = True
-        better += scores[visitor][own_block].mean() > scores[visitor][~own_block].mean()
-    return better / N_VISITORS
+
+def _block_fraction(model: BTDKGRec) -> float:
+    """Share of visitors scoring their own block above the rest.
+
+    Bounded above by 1.0, so it **saturates** -- see
+    :func:`test_fitting_ranks_better_than_propagation_over_random_embeddings`
+    for why that makes it useless as a progress measure on its own.
+    """
+    scores = model.score(np.arange(N_VISITORS))
+    hits = 0
+    for visitor in range(N_VISITORS):
+        own = _own_block_mask(visitor)
+        hits += scores[visitor][own].mean() > scores[visitor][~own].mean()
+    return hits / N_VISITORS
+
+
+def _block_margin(model: BTDKGRec) -> float:
+    """How far the own block sits above the rest, in units of score spread.
+
+    Unbounded, so it cannot saturate. Dividing by the visitor's own score
+    standard deviation matters: training grows the norm of the embeddings, and a
+    raw margin would therefore rise even if the *ranking* did not improve at all.
+    Normalising measures separation rather than scale.
+    """
+    scores = model.score(np.arange(N_VISITORS))
+    margins = []
+    for visitor in range(N_VISITORS):
+        own = _own_block_mask(visitor)
+        row = scores[visitor]
+        spread = float(row.std())
+        if spread == 0.0:
+            margins.append(0.0)
+            continue
+        margins.append(float(row[own].mean() - row[~own].mean()) / spread)
+    return float(np.mean(margins))
 
 
 def test_fitting_ranks_better_than_propagation_over_random_embeddings(setup) -> None:
     """The honest form of "the model learned something".
 
-    A two-layer propagation over a block-structured graph already separates the
-    blocks even with *random* layer-0 embeddings -- ``A_hat^2`` carries the
-    community structure regardless of what it multiplies. So "the fitted model
-    prefers the right block" on its own proves nothing about training. What has
-    to be shown is that fitting improves on the untrained propagation, measured
-    from the same initialisation.
+    A propagation over a block-structured graph already separates the blocks
+    even with *random* layer-0 embeddings -- ``A_hat^L`` carries the community
+    structure regardless of what it multiplies. So "the fitted model prefers the
+    right block" proves nothing about training.
+
+    The first version of this test compared the **fraction** of visitors ranked
+    correctly, and it broke the moment ``num_layers`` went from 2 to 3: with one
+    more propagation step the *untrained* model already scored 1.0, and
+    ``assert after > before`` became ``assert 1.0 > 1.0``. The lesson is not
+    about the threshold -- it is that a saturating quantity cannot measure
+    progress. The margin below is unbounded, so extra propagation raises the
+    starting point without ever capping the finish.
+
+    Measured on this fixture (seed 2020, dim 64, K=3): margin 1.566 -> 1.992,
+    while the fraction sits at 1.000 both before and after. The fraction is kept
+    only as a floor check; the margin is what carries the claim. Note also what
+    those numbers say about the fixture -- propagation alone already solves the
+    block structure here, so this test shows training *sharpens* the ranking,
+    not that training is what makes it work at all. The tests that carry the
+    latter are ``test_fit_lowers_the_bpr_loss`` and
+    ``test_training_is_kept_when_no_validation_ever_chose_an_epoch``.
     """
     make_context, _, _ = setup
     context = make_context(_config(max_epochs=300))
@@ -291,15 +335,15 @@ def test_fitting_ranks_better_than_propagation_over_random_embeddings(setup) -> 
     untrained = BTDKGRec()
     untrained._prepare(context)
     untrained.refresh_embeddings()
-    before = _block_preference(untrained)
+    before = _block_margin(untrained)
 
     torch.manual_seed(2020)          # same draw, so only training differs
     model = BTDKGRec()
     model.fit(context)
-    after = _block_preference(model)
+    after = _block_margin(model)
 
-    assert after > before
-    assert after >= 0.95
+    assert after > before, f"bien do khong tang: {before:.4f} -> {after:.4f}"
+    assert _block_fraction(model) >= 0.95
 
 
 def test_training_is_kept_when_no_validation_ever_chose_an_epoch(setup) -> None:
