@@ -1,0 +1,83 @@
+{
+  "run_id": "original_lightgcn_2020_20260824-151212",
+  "cohort": "original",
+  "model": "lightgcn",
+  "seed": 2020,
+  "model_description": {
+    "model": "lightgcn",
+    "supports_cold_start": false,
+    "embedding_dim": 64,
+    "num_layers": 3,
+    "init_std": 0.1,
+    "learnable": "layer-0 embeddings only (khong co ma tran trong so giua cac lop)",
+    "n_nodes": 1233091,
+    "weighting": "uniform",
+    "negative_sampling": {
+      "strategy": "uniform_over_train_items",
+      "num_negatives": 1,
+      "n_collisions_resampled": 38509,
+      "n_collisions_unresolved": 0,
+      "rule_6_checks": 170
+    },
+    "training": {
+      "n_epochs": 170,
+      "best_epoch": 70,
+      "best_valid_metric": 0.025627843093901793,
+      "monitor": "ndcg@20",
+      "stopped_early": true,
+      "first_loss": 0.6251559928696033,
+      "last_loss": 0.0024458360085213124,
+      "seconds": 1932.1
+    }
+  },
+  "n_train_items": 205106,
+  "n_train_visitors": 1027985,
+  "valid": {
+    "n_users": {
+      "warm": 552,
+      "cold": 3136,
+      "all": 3688
+    },
+    "unrankable_targets": {
+      "item_not_in_train": 215,
+      "removed_as_already_seen": 257,
+      "total_targets": 5971
+    },
+    "warm": {
+      "recall@10": 0.04108957959787479,
+      "ndcg@10": 0.020922873504636473,
+      "hit_rate@10": 0.06340579710144928,
+      "coverage@10": 0.01037512310707634,
+      "recall@20": 0.05864557432778256,
+      "ndcg@20": 0.025627843093901793,
+      "hit_rate@20": 0.08152173913043478,
+      "coverage@20": 0.01827347810400476
+    },
+    "cold": null,
+    "all": null
+  },
+  "test": {
+    "n_users": {
+      "warm": 593,
+      "cold": 6786,
+      "all": 7379
+    },
+    "unrankable_targets": {
+      "item_not_in_train": 1058,
+      "removed_as_already_seen": 164,
+      "total_targets": 12012
+    },
+    "warm": {
+      "recall@10": 0.01940885349805015,
+      "ndcg@10": 0.014321921351050707,
+      "hit_rate@10": 0.03709949409780776,
+      "coverage@10": 0.011277095745614463,
+      "recall@20": 0.025544060915372438,
+      "ndcg@20": 0.015901294755820874,
+      "hit_rate@20": 0.047217537942664416,
+      "coverage@20": 0.019409476075785203
+    },
+    "cold": null,
+    "all": null
+  }
+}
