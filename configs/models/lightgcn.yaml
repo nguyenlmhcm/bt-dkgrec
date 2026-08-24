@@ -7,5 +7,10 @@ model:
   kind: gcn
   use_side_info: false
   trainable: true
-  embedding_dim: 32
-  num_layers: 2
+  # dim va K lay theo LightGCN goc [He et al., SIGIR 2020] muc 4.1.2:
+  # embedding size co dinh 64 cho MOI mo hinh, K do trong khoang 1-4 va K=3 tot nhat.
+  # KHONG lay 32/2 cua v11 — v11 khong dò tham so va khong bien luan hai con so do.
+  # Ca 5 mo hinh dung chung gia tri nay (quy tac 8), nen baseline chay o dung cau
+  # hinh tac gia no cong bo va khong ai bi thiet. Xem docs/DECISIONS.md muc D30.
+  embedding_dim: 64
+  num_layers: 3

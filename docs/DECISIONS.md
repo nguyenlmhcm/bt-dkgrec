@@ -721,3 +721,68 @@ lỗi. Đã kiểm cả bốn tình huống trên lịch sử thật của repo 
 
 **Ô 17 phải in ra lý do.** Nếu tính lại, nó nêu tên file đã đổi. Một cache tự vô hiệu mà
 không nói vì sao thì lần sau không ai biết nên tin nó hay không.
+
+---
+
+## D30 — Bỏ `dim=32, K=2` của v11, lấy `dim=64, K=3` của paper LightGCN cho **cả 5 mô hình**
+
+**Câu hỏi hội đồng mà quyết định này nhắm tới.** Có **hai** câu, và chúng cần hai câu trả
+lời khác nhau — gộp lại là trả lời hụt:
+
+| Câu hỏi | Trả lời bằng gì |
+|---|---|
+| "LightGCN chưa hội tụ" | `curves.csv` — đường valid phẳng trước khi early stopping dừng |
+| "Anh cố tình làm yếu baseline" | **`curves.csv` KHÔNG trả lời được.** Một mô hình nhỏ đã hội tụ thì vẫn là mô hình nhỏ |
+
+Câu thứ hai nói về **dung lượng mô hình**, và chỉ sửa được bằng cách đổi tham số.
+
+**`dim=32, K=2` đến từ đâu?** Từ v11. Mà v11 **không dò tham số và không biện luận** hai con
+số đó. Trong khi cả dự án này được xây lại từ đầu để **thay hết số của v11**, thì không có lý
+do gì kế thừa đúng những lựa chọn v11 không chứng minh được.
+
+**`dim=64, K=3` đến từ đâu?** Từ chính tác giả LightGCN, mục 4.1.2:
+
+> *"the embedding size is fixed to 64 for all models... We test K in the range of 1 to 4, and
+> satisfactory performance can be achieved when K equals to 3."*
+> — He et al., LightGCN, SIGIR 2020
+
+**Quyết định: cả 5 mô hình dùng `dim=64, K=3`.** Không phải chỉ `lightgcn`.
+
+Nếu chỉ nâng cho `lightgcn`, phép so sánh mất kiểm soát theo chiều ngược lại — `bt_dkgrec`
+thắng hay thua đều không quy được về đồ thị nữa. Quy tắc 8 đòi cấu hình dùng chung. Cấp cho
+tất cả thì baseline chạy ở **đúng cấu hình tác giả nó công bố**, và mô hình đề xuất không
+được ưu ái cũng không bị thiệt.
+
+Hệ quả cho câu viết trong luận văn: *"Baseline được cấp đúng cấu hình mà chính tác giả công
+bố là tốt nhất, và mô hình đề xuất vẫn vượt"* — mạnh hơn hẳn cấu hình v11.
+
+**Chi phí, đã tính trước:** mỗi bước tốn khoảng gấp ba (embedding gấp đôi, thêm một tầng lan
+truyền). Bộ nhớ GPU cho cohort Original: 1.528 MB → **2.982 MB**. T4 có 15.360 MB, dư nhiều.
+
+**Cái KHÔNG đổi, và vì sao:**
+
+`batch_size = 65.536` và `learning_rate = 0.005` cũng là di sản v11 và cũng đáng ngờ. Nhưng
+khác `dim`/`K` ở hai điểm:
+
+1. Paper dùng `batch = 1.024`, mà **ta không kham nổi**. Lan truyền của ta là toàn đồ thị mỗi
+   bước (đúng như LightGCN gốc), nên chi phí mỗi bước do đồ thị quyết định chứ không do batch.
+   Hạ batch 64 lần thì số bước tăng 64 lần và thời gian tăng gần bấy nhiêu — hàng chục giờ GPU
+   cho 18 run. Đây là ràng buộc thật.
+2. Chưa có số đo nào trên T4, nên chốt một giá trị trung gian bây giờ cũng chỉ là đoán mò —
+   thay một con số vô căn cứ bằng một con số vô căn cứ khác.
+
+Hai tham số này thuộc **câu hỏi 1**, mà câu hỏi 1 thì `curves.csv` trả lời được sau khi chạy.
+Nếu đường valid của `lightgcn` còn dốc lên ở epoch cuối, phải hạ `batch_size` (không phải tăng
+`max_epochs`, vì gốc rễ là số bước cập nhật) rồi chạy lại **cả ba** mô hình đồ thị.
+
+**Test đọc tham số từ config, không gắn cứng con số.** `test_models_gcn.py` từng khẳng định
+`embedding_dim == 32` và dựng sẵn công thức lan truyền cho đúng 2 tầng. Nay nó so với
+`cfg.model.embedding_dim` và lặp theo `num_layers`. Bài test phải khẳng định *"mô hình dùng
+đúng thứ config nói"*, chứ không khẳng định một con số cụ thể — nếu không, mỗi lần đổi tham số
+lại phải sửa test, và test sẽ dần bị sửa cho khớp thay vì để kiểm.
+
+**Vẫn còn một giới hạn phải nêu trung thực trong luận văn.** `alpha = {1,0; 2,0; 3,0}` và
+`lambda_decay = 0,01/ngày` — tham số của chính đóng góp trong đề tài — **chưa được dò**. Chúng
+kế thừa từ MBGCN [Jin et al., SIGIR 2020] và KHGT [Xia et al., AAAI 2021]. Đây không phải lỗi
+như `dim/K` (vì không có "giá trị tác giả công bố" nào để lấy trên RetailRocket), nhưng phải
+ghi rõ là giới hạn, không được lờ đi.

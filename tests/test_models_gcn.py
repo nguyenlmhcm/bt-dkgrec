@@ -151,12 +151,17 @@ def setup(tmp_path):
 def test_only_layer_zero_holds_learnable_parameters(setup) -> None:
     """★ Propagation is parameter-free — there is no weight matrix to explain a gain."""
     make_context, graph, _ = setup
+    context = make_context()
     model = BTDKGRec()
-    model._prepare(make_context())
+    model._prepare(context)
 
     parameters = list(model.embeddings.parameters())
     assert len(parameters) == 1
-    assert tuple(parameters[0].shape) == (graph.node_space.total, 32)
+    # Doc tu config chu khong gan cung con so: bai test khang dinh "chi co bang
+    # lop 0 la tham so", khong khang dinh mot kich thuoc cu the.
+    assert tuple(parameters[0].shape) == (
+        graph.node_space.total, context.cfg.model.embedding_dim
+    )
 
 
 def test_propagation_is_the_mean_over_all_layers(setup) -> None:
@@ -167,7 +172,15 @@ def test_propagation_is_the_mean_over_all_layers(setup) -> None:
 
     a_hat = symmetric_normalize(graph.adjacency).astype("float64")
     h0 = model.embeddings.weight.detach().numpy().astype("float64")
-    expected = (h0 + a_hat @ h0 + a_hat @ (a_hat @ h0)) / 3.0
+
+    # Dung lai cong thuc (3.25)-(3.26) bang scipy, cho L tang bat ky — doi
+    # num_layers trong config khong duoc lam bai test nay phai sua.
+    layer = h0
+    pooled = h0
+    for _ in range(model.num_layers):
+        layer = a_hat @ layer
+        pooled = pooled + layer
+    expected = pooled / (model.num_layers + 1)
 
     produced = model.propagate().detach().numpy()
     assert produced.shape == expected.shape
@@ -388,7 +401,9 @@ def test_describe_records_what_a_reader_needs_to_reproduce_the_run(setup) -> Non
     record = model.describe()
     assert record["model"] == "bt_dkgrec"
     assert record["supports_cold_start"] is False
-    assert record["embedding_dim"] == 32 and record["num_layers"] == 2
+    expected_cfg = _config(max_epochs=300).model
+    assert record["embedding_dim"] == expected_cfg.embedding_dim
+    assert record["num_layers"] == expected_cfg.num_layers
     assert record["weighting"] == "behavior_time"
     assert record["training"]["n_epochs"] == 300
     json.dumps(record)  # must survive the metrics.json round trip
