@@ -392,3 +392,100 @@ def test_describe_records_what_a_reader_needs_to_reproduce_the_run(setup) -> Non
     assert record["weighting"] == "behavior_time"
     assert record["training"]["n_epochs"] == 300
     json.dumps(record)  # must survive the metrics.json round trip
+
+
+# ══ Buoc 7 & 8: the two subclasses ═══════════════════════════════════════
+
+
+def _variant_config(model: str, **training):
+    overrides = {
+        "training": {
+            "device": "cpu", "batch_size": 128, "eval_every": 5, "patience": 20, **training
+        }
+    }
+    return load_config(model=model, cohort="original", seed=2020, overrides=overrides)
+
+
+@pytest.fixture
+def all_three_graphs(tmp_path):
+    """Build the graph of every variant from ONE interim directory.
+
+    Same source data for all three, exactly as ``scripts/02_build_graph.py --all``
+    does it -- so nothing can differ except what the variant itself decides.
+    """
+    from src.models.lightgcn import LightGCN
+    from src.models.static_kg_gcn import StaticKGGCN
+
+    interim = tmp_path / "interim"
+    interim.mkdir()
+    _synthetic_interim(interim)
+
+    mapping = IdMapping.load(interim)
+    events = pd.read_parquet(interim / "events.parquet")
+    events["visitor_idx"] = mapping.visitor_index(events["visitorid"])
+    events["item_idx"] = mapping.item_index(events["itemid"])
+    train = events[["visitor_idx", "item_idx", "behavior", "timestamp"]]
+
+    built = {}
+    for model_class in (LightGCN, StaticKGGCN, BTDKGRec):
+        cfg = _variant_config(model_class.name)
+        graph, edges = build_graph(cfg, interim, weighting_for_model(cfg))
+        graph_dir = tmp_path / model_class.name
+        save_graph(graph, edges, graph_dir)
+        built[model_class.name] = (model_class, cfg, graph_dir, edges, mapping, train)
+    return built
+
+
+def test_each_variant_loads_the_graph_built_for_itself(all_three_graphs) -> None:
+    for name, (model_class, cfg, graph_dir, edges, mapping, train) in all_three_graphs.items():
+        model = model_class()
+        model._prepare(
+            ModelContext(cfg=cfg, mapping=mapping, train_events=train,
+                         interaction_edges=edges, t_train=T_TRAIN, graph_dir=graph_dir)
+        )
+        assert model.name == name
+        assert model._graph_stats["model"] == name
+
+
+def test_a_variant_refuses_another_variants_graph(all_three_graphs) -> None:
+    """★ Without this, an ablation could silently train on the wrong matrix.
+
+    The failure would be invisible: the run completes, the metrics look
+    plausible, and the reported comparison is between two copies of the same
+    model.
+    """
+    _, cfg, _, edges, mapping, train = all_three_graphs["static_kg_gcn"]
+    wrong_dir = all_three_graphs["bt_dkgrec"][2]
+
+    from src.models.static_kg_gcn import StaticKGGCN
+
+    with pytest.raises(ValueError, match="duoc dung cho"):
+        StaticKGGCN()._prepare(
+            ModelContext(cfg=cfg, mapping=mapping, train_events=train,
+                         interaction_edges=edges, t_train=T_TRAIN, graph_dir=wrong_dir)
+        )
+
+
+def test_each_variant_records_its_own_weighting_in_the_run_artifact(all_three_graphs) -> None:
+    """metrics.json must say which weighting produced the numbers."""
+    expected = {"bt_dkgrec": "behavior_time", "static_kg_gcn": "uniform", "lightgcn": "uniform"}
+    for name, (model_class, cfg, graph_dir, edges, mapping, train) in all_three_graphs.items():
+        model = model_class()
+        model._prepare(
+            ModelContext(cfg=cfg, mapping=mapping, train_events=train,
+                         interaction_edges=edges, t_train=T_TRAIN, graph_dir=graph_dir)
+        )
+        record = model.describe()
+        assert record["model"] == name
+        assert record["weighting"] == expected[name]
+        assert record["supports_cold_start"] is False
+
+
+def test_the_registry_offers_all_five_models() -> None:
+    from src.models.registry import available_models, build_model
+
+    assert set(available_models()) == {
+        "popularity", "recent_popularity", "lightgcn", "static_kg_gcn", "bt_dkgrec"
+    }
+    for name in ("lightgcn", "static_kg_gcn", "bt_dkgrec"):
+        assert build_model(_variant_config(name)).name == name

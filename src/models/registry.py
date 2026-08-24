@@ -20,10 +20,17 @@ from src.utils.config import Config
 
 
 def _graph_models() -> dict[str, type[Recommender]]:
-    """Graph models, imported on demand because they require torch."""
-    from src.models.bt_dkgrec import BTDKGRec
+    """Graph models, imported on demand because they require torch.
 
-    return {BTDKGRec.name: BTDKGRec}
+    All three are the same class with a different name; what separates them is
+    the adjacency matrix Buoc 4 built for each (side information on or off,
+    behavior-time weighting on or off). See ``src/models/static_kg_gcn.py``.
+    """
+    from src.models.bt_dkgrec import BTDKGRec
+    from src.models.lightgcn import LightGCN
+    from src.models.static_kg_gcn import StaticKGGCN
+
+    return {model.name: model for model in (LightGCN, StaticKGGCN, BTDKGRec)}
 
 
 def available_models() -> tuple[str, ...]:
