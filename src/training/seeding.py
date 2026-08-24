@@ -34,7 +34,7 @@ def set_seed(seed: int, deterministic_torch: bool = True) -> None:
     np.random.seed(seed)
     os.environ["PYTHONHASHSEED"] = str(seed)
 
-    try:  # torch is only installed on the training machine (requirements-train.txt)
+    try:  # torch exists only where training happens: Colab, not the VPS (D28)
         import torch
     except ImportError:
         log.info("seed=%d (numpy, random) — torch chua cai, bo qua", seed)

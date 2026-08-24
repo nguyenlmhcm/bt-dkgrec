@@ -1,7 +1,0 @@
-# Phu thuoc huan luyen tren VPS (ghim ==, tai lap chinh xac duoc).
-#
-# KHONG dung file nay tren Colab. Colab da co san torch ban CUDA khop driver;
-# ghim == se ha cap torch va thay numpy giua phien, lam hong runtime.
-# Tren Colab dung requirements-colab.txt (chi dat san >=) — xem DECISIONS.md D25.
--r requirements.txt
-torch==2.5.1

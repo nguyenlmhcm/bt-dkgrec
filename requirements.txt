@@ -1,5 +1,6 @@
-# Phụ thuộc lõi — chạy được trên VPS không GPU (preprocess, graph, test).
-# KHÔNG chứa torch: xem requirements-train.txt.
+# Phụ thuộc lõi — VPS: sửa code, preprocess, dựng graph, chạy test.
+# KHÔNG chứa torch, và VPS KHÔNG cài torch (D28). Mọi thứ cần torch chạy
+# trên Colab, nơi torch bản CUDA có sẵn — xem requirements-colab.txt và D25.
 numpy==2.1.3
 pandas==2.2.3
 scipy==1.14.1

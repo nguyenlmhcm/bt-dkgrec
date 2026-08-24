@@ -1,8 +1,14 @@
 """Step 5+: fit a model and evaluate it end to end, writing a run artifact.
 
-Currently serves the heuristic baselines; the graph models plug into the same
-path in Buoc 6 without changing the evaluation protocol, which is the point of
-the shared :class:`~src.models.base.Recommender` interface.
+Serves every model in the matrix through one path: the heuristic baselines of
+Buoc 5 and the graph models of Buoc 6-8. Nothing about the evaluation protocol
+depends on which one is running -- same candidate set, same seen-filtering, same
+metrics -- which is what makes the comparison admissible.
+
+The one structural difference is *when* the validation set is built. A trainable
+model needs it **before** ``fit()``, because early stopping reads the validation
+metric while training. It is still only the validation split: leakage rule 7 is
+asserted inside the trainer before the first gradient step.
 
 Produces ``experiments/runs/<cohort>_<model>_<seed>_<timestamp>/`` with
 ``config.yaml``, ``seed.txt``, ``env.json``, ``metrics.json``, ``topk.csv``,
@@ -11,6 +17,7 @@ Produces ``experiments/runs/<cohort>_<model>_<seed>_<timestamp>/`` with
 Usage::
 
     python scripts/03_train.py --model popularity --cohort original --seed 2020
+    python scripts/03_train.py --model bt_dkgrec --cohort active --seed 2020
 """
 
 from __future__ import annotations
@@ -28,8 +35,8 @@ sys.path.insert(0, str(REPO_ROOT))
 
 from src.data.mapping import IdMapping  # noqa: E402
 from src.evaluation.evaluator import Evaluator, build_evaluation_set, build_seen_matrix  # noqa: E402
-from src.models.base import ModelContext  # noqa: E402
-from src.models.popularity import HEURISTIC_MODELS  # noqa: E402
+from src.models.base import ModelContext, Recommender  # noqa: E402
+from src.models.registry import build_model, is_trainable  # noqa: E402
 from src.training.seeding import set_seed  # noqa: E402
 from src.utils.config import Config, load_config  # noqa: E402
 from src.utils.environment import environment_record  # noqa: E402
@@ -50,10 +57,10 @@ def build_context(cfg: Config, interim_dir: Path) -> tuple[ModelContext, pd.Data
         ["visitor_idx", "item_idx", "behavior", "timestamp"]
     ].copy()
 
-    edges_path = cfg.paths.resolved()["processed"] / cfg.cohort.name / cfg.model.name
+    graph_dir = cfg.paths.resolved()["processed"] / cfg.cohort.name / cfg.model.name
     edges = (
-        pd.read_parquet(edges_path / "edges_interacted.parquet")
-        if (edges_path / "edges_interacted.parquet").exists()
+        pd.read_parquet(graph_dir / "edges_interacted.parquet")
+        if (graph_dir / "edges_interacted.parquet").exists()
         else pd.DataFrame(columns=["visitor_idx", "item_idx", "weight"])
     )
     split_info = json.loads((interim_dir / "split.json").read_text(encoding="utf-8"))
@@ -64,8 +71,41 @@ def build_context(cfg: Config, interim_dir: Path) -> tuple[ModelContext, pd.Data
         train_events=train,
         interaction_edges=edges,
         t_train=int(split_info["t_train"]),
+        graph_dir=graph_dir if graph_dir.exists() else None,
     )
     return context, events, mapping
+
+
+def heuristic_curve(cfg: Config, valid_metrics: dict | None) -> pd.DataFrame:
+    """A one-row ``curves.csv`` for models that do not learn.
+
+    Written anyway so every run carries the same evidence shape and Buoc 9 can
+    read one schema instead of two.
+    """
+    warm = (valid_metrics or {}).get("warm")
+    return pd.DataFrame(
+        [{
+            "epoch": 0,
+            "loss": None,
+            f"valid_{cfg.training.monitor}": warm[cfg.training.monitor] if warm else None,
+            "note": "mo hinh khong hoc — khong co duong hoi tu",
+        }]
+    )
+
+
+def print_training_summary(model: Recommender) -> None:
+    """Show convergence facts on stdout so a Colab log carries them too."""
+    result = getattr(model, "training_result", None)
+    if result is None:
+        return
+    facts = result.describe()
+    print("\nHUAN LUYEN")
+    print(f"  epoch da chay      {facts['n_epochs']}")
+    print(f"  epoch tot nhat     {facts['best_epoch']}  (valid {facts['monitor']} = "
+          f"{facts['best_valid_metric']})")
+    print(f"  dung som           {'co' if facts['stopped_early'] else 'khong'}")
+    print(f"  loss dau -> cuoi   {facts['first_loss']:.6f} -> {facts['last_loss']:.6f}")
+    print(f"  thoi gian          {facts['seconds']}s")
 
 
 def main() -> int:
@@ -78,6 +118,11 @@ def main() -> int:
         "--eval-batch-size", type=int, default=None,
         help="ghi de evaluation.batch_size (tham so ha tang, khong doi ket qua)",
     )
+    parser.add_argument(
+        "--max-epochs", type=int, default=None,
+        help="ghi de training.max_epochs (san >= 300 do config chan — xem CLAUDE.md); "
+             "dung cho smoke test, ket qua bao cao chay theo configs/",
+    )
     args = parser.parse_args()
 
     overrides: dict = {}
@@ -85,6 +130,8 @@ def main() -> int:
         overrides["training"] = {"device": args.device}
     if args.eval_batch_size:
         overrides["evaluation"] = {"batch_size": args.eval_batch_size}
+    if args.max_epochs:
+        overrides.setdefault("training", {})["max_epochs"] = args.max_epochs
     overrides = overrides or None
     cfg = load_config(model=args.model, cohort=args.cohort, seed=args.seed, overrides=overrides)
 
@@ -97,20 +144,33 @@ def main() -> int:
     print(f"{cfg.model.name} | cohort = {cfg.cohort.name} | seed = {cfg.seed}")
     print("=" * 78)
 
-    if cfg.model.name not in HEURISTIC_MODELS:
-        raise SystemExit(
-            f"model {cfg.model.name!r} chua duoc trien khai o buoc nay "
-            f"(hien co: {sorted(HEURISTIC_MODELS)})"
-        )
-
     interim_dir = cfg.paths.resolved()["interim"] / cfg.cohort.name
     context, events, mapping = build_context(cfg, interim_dir)
-
-    model = HEURISTIC_MODELS[cfg.model.name]()
-    model.fit(context)
+    model = build_model(cfg)
 
     seen = build_seen_matrix(context.train_events, mapping)
     evaluator = Evaluator(cfg, mapping, seen)
+
+    # Ground truth is built before fitting because a trainable model needs the
+    # validation set during training. Dung xong thi tra lai bo nho: bang events
+    # chiem hang tram MB va khong con can nua khi da co eval set.
+    eval_sets = {
+        split: build_evaluation_set(events, mapping, split, cfg, seen)
+        for split in ("valid", "test")
+    }
+    del events
+    gc.collect()
+
+    if is_trainable(cfg):
+        def validate(fitted: Recommender) -> float | None:
+            """Monitored metric on VALID only — never test (leakage rule 7)."""
+            split_metrics, _ = evaluator.evaluate(fitted, eval_sets["valid"])
+            warm = split_metrics["warm"]
+            return warm[cfg.training.monitor] if warm else None
+
+        model.attach_validation(validate)  # type: ignore[attr-defined]
+
+    model.fit(context)
 
     metrics: dict[str, object] = {
         "run_id": run_dir.name,
@@ -121,14 +181,6 @@ def main() -> int:
         "n_train_items": mapping.n_items,
         "n_train_visitors": mapping.n_visitors,
     }
-    # Dung xong ground truth thi tra lai bo nho cho buoc cham diem: bang events
-    # chiem hang tram MB va khong con can nua khi da co eval set.
-    eval_sets = {
-        split: build_evaluation_set(events, mapping, split, cfg, seen)
-        for split in ("valid", "test")
-    }
-    del events
-    gc.collect()
 
     rankings_by_split = {}
     for split in ("valid", "test"):
@@ -136,18 +188,9 @@ def main() -> int:
         metrics[split] = split_metrics
         rankings_by_split[split] = rankings
 
-    # Model selection reads validation only (leakage rule 7). Heuristics have
-    # nothing to select, but the curve file is still written so every run
-    # carries the same evidence shape.
-    valid_warm = metrics["valid"]["warm"]  # type: ignore[index]
-    pd.DataFrame(
-        [{
-            "epoch": 0,
-            "loss": None,
-            "valid_" + cfg.training.monitor: valid_warm[cfg.training.monitor] if valid_warm else None,
-            "note": "mo hinh khong hoc — khong co duong hoi tu",
-        }]
-    ).to_csv(run_dir / "curves.csv", index=False)
+    result = getattr(model, "training_result", None)
+    curves = result.curves if result is not None else heuristic_curve(cfg, metrics["valid"])  # type: ignore[arg-type]
+    curves.to_csv(run_dir / "curves.csv", index=False)
 
     evaluator.top_k_frame(eval_sets["test"], rankings_by_split["test"], model).to_csv(
         run_dir / "topk.csv", index=False
@@ -163,6 +206,7 @@ def main() -> int:
     )
     (run_dir / "config.yaml").write_text(cfg.to_yaml(), encoding="utf-8")
 
+    print_training_summary(model)
     for split in ("valid", "test"):
         block = metrics[split]  # type: ignore[index]
         warm = block["warm"]  # type: ignore[index]

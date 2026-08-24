@@ -21,6 +21,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -42,6 +43,10 @@ class ModelContext:
         train_events: Train events with ``visitor_idx`` and ``item_idx``.
         interaction_edges: Aggregated ``W(u,i)`` edges from the graph layer.
         t_train: End of the training window, in milliseconds.
+        graph_dir: ``data/processed/<cohort>/<model>/``, holding the adjacency
+            matrix built in Buoc 4. Supplied by the caller rather than derived
+            here so the path is spelled out in exactly one place; ``None`` for
+            the heuristic baselines, which own no graph.
     """
 
     cfg: Config
@@ -49,6 +54,7 @@ class ModelContext:
     train_events: pd.DataFrame
     interaction_edges: pd.DataFrame
     t_train: int
+    graph_dir: Path | None = None
 
     @property
     def n_items(self) -> int:

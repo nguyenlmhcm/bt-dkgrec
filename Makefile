@@ -8,7 +8,7 @@ MODEL     ?= bt_dkgrec
 SEED      ?= 2020
 DEVICE    ?= cuda
 
-.PHONY: help setup setup-train preprocess graph train evaluate multiseed tables neo4j app test clean-venv
+.PHONY: help setup preprocess graph train evaluate multiseed tables neo4j app test clean-venv
 
 help:
 	@echo "BT-DKGRec-GCN"
@@ -17,7 +17,6 @@ help:
 	@echo "  Tren VPS chi dung: setup, test, tables, neo4j, app"
 	@echo ""
 	@echo "  make setup                                    # venv + thu vien loi + kiem tra Buoc 1"
-	@echo "  make setup-train                              # them torch (Colab / GPU)"
 	@echo "  make test                                     # pytest"
 	@echo "  make preprocess COHORT=original               # [Buoc 2]"
 	@echo "  make graph COHORT=original                    # dung ca 3 bien the"
@@ -38,9 +37,6 @@ $(PY):
 setup: $(PY)
 	$(PIP) install --quiet -r requirements.txt
 	$(PY) scripts/00_check_setup.py
-
-setup-train: $(PY)
-	$(PIP) install -r requirements-train.txt
 
 test: $(PY)
 	$(PY) -m pytest

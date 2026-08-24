@@ -583,3 +583,106 @@ cùng `metrics.json`, không nằm ở Drive.
 **Không đụng đến kết quả.** Sàn được đặt ở mức các API mà mã nguồn thực sự dùng
 (`np.argpartition`, `np.take_along_axis`, `searchsorted`, ... — đều ổn định từ lâu). Sàn
 không phải là bản đã kiểm thử; bản đã kiểm thử nằm trong `env.json` của từng run.
+
+---
+
+## D26 — Quy tắc 6 kiểm mỗi epoch một lần, không phải mỗi batch
+
+**Vấn đề.** `assert_negatives_in_train` (quy tắc 6) dùng `np.setdiff1d` trên toàn bộ không
+gian item. Cohort Original có 205.106 item và 1.570.409 cạnh dương → 24 batch/epoch. Nếu gọi
+guard ở **mọi** batch, với 300–1000 epoch, ta tốn hàng phút GPU chỉ để kiểm đi kiểm lại một
+bất biến **không thể thay đổi trong cùng một run**: không gian chỉ số item được cố định lúc
+`fit()` và không có đường nào để nó biến đổi giữa hai batch.
+
+**Quyết định.** Guard chạy ở **batch đầu tiên của mỗi epoch**. Sai sót về không gian chỉ số
+lộ ra ngay ở lần kiểm đầu tiên — tức trước khi có một bước gradient nào đáng kể — và mọi
+epoch vẫn được kiểm.
+
+**Điều KHÔNG được làm.** Không có cờ nào tắt guard. Số lần kiểm được đếm và ghi vào
+`metrics.json` (`model_description.negative_sampling.rule_6_checks`), nên người đọc kiểm
+chứng được là guard đã chạy đúng số lần chứ không phải tin lời. `tests/test_models_gcn.py::
+test_rule_6_is_asserted_once_per_epoch` khẳng định con số này bằng số epoch đã chạy.
+
+**Vì sao không dựa vào "đúng theo cấu tạo".** Sampler bốc `randint(0, n_items)`, nên về
+nguyên tắc kết quả luôn nằm trong `I_train`. Nhưng "đúng theo cấu tạo" là đúng cho tới lần
+refactor kế tiếp. Guard tồn tại chính để bắt cái ngày mà nó thôi đúng.
+
+---
+
+## D27 — Cạnh dương của BPR là **mọi** tương tác train, kể cả `view`
+
+**Câu hỏi.** BPR cần cặp `(u, i)` quan sát được. Lấy từ đâu: mọi cạnh tương tác, hay chỉ
+những cặp có hành vi mục tiêu (`addtocart` / `transaction`)?
+
+**Quyết định: mọi cạnh tương tác** — chính là bảng `W(u,i)` mà Bước 4 sinh ra.
+
+**Lý do 1 — giám sát phải khớp với cấu trúc.** Đồ thị lan truyền trên cạnh `view` (α = 1,0).
+Nếu loss chỉ nhìn cặp có hành vi mục tiêu, thì cạnh `view` tác động đến biểu diễn nhưng
+không bao giờ xuất hiện trong hàm mục tiêu — hai nửa của mô hình bất đồng về "tương tác là
+gì". Trọng số hành vi `α_b` đã là chỗ để nói `view` đáng giá ít hơn `transaction`; nói lần
+hai bằng cách loại hẳn nó ra là tính trùng.
+
+**Lý do 2 — dữ liệu.** Cohort Original chỉ có 66.693 sự kiện mục tiêu trên 2.024.042 sự kiện
+train (3,3%). Chỉ dùng chúng làm cạnh dương thì vứt bỏ 96,7% tín hiệu, và mô hình đồ thị sẽ
+thua mốc sàn vì thiếu dữ liệu chứ không phải vì thiết kế sai — một kết luận sai về nguyên nhân.
+
+**Điều này KHÔNG làm rò rỉ gì.** Ground truth ở valid/test vẫn **chỉ** là hành vi mục tiêu,
+không đổi. Cạnh dương lấy từ train, và evaluator vẫn loại item đã xuất hiện trong train khỏi
+Top-K (`filter_seen`). Huấn luyện trên tương tác, chấm điểm trên hành vi mục tiêu — đây là
+cách làm chuẩn của phản hồi ẩn, không phải một sự nới lỏng.
+
+**Ảnh hưởng tới ablation.** Cả ba mô hình đồ thị dùng chung quy tắc này, nên nó không phải
+biến gây nhiễu giữa `static_kg_gcn` và `bt_dkgrec`.
+
+---
+
+## D28 — VPS **không** cài torch. Rào kiểm thử nằm ở ô 15 của notebook, và phải rào thật
+
+**Bối cảnh.** D20 chốt: mọi thực nghiệm chạy trên Colab. Hệ quả kéo theo: VPS không có
+torch, nên `src/training/` và `src/models/bt_dkgrec.py` được viết rồi đẩy lên Colab mà chưa
+từng chạy dòng nào.
+
+**Đã thử hướng ngược lại, và sai.** Ban đầu Claude cài `torch` bản CPU vào venv VPS để
+`pytest` chạy được, rồi chạy luôn một lượt train 300 epoch trên dữ liệu thật. Hai việc này
+khác nhau về bản chất và phải tách ra:
+
+| Việc | Đánh giá |
+|---|---|
+| Cài torch CPU để chạy `pytest` | Có ích — bắt được 2 lỗi thật (xem bên dưới) |
+| Chạy 300 epoch trên VPS | **Sai** — đó là việc của Colab, ngốn 70 phút và 800 MB RAM của máy, và không bắt thêm lỗi nào |
+
+**Quyết định (theo yêu cầu của tác giả).** VPS **không cài torch**. Xóa
+`requirements-train.txt` — file đó chỉ tồn tại để cài torch lên VPS, giữ lại thì sớm muộn
+cũng có người chạy nhầm. Phần này **thay thế** nửa nói về `requirements-train.txt` của D10;
+nửa còn lại của D10 (tách phụ thuộc lõi ra `requirements.txt`) vẫn nguyên.
+
+`tests/test_training.py` và `tests/test_models_gcn.py` gọi `pytest.importorskip("torch")` ở
+đầu file. Trên VPS: 146 pass, 2 module skip kèm lý do. Trên Colab: chạy đủ 181.
+
+**Hệ quả bắt buộc — rào ở Colab phải rào thật.** Bỏ kiểm ở VPS thì ô 15 của notebook trở
+thành **chỗ duy nhất** test được chạy. Mà ô đó đang viết:
+
+```python
+!python -m pytest -q
+```
+
+Dấu `!` trong Jupyter **không** làm ô lỗi khi lệnh trả mã khác 0. Ô markdown ngay trên nó
+ghi "Test đỏ thì dừng lại", nhưng thực tế bấm "Run all" là notebook đi thẳng vào train dù
+test đỏ. Quy tắc nằm trên giấy, không thi hành. Đã sửa: bắt mã trả về và `raise`, nên
+notebook dừng thật.
+
+**Cái giá, chấp nhận có ý thức.** Mỗi lần sửa code cần: commit → push → Colab pull → chạy ô
+15. Vòng lặp chậm hơn hẳn so với chạy `pytest` tại chỗ. Đổi lại VPS nhẹ (venv 1,4 GB →
+560 MB) và — điểm này quan trọng hơn — test chạy trong **đúng môi trường sẽ train**
+(torch 2.11 CUDA), thay vì một môi trường khác (torch 2.13 CPU) rồi suy diễn sang.
+
+**Hai lỗi mà đợt kiểm thử đó bắt được**, ghi lại vì chúng cho thấy loại lỗi cần canh:
+
+1. `Trainer` khôi phục `best_state` vô điều kiện. Khi không có callback validate — hoặc
+   validate luôn trả `None` vì cohort không có user warm — vòng train nạp lại ảnh chụp
+   epoch 0, tức **vứt sạch kết quả học**, trong khi `curves.csv` vẫn cho thấy loss giảm
+   đẹp. Đây là lỗi không thể phát hiện từ bảng kết quả.
+2. Bài test "mô hình ưu tiên đúng khối hàng của visitor" **xanh cả khi chưa train**, vì
+   `Â²` tự nó đã mang cấu trúc cộng đồng — lan truyền trên embedding ngẫu nhiên đã tách
+   khối sẵn. Bài test đo lan truyền chứ không đo học, và chính nó che mất lỗi số 1.
+   Đã thay bằng so sánh trước/sau `fit()` từ cùng một seed.
