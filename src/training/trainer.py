@@ -8,8 +8,15 @@ hinh cu"). The fix is structural rather than a bigger number:
 
 * ``max_epochs`` is a ceiling of 1000, shared by every model;
 * the actual stopping point is decided by the **validation** metric;
-* ``curves.csv`` records loss and validation metric per evaluation, so a reader
-  can see the plateau instead of taking convergence on trust.
+* ``curves.csv`` records **one row per epoch** -- the loss every epoch and the
+  **full** validation metric block on evaluation epochs -- so a reader sees the
+  plateau instead of taking convergence on trust.
+
+Recording every metric rather than only the monitored one costs nothing: the
+evaluator computes the whole block on each call and the old code discarded
+seven of the eight numbers. Keeping them lets a reader check that the other
+metrics had also flattened when patience ran out, which is the usual objection
+to an early-stopped baseline.
 
 Leakage rule 7 is asserted before the first epoch: model selection reads the
 validation split and never test. The monitored metric name is checked too, so a
@@ -32,6 +39,7 @@ import pandas as pd
 import torch
 
 from src.guards.leakage import assert_model_selection_scope
+from src.training.curves import order_columns, valid_column
 from src.training.loss import LOSS_BY_NAME, l2_regularization
 from src.training.sampler import NegativeSampler
 from src.utils.config import Config
@@ -65,14 +73,22 @@ class TrainingResult:
     """Everything the run artifact needs to prove how training went.
 
     Attributes:
-        curves: One row per evaluation -- ``epoch``, ``loss``, the validation
-            metric, and a note. Written verbatim to ``curves.csv``.
+        curves: One row per **epoch** -- ``epoch``, ``loss``, elapsed
+            ``seconds``, whether the epoch was evaluated, one ``valid_<metric>``
+            column per reported metric, and a note. Written verbatim to
+            ``curves.csv``.
         best_epoch: Epoch whose parameters were restored at the end.
-        best_value: Validation metric at ``best_epoch``.
+        best_value: Monitored validation metric at ``best_epoch``.
+        best_metrics: **Every** validation metric measured at ``best_epoch``, so
+            a reader can see what the unselected metrics were doing there.
         n_epochs: Epochs actually run.
         stopped_early: Whether patience ran out before ``max_epochs``.
         monitor: Metric name that drove selection.
         seconds: Wall-clock training time.
+        peak_gpu_mb: Peak CUDA memory allocated during training, in MiB, or
+            ``None`` off GPU. Recorded because docs/DECISIONS.md muc D30 argues
+            from memory cost; the argument should rest on a measurement carried
+            by the artifact rather than on a number quoted from memory.
     """
 
     curves: pd.DataFrame
@@ -83,6 +99,8 @@ class TrainingResult:
     monitor: str
     seconds: float
     losses: list[float] = field(default_factory=list)
+    best_metrics: dict[str, float] | None = None
+    peak_gpu_mb: float | None = None
 
     def describe(self) -> dict[str, object]:
         """Serialisable summary recorded inside ``metrics.json``."""
@@ -90,11 +108,13 @@ class TrainingResult:
             "n_epochs": self.n_epochs,
             "best_epoch": self.best_epoch,
             "best_valid_metric": self.best_value,
+            "best_valid_metrics": self.best_metrics,
             "monitor": self.monitor,
             "stopped_early": self.stopped_early,
             "first_loss": self.losses[0] if self.losses else None,
             "last_loss": self.losses[-1] if self.losses else None,
             "seconds": round(self.seconds, 1),
+            "peak_gpu_mb": self.peak_gpu_mb,
         }
 
 
@@ -116,7 +136,7 @@ class Trainer:
         users: np.ndarray,
         items: np.ndarray,
         weights: np.ndarray,
-        validate: Callable[[TrainableGraphModel], float | None] | None,
+        validate: Callable[[TrainableGraphModel], dict[str, float] | None] | None,
         rng: np.random.Generator,
     ) -> None:
         """
@@ -127,8 +147,11 @@ class Trainer:
             users: Visitor matrix index per positive edge.
             items: Item matrix index per positive edge.
             weights: ``W(u,i)`` per positive edge; used only by ``weighted_bpr``.
-            validate: Callback returning the monitored validation metric, or
-                ``None`` to train without early stopping.
+            validate: Callback returning the **whole** warm metric block of
+                the validation split (``{"ndcg@20": ..., "recall@20": ...}``),
+                or ``None`` to train without early stopping. The trainer reads
+                ``cfg.training.monitor`` out of it for selection and records the
+                rest as evidence.
             rng: Seeded generator driving the epoch shuffle.
 
         Raises:
@@ -179,6 +202,7 @@ class Trainer:
         rows: list[dict[str, object]] = []
         losses: list[float] = []
         best_value: float | None = None
+        best_metrics: dict[str, float] | None = None
         best_epoch = 0
         best_state = copy.deepcopy(self.model.embeddings.state_dict())
         evals_without_gain = 0
@@ -186,6 +210,7 @@ class Trainer:
         started = time.time()
         epoch = 0
 
+        self._reset_peak_memory()
         log.info(
             "bat dau train %s: %s canh duong, %d batch/epoch, loss=%s, lr=%g, reg=%g",
             self.model.name, f"{n_positives:,}", n_batches, self.loss_name,
@@ -196,26 +221,45 @@ class Trainer:
             epoch_loss = self._run_epoch(n_positives, n_batches)
             losses.append(epoch_loss)
 
+            # A row is appended for every epoch, evaluated or not: the loss
+            # curve is the evidence of convergence and recording only one epoch
+            # in ``eval_every`` would discard most of it for no saving.
+            row: dict[str, object] = {
+                "epoch": epoch,
+                "loss": epoch_loss,
+                "seconds": round(time.time() - started, 1),
+                "evaluated": False,
+                "note": "",
+            }
+
             if epoch % cfg.eval_every and epoch != cfg.max_epochs:
+                rows.append(row)
                 continue
 
-            value = self._validate_now()
+            metrics = self._validate_now()
+            value = None if metrics is None else metrics.get(cfg.monitor)
             improved = self._is_improvement(value, best_value)
             if improved:
                 best_value, best_epoch = value, epoch
+                best_metrics = dict(metrics) if metrics else None
                 best_state = copy.deepcopy(self.model.embeddings.state_dict())
                 evals_without_gain = 0
             elif value is not None:
                 evals_without_gain += 1
 
-            rows.append(
-                {
-                    "epoch": epoch,
-                    "loss": epoch_loss,
-                    f"valid_{cfg.monitor}": value,
-                    "note": "best" if improved else f"khong cai thien ({evals_without_gain}/{cfg.patience})",
-                }
+            row["evaluated"] = True
+            # Every measured metric is kept, not only the monitored one: the
+            # evaluator computed them all anyway, and a reader checking whether
+            # the run really plateaued needs to see the others flatten too.
+            row.update(
+                {valid_column(name): score for name, score in (metrics or {}).items()}
             )
+            row["note"] = (
+                "best" if improved
+                else f"khong cai thien ({evals_without_gain}/{cfg.patience})"
+            )
+            rows.append(row)
+
             log.info(
                 "epoch %4d | loss %.6f | valid %s = %s%s",
                 epoch, epoch_loss, cfg.monitor,
@@ -251,14 +295,16 @@ class Trainer:
         self.model.refresh_embeddings()
 
         return TrainingResult(
-            curves=pd.DataFrame(rows),
+            curves=order_columns(pd.DataFrame(rows), cfg.monitor),
             best_epoch=best_epoch,
             best_value=best_value,
+            best_metrics=best_metrics,
             n_epochs=epoch,
             stopped_early=stopped_early,
             monitor=cfg.monitor,
             seconds=time.time() - started,
             losses=losses,
+            peak_gpu_mb=self._peak_memory_mb(),
         )
 
     # ──────────────────────────────────────────────────────────────────
@@ -301,12 +347,23 @@ class Trainer:
 
         return total_loss / n_positives
 
-    def _validate_now(self) -> float | None:
+    def _validate_now(self) -> dict[str, float] | None:
         """Score the validation split with the current parameters."""
         if self.validate is None:
             return None
         self.model.refresh_embeddings()
         return self.validate(self.model)
+
+    def _reset_peak_memory(self) -> None:
+        """Start the GPU high-water mark from this run, not from what preceded."""
+        if self.device.type == "cuda":
+            torch.cuda.reset_peak_memory_stats(self.device)
+
+    def _peak_memory_mb(self) -> float | None:
+        """Highest CUDA allocation reached while training, in MiB."""
+        if self.device.type != "cuda":
+            return None
+        return round(torch.cuda.max_memory_allocated(self.device) / (1024 * 1024), 1)
 
     def _is_improvement(self, value: float | None, best: float | None) -> bool:
         """Whether ``value`` beats ``best`` under ``monitor_mode``."""

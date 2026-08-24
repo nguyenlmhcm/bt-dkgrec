@@ -272,11 +272,22 @@ experiments/runs/<cohort>_<model>_<seed>_<timestamp>/
 ├── seed.txt
 ├── metrics.json     # Recall/NDCG/HitRate/Coverage @10,@20 — warm/cold/all
 ├── topk.csv         # Top-K từng visitor — demo đọc file này
-├── curves.csv       # loss + valid metric theo epoch ← chứng minh hội tụ
+├── curves.csv       # MỘT DÒNG MỖI EPOCH ← chứng minh hội tụ
+├── env.json         # phiên bản thư viện + GPU thực tế đã chạy (D25)
 └── train.log
 ```
 
-`curves.csv` bắt buộc. Khi bảo vệ, cần chứng minh LightGCN đã hội tụ chứ không bị dừng sớm — đây là câu hỏi hội đồng nhiều khả năng sẽ hỏi.
+`curves.csv` bắt buộc, schema chốt ở D31:
+
+```
+model,cohort,seed,epoch,loss,seconds,evaluated,valid_<metric>@<K>...,note
+```
+
+- `loss` có ở **mọi** epoch; khối `valid_*` chỉ có ở epoch được đánh giá (`evaluated`)
+- giữ **mọi** metric đã đo, không riêng metric giám sát — evaluator tính cả khối trong một lần gọi
+- chọn mô hình vẫn chỉ đọc `training.monitor` (quy tắc chống rò rỉ 7)
+
+Khi bảo vệ, cần chứng minh LightGCN đã hội tụ chứ không bị dừng sớm — đây là câu hỏi hội đồng nhiều khả năng sẽ hỏi. Câu hỏi tiếp theo thường là *"các metric khác lúc đó thế nào?"*, nên một cột là không đủ.
 
 ---
 

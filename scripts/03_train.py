@@ -35,8 +35,10 @@ sys.path.insert(0, str(REPO_ROOT))
 
 from src.data.mapping import IdMapping  # noqa: E402
 from src.evaluation.evaluator import Evaluator, build_evaluation_set, build_seen_matrix  # noqa: E402
+from src.guards.consistency import assert_selection_restored  # noqa: E402
 from src.models.base import ModelContext, Recommender  # noqa: E402
 from src.models.registry import build_model, is_trainable  # noqa: E402
+from src.training.curves import add_identity, order_columns, valid_column  # noqa: E402
 from src.training.seeding import set_seed  # noqa: E402
 from src.utils.config import Config, load_config  # noqa: E402
 from src.utils.environment import environment_record  # noqa: E402
@@ -80,16 +82,40 @@ def heuristic_curve(cfg: Config, valid_metrics: dict | None) -> pd.DataFrame:
     """A one-row ``curves.csv`` for models that do not learn.
 
     Written anyway so every run carries the same evidence shape and Buoc 9 can
-    read one schema instead of two.
+    read one schema instead of two. The single row carries the **full** metric
+    block, exactly as an evaluated epoch of a trained model does.
     """
-    warm = (valid_metrics or {}).get("warm")
-    return pd.DataFrame(
-        [{
-            "epoch": 0,
-            "loss": None,
-            f"valid_{cfg.training.monitor}": warm[cfg.training.monitor] if warm else None,
-            "note": "mo hinh khong hoc — khong co duong hoi tu",
-        }]
+    warm = (valid_metrics or {}).get("warm") or {}
+    row: dict[str, object] = {
+        "epoch": 0,
+        "loss": None,
+        "seconds": None,
+        "evaluated": True,
+        "note": "mo hinh khong hoc — khong co duong hoi tu",
+    }
+    row.update({valid_column(name): score for name, score in warm.items()})
+    return order_columns(pd.DataFrame([row]), cfg.training.monitor)
+
+
+def check_selection_consistency(cfg: Config, model: Recommender, metrics: dict) -> dict | None:
+    """Verify the reported model really is the one validation chose.
+
+    Delegates to :func:`src.guards.consistency.assert_selection_restored`; this
+    wrapper only digs the two numbers out of the run's own objects.
+
+    Returns:
+        The comparison for ``metrics.json``, or ``None`` for a model that does
+        not train and therefore never selected anything.
+    """
+    result = getattr(model, "training_result", None)
+    if result is None or result.best_value is None:
+        return None
+    warm = metrics["valid"]["warm"]
+    return assert_selection_restored(
+        monitor=cfg.training.monitor,
+        best_epoch=result.best_epoch,
+        best_value=result.best_value,
+        reevaluated=warm.get(cfg.training.monitor) if warm else None,
     )
 
 
@@ -106,6 +132,8 @@ def print_training_summary(model: Recommender) -> None:
     print(f"  dung som           {'co' if facts['stopped_early'] else 'khong'}")
     print(f"  loss dau -> cuoi   {facts['first_loss']:.6f} -> {facts['last_loss']:.6f}")
     print(f"  thoi gian          {facts['seconds']}s")
+    if facts["peak_gpu_mb"] is not None:
+        print(f"  GPU dinh diem      {facts['peak_gpu_mb']} MiB")
 
 
 def main() -> int:
@@ -162,11 +190,17 @@ def main() -> int:
     gc.collect()
 
     if is_trainable(cfg):
-        def validate(fitted: Recommender) -> float | None:
-            """Monitored metric on VALID only — never test (leakage rule 7)."""
+        def validate(fitted: Recommender) -> dict[str, float] | None:
+            """Every warm metric on VALID only — never test (leakage rule 7).
+
+            The whole block is returned rather than just the monitored metric:
+            the evaluator computes all of them on this call regardless, and the
+            trainer writes them into ``curves.csv`` as convergence evidence.
+            Selection still reads one metric only (``cfg.training.monitor``).
+            """
             split_metrics, _ = evaluator.evaluate(fitted, eval_sets["valid"])
             warm = split_metrics["warm"]
-            return warm[cfg.training.monitor] if warm else None
+            return dict(warm) if warm else None
 
         model.attach_validation(validate)  # type: ignore[attr-defined]
 
@@ -188,8 +222,13 @@ def main() -> int:
         metrics[split] = split_metrics
         rankings_by_split[split] = rankings
 
+    selection_check = check_selection_consistency(cfg, model, metrics)  # type: ignore[arg-type]
+    if selection_check is not None:
+        metrics["selection_check"] = selection_check
+
     result = getattr(model, "training_result", None)
     curves = result.curves if result is not None else heuristic_curve(cfg, metrics["valid"])  # type: ignore[arg-type]
+    curves = add_identity(curves, cfg.model.name, cfg.cohort.name, cfg.seed)
     curves.to_csv(run_dir / "curves.csv", index=False)
 
     evaluator.top_k_frame(eval_sets["test"], rankings_by_split["test"], model).to_csv(

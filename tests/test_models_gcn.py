@@ -368,17 +368,50 @@ def test_training_is_kept_when_no_validation_ever_chose_an_epoch(setup) -> None:
     assert model.training_result.best_epoch == 300
 
 
-def test_curves_carry_one_row_per_evaluation(setup) -> None:
-    """curves.csv is the evidence of convergence CLAUDE.md requires."""
+def test_curves_carry_one_row_per_epoch(setup) -> None:
+    """curves.csv is the evidence of convergence CLAUDE.md requires.
+
+    One row per **epoch**, not per evaluation: recording only every fifth epoch
+    discarded four fifths of the loss curve, which is the reader's main handle
+    on whether the run had really plateaued.
+    """
     make_context, _, _ = setup
     model = BTDKGRec()
     model.fit(make_context(_config(max_epochs=300)))
 
     curves = model.training_result.curves
-    assert list(curves.columns) == ["epoch", "loss", "valid_ndcg@20", "note"]
-    assert len(curves) == 300 // 5
-    assert curves["epoch"].iloc[0] == 5 and curves["epoch"].iloc[-1] == 300
+    assert list(curves.columns) == ["epoch", "loss", "seconds", "evaluated", "valid_ndcg@20", "note"]
+    assert len(curves) == 300
+    assert curves["epoch"].iloc[0] == 1 and curves["epoch"].iloc[-1] == 300
     assert curves["loss"].notna().all()
+    assert curves["seconds"].is_monotonic_increasing
+    # Evaluated epochs are exactly the multiples of eval_every.
+    assert curves.loc[curves["evaluated"], "epoch"].tolist() == list(range(5, 301, 5))
+
+
+def test_curves_keep_every_measured_metric_not_only_the_monitored_one(setup) -> None:
+    """The evaluator computes the whole block; dropping seven of eight was waste.
+
+    Without the other metrics a reader cannot answer the standard objection to
+    an early-stopped baseline: were recall and hit-rate still climbing when
+    patience ran out?
+    """
+    make_context, _, _ = setup
+    block = {"ndcg@20": 0.30, "recall@20": 0.11, "hit_rate@20": 0.42, "coverage@20": 0.02}
+
+    model = BTDKGRec()
+    model.attach_validation(lambda _: block)
+    model.fit(make_context(_config(max_epochs=300, eval_every=100)))
+
+    curves = model.training_result.curves
+    for name, score in block.items():
+        column = f"valid_{name}"
+        assert column in curves.columns
+        assert curves.loc[curves["evaluated"], column].eq(score).all()
+        assert curves.loc[~curves["evaluated"], column].isna().all()
+    # Selection still reads exactly one of them.
+    assert model.training_result.best_value == pytest.approx(block["ndcg@20"])
+    assert model.training_result.best_metrics == block
 
 
 def test_rule_6_is_asserted_once_per_epoch(setup) -> None:
@@ -398,7 +431,7 @@ def test_early_stopping_restores_the_epoch_that_validated_best(setup) -> None:
     sequence = iter([0.10, 0.30, 0.20, 0.15, 0.05] + [0.01] * 50)
 
     model = BTDKGRec()
-    model.attach_validation(lambda _: next(sequence))
+    model.attach_validation(lambda _: {"ndcg@20": next(sequence)})
     model.fit(make_context(_config(max_epochs=300, eval_every=1, patience=3)))
 
     result = model.training_result

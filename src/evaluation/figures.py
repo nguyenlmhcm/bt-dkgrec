@@ -17,6 +17,7 @@ Design decisions, fixed once so every figure in the thesis reads as one system:
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -331,40 +332,78 @@ def plot_warm_cold(
     return _save(fig, out_dir, f"fig_warm_cold_{cohort}_k{k}")
 
 
+def _monitored_column(run_dir: Path, frame: pd.DataFrame) -> str | None:
+    """Which ``valid_*`` column drove early stopping for this run.
+
+    Since ``curves.csv`` carries every measured metric, the column to plot can
+    no longer be "the first one": sorted alphabetically that is
+    ``valid_coverage@10``, which is not what selection read. The run states its
+    own monitor in ``metrics.json``; only if that is missing do we fall back.
+    """
+    candidates = [c for c in frame.columns if c.startswith("valid_")]
+    if not candidates:
+        return None
+
+    metrics_path = run_dir / "metrics.json"
+    if metrics_path.exists():
+        record = json.loads(metrics_path.read_text(encoding="utf-8"))
+        training = (record.get("model_description") or {}).get("training") or {}
+        monitor = training.get("monitor") or (record.get("selection_check") or {}).get("monitor")
+        if monitor and f"valid_{monitor}" in candidates:
+            return f"valid_{monitor}"
+        if monitor:
+            log.warning(
+                "run %s giam sat %r nhung curves.csv khong co cot do", run_dir.name, monitor
+            )
+    return candidates[0]
+
+
 def plot_training_curves(runs_dir: Path, cohort: str, out_dir: Path) -> Path | None:
     """Loss and validation metric per epoch -- the evidence that a model converged.
 
     The committee is likely to ask whether LightGCN was stopped early; this is
     the figure that answers it. Runs without a real training curve (the
     deterministic baselines) are skipped.
+
+    The loss panel uses every epoch. The metric panel uses only the epochs that
+    were actually evaluated -- the others hold no measurement, and plotting the
+    gaps as if they were zeros would invent a sawtooth that never happened.
     """
     apply_style()
-    curves: dict[str, pd.DataFrame] = {}
+    curves: dict[str, tuple[pd.DataFrame, str | None]] = {}
     for path in sorted(runs_dir.glob(f"{cohort}_*/curves.csv")):
         frame = pd.read_csv(path)
         if len(frame) < 2 or frame["loss"].isna().all():
             continue  # heuristic baseline: nothing was trained
-        model = path.parent.name.split("_")[1:-2]
-        curves.setdefault("_".join(model), frame)
+        # The identity column is authoritative; splitting the run id apart is a
+        # guess that happens to work only while timestamps carry no underscore.
+        if "model" in frame.columns:
+            model = str(frame["model"].iloc[0])
+        else:
+            model = "_".join(path.parent.name.split("_")[1:-2])
+        curves.setdefault(model, (frame, _monitored_column(path.parent, frame)))
 
     if not curves:
         log.info("chua co run nao co duong hoi tu that (moc san khong hoc)")
         return None
 
-    metric_columns = [c for c in next(iter(curves.values())).columns if c.startswith("valid_")]
     fig, axes = plt.subplots(1, 2, figsize=_size(9.5, 3.6))
+    metric_title = "valid metric"
 
-    for model, frame in curves.items():
+    for model, (frame, metric_column) in curves.items():
         color = MODEL_COLORS.get(model, INK_MUTED)
-        axes[0].plot(frame["epoch"], frame["loss"], color=color, linewidth=2,
-                     label=MODEL_LABELS.get(model, model))
-        if metric_columns:
-            axes[1].plot(frame["epoch"], frame[metric_columns[0]], color=color,
-                         linewidth=2, label=MODEL_LABELS.get(model, model))
+        label = MODEL_LABELS.get(model, model)
+        axes[0].plot(frame["epoch"], frame["loss"], color=color, linewidth=2, label=label)
+        if metric_column is None:
+            continue
+        measured = frame[frame[metric_column].notna()]
+        axes[1].plot(measured["epoch"], measured[metric_column], color=color,
+                     linewidth=2, label=label)
+        metric_title = metric_column
 
     axes[0].set_title("Loss huấn luyện")
     axes[0].set_xlabel("epoch")
-    axes[1].set_title(metric_columns[0] if metric_columns else "valid metric")
+    axes[1].set_title(metric_title)
     axes[1].set_xlabel("epoch")
     axes[0].legend(loc="upper right")
     _title(fig, f"Đường hội tụ — cohort {cohort}", y=1.03)

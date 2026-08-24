@@ -73,7 +73,7 @@ class BTDKGRec(Recommender):
         self.embedding_dim = 0
         self._a_hat: torch.Tensor | None = None
         self._z: torch.Tensor | None = None
-        self._validate: Callable[["BTDKGRec"], float | None] | None = None
+        self._validate: Callable[["BTDKGRec"], dict[str, float] | None] | None = None
         self._result: TrainingResult | None = None
         self._sampler: NegativeSampler | None = None
         self._graph_stats: dict[str, object] = {}
@@ -82,7 +82,9 @@ class BTDKGRec(Recommender):
     # Setup
     # ──────────────────────────────────────────────────────────────────
 
-    def attach_validation(self, validate: Callable[["BTDKGRec"], float | None]) -> None:
+    def attach_validation(
+        self, validate: Callable[["BTDKGRec"], dict[str, float] | None]
+    ) -> None:
         """Supply the validation callback used for early stopping.
 
         Passed in from the training script rather than carried on
@@ -92,8 +94,11 @@ class BTDKGRec(Recommender):
         inside :class:`~src.training.trainer.Trainer`.
 
         Args:
-            validate: Callable receiving this model and returning the monitored
-                validation metric, or ``None`` when it cannot be computed.
+            validate: Callable receiving this model and returning the whole
+                warm metric block of the validation split, or ``None`` when it
+                cannot be computed. The trainer selects on
+                ``cfg.training.monitor`` and records the remaining metrics as
+                evidence (see :mod:`src.training.curves`).
         """
         self._validate = validate
 

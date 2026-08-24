@@ -205,3 +205,81 @@ def test_figure_options_cannot_change_the_numbers() -> None:
 
     forbidden = {"k", "metric", "metrics", "data", "frame", "segment", "split", "seed"}
     assert not (set(FigureOptions().__dataclass_fields__) & forbidden)
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# Convergence figure
+# ──────────────────────────────────────────────────────────────────────────
+
+
+def _write_curve_run(root, cohort, model, seed, monitor="ndcg@20", trained=True):
+    """A run directory carrying a curves.csv of the shape Buoc 6 now writes."""
+    run = root / f"{cohort}_{model}_{seed}_20260101-000000"
+    run.mkdir(parents=True, exist_ok=True)
+    (run / "metrics.json").write_text(
+        json.dumps({"model_description": {"training": {"monitor": monitor}}}), encoding="utf-8"
+    )
+    if not trained:
+        rows = [{"model": model, "cohort": cohort, "seed": seed, "epoch": 0, "loss": None,
+                 "seconds": None, "evaluated": True, "valid_coverage@10": 0.0002,
+                 "valid_ndcg@20": 0.021, "note": "mo hinh khong hoc"}]
+    else:
+        rows = []
+        for epoch in range(1, 11):
+            evaluated = epoch % 5 == 0
+            rows.append({
+                "model": model, "cohort": cohort, "seed": seed, "epoch": epoch,
+                "loss": 1.0 / epoch, "seconds": epoch * 2.0, "evaluated": evaluated,
+                # Alphabetically first, and deliberately a different shape from
+                # the monitored metric so a mix-up is visible.
+                "valid_coverage@10": 0.9 if evaluated else None,
+                "valid_ndcg@20": 0.01 * epoch if evaluated else None,
+                "note": "best" if evaluated else "",
+            })
+    pd.DataFrame(rows).to_csv(run / "curves.csv", index=False)
+    return run
+
+
+def test_the_convergence_figure_plots_the_monitored_metric(tmp_path) -> None:
+    """★ Sorted alphabetically the first valid_* column is coverage, not the
+    metric selection actually read. Taking column zero would plot the wrong
+    curve under a caption claiming convergence."""
+    from src.evaluation.figures import _monitored_column
+
+    root = tmp_path / "runs"
+    run = _write_curve_run(root, "original", "lightgcn", 2020)
+    frame = pd.read_csv(run / "curves.csv")
+
+    assert _monitored_column(run, frame) == "valid_ndcg@20"
+
+
+def test_the_convergence_figure_falls_back_when_the_run_never_says_its_monitor(tmp_path) -> None:
+    from src.evaluation.figures import _monitored_column
+
+    root = tmp_path / "runs"
+    run = _write_curve_run(root, "original", "lightgcn", 2020)
+    (run / "metrics.json").unlink()
+    frame = pd.read_csv(run / "curves.csv")
+
+    assert _monitored_column(run, frame).startswith("valid_")
+
+
+def test_the_convergence_figure_skips_models_that_never_trained(tmp_path) -> None:
+    """A one-row heuristic curve is not a convergence curve."""
+    from src.evaluation.figures import plot_training_curves
+
+    root = tmp_path / "runs"
+    _write_curve_run(root, "original", "popularity", 2020, trained=False)
+
+    assert plot_training_curves(root, "original", tmp_path / "fig") is None
+
+
+def test_the_convergence_figure_is_written_when_a_real_curve_exists(tmp_path) -> None:
+    from src.evaluation.figures import plot_training_curves
+
+    root = tmp_path / "runs"
+    _write_curve_run(root, "original", "lightgcn", 2020)
+    _write_curve_run(root, "original", "popularity", 2020, trained=False)
+
+    path = plot_training_curves(root, "original", tmp_path / "fig")
+    assert path is not None and path.exists()

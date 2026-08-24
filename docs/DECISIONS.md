@@ -786,3 +786,63 @@ lại phải sửa test, và test sẽ dần bị sửa cho khớp thay vì đ�
 kế thừa từ MBGCN [Jin et al., SIGIR 2020] và KHGT [Xia et al., AAAI 2021]. Đây không phải lỗi
 như `dim/K` (vì không có "giá trị tác giả công bố" nào để lấy trên RetailRocket), nhưng phải
 ghi rõ là giới hạn, không được lờ đi.
+
+---
+
+## D31 — `curves.csv` ghi **mỗi epoch một dòng** và giữ **mọi** metric đã đo
+
+**Bối cảnh.** Câu hỏi của người hướng dẫn: *"train sao chúng ta chỉ tính mỗi ndcg@20 nhỉ?"*
+Rà lại thì phát hiện không phải "chỉ tính" mà là **tính rồi vứt** — một dạng lãng phí bằng
+chứng lặp ở nhiều chỗ.
+
+**Ba chỗ hỏng, cùng một hình dạng.**
+
+| Chỗ | Đã tính | Đã ghi | Mất |
+|---|---|---|---|
+| Metric mỗi lần đánh giá | 8 (4 metric × 2 giá trị K) | 1 | 7/8 |
+| Loss mỗi epoch | 300 | 60 (chỉ epoch chia hết `eval_every`) | 4/5 |
+| Bộ nhớ GPU đỉnh | có sẵn trong CUDA | 0 | tất cả |
+
+`Evaluator.evaluate()` tính cả khối warm trong một lần gọi; giữ lại một số rồi bỏ bảy số
+không tiết kiệm được gì. `Trainer` giữ đủ 300 giá trị loss trong RAM nhưng chỉ đổ 60 xuống đĩa.
+
+**Vì sao mất mát này đắt khi bảo vệ.** Phản biện tiêu chuẩn với một baseline dừng sớm là
+*"các metric khác lúc đó vẫn đang lên"*. Nếu `curves.csv` chỉ có một cột thì không trả lời được
+bằng bằng chứng, chỉ trả lời được bằng lời. Đường loss cũng vậy: một đường 60 điểm nhìn mượt
+hơn thực tế, che mất dao động giữa các epoch.
+
+**Quyết định.**
+
+```
+model,cohort,seed,epoch,loss,seconds,evaluated,valid_coverage@10,...,valid_recall@20,note
+```
+
+- **Một dòng mỗi epoch.** `loss` luôn có; khối `valid_*` chỉ có ở epoch được đánh giá,
+  `evaluated` nói rõ epoch nào — để trống ≠ đo được 0.
+- **Mọi metric**, không riêng metric giám sát. Chọn mô hình vẫn **chỉ** đọc
+  `cfg.training.monitor` (quy tắc chống rò rỉ 7 không đổi).
+- **Cột định danh `model, cohort, seed`.** Trước đó `curves.csv` nằm ngoài thư mục là vô danh;
+  tách `run_id` bằng chuỗi thì hỏng vì tên mô hình cũng có dấu gạch dưới
+  (`original_recent_popularity_2020_...` — `recent_popularity` hay `popularity`?).
+- **`peak_gpu_mb`** vào `metrics.json`. D30 lập luận bằng chi phí bộ nhớ; lập luận đó nên dựa
+  trên số đo mà artifact mang theo, không dựa trên số nhớ lại.
+
+**Kèm theo: một guard mới, `src/guards/consistency.py`.**
+
+Sau `fit()`, script chấm lại tập valid. Con số đó **phải** trùng `best_value` mà trainer ghi —
+cùng tham số, cùng dữ liệu. Trước đây không ai so.
+
+Đây chính là con bug đã xảy ra thật (xem mục D-trainer ở trên): `load_state_dict(best_state)`
+nạp lại ảnh chụp epoch 0 khi không có giá trị valid nào, **vứt sạch kết quả học**, trong khi
+`curves.csv` vẫn cho thấy loss giảm đẹp. Nó sống sót vì không có phép so nào bắt được.
+Giờ lệch quá 0,1% thì `ConsistencyError` — dừng ồn ào thay vì ra một con số hợp lý mà sai.
+Ngưỡng để ở 0,1% chứ không phải 0 vì kernel sparse trên CUDA không bit-exact.
+
+**Hệ quả cho `plot_training_curves`.** Trước đây hình lấy `metric_columns[0]`, đúng khi chỉ có
+một cột. Nay sắp xếp theo bảng chữ cái thì cột đầu là `valid_coverage@10` — **không phải** thứ
+early stopping đọc. Hình sẽ vẽ sai đường dưới một chú thích nói về hội tụ. Đã sửa: đọc tên
+metric giám sát từ `metrics.json` của chính run đó, và chỉ vẽ những epoch thực sự được đánh giá
+(nối các epoch trống sẽ bịa ra một đường răng cưa không có thật).
+
+**Chi phí:** 0 giây tính toán thêm. `curves.csv` từ ~60 dòng lên ~300 dòng — vài chục KB.
+
