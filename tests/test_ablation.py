@@ -209,3 +209,44 @@ def test_uniform_weighting_really_produced_weight_one_per_event(cohort) -> None:
     assert stats["weighting"] == "uniform"
     assert stats["interaction_weight_min"] == 1.0
     assert stats["interaction_weight_max"] == float(stats["max_events_per_pair"])
+
+
+def test_the_two_decay_rates_differ_in_exactly_one_parameter() -> None:
+    """★ bt_dkgrec vs bt_dkgrec_l05: same model, one tuned number apart.
+
+    lambda_decay is a *parameter* of formula (3.17), not a change to the
+    formula. If anything else differed -- alpha, the embedding size, the number
+    of layers, the loss -- the comparison would no longer isolate the decay
+    rate, and the tuning table in the thesis would be meaningless.
+    """
+    untuned = _model_section("bt_dkgrec")
+    tuned = _model_section("bt_dkgrec_l05")
+
+    assert _differing_keys(untuned, tuned) == {"model", "weighting"}
+    assert _differing_keys(untuned["model"], tuned["model"]) == {"name"}
+    assert _differing_keys(untuned["weighting"], tuned["weighting"]) == {"lambda_decay"}
+    assert untuned["weighting"]["lambda_decay"] == 0.01
+    assert tuned["weighting"]["lambda_decay"] == 0.05
+    # alpha is untouched: only the decay rate was tuned.
+    assert untuned["weighting"]["alpha"] == tuned["weighting"]["alpha"]
+
+
+def test_the_tuned_model_carries_only_a_name(tmp_path=None) -> None:
+    """It inherits BTDKGRec and adds nothing but an identifier."""
+    source = (MODELS_DIR / "bt_dkgrec_l05.py").read_text(encoding="utf-8")
+    body = source.split("class BTDKGRecL05", 1)[1]
+    statements = [
+        line.strip() for line in body.splitlines()
+        if line.strip() and not line.strip().startswith(("#", '"""', "'''"))
+    ]
+    # The class body is a docstring plus the name assignment -- nothing else.
+    assert any(s.startswith('name = "bt_dkgrec_l05"') for s in statements)
+    assert "def " not in body, "bt_dkgrec_l05 khong duoc dinh nghia ham nao"
+
+
+def test_both_decay_rates_use_the_same_weighting_strategy() -> None:
+    """Tuning a parameter must not silently switch the formula."""
+    from src.graph.weighting import WEIGHTING_BY_MODEL
+
+    assert WEIGHTING_BY_MODEL["bt_dkgrec"] is WEIGHTING_BY_MODEL["bt_dkgrec_l05"]
+    assert WEIGHTING_BY_MODEL["static_kg_gcn"] is not WEIGHTING_BY_MODEL["bt_dkgrec_l05"]

@@ -1,0 +1,30 @@
+# Mo hinh de xuat, voi lambda DA DUOC DO tren tap xac thuc.
+#
+# Giong het bt_dkgrec o MOI tham so, tru mot dong: lambda_decay.
+# bt_dkgrec       lambda = 0,01  (ke thua tu MBGCN/KHGT, CHUA do — xem D30)
+# bt_dkgrec_l05   lambda = 0,05  (do tren tap xac thuc — xem D33)
+#
+# Vi sao 0,05: quet lambda tren du lieu tap xac thuc, do bang AUC cua trong so
+# canh khi du bao tuong tac muc tieu. Dinh nam o 0,02-0,05 tren ca hai cohort:
+#
+#   lambda   AUC (Original)   AUC (Active)
+#   0,000        0,7862           0,7637     <- bo suy giam han
+#   0,010        0,9045           0,8566     <- gia tri cu
+#   0,020        0,9180           0,8825
+#   0,050        0,9185           0,9012     <- dinh tren CA HAI
+#   0,100        0,9069           0,8963
+#
+# Bien do suy giam tren cua so train 97 ngay:
+#   lambda = 0,01  ->  1,00 xuong 0,38   (nhe)
+#   lambda = 0,05  ->  1,00 xuong 0,008  (nhan manh tinh gan day)
+model:
+  name: bt_dkgrec_l05
+  kind: gcn
+  use_side_info: true
+  trainable: true
+  embedding_dim: 64
+  num_layers: 3
+
+# Ghi de DUY NHAT mot tham so so voi bt_dkgrec.
+weighting:
+  lambda_decay: 0.05

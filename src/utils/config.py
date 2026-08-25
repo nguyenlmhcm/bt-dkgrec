@@ -28,7 +28,10 @@ CONFIG_DIR = REPO_ROOT / "configs"
 SEEDS_FILE = REPO_ROOT / "experiments" / "seeds.json"
 
 COHORTS = ("original", "active")
-MODELS = ("popularity", "recent_popularity", "lightgcn", "static_kg_gcn", "bt_dkgrec")
+MODELS = (
+    "popularity", "recent_popularity", "lightgcn", "static_kg_gcn",
+    "bt_dkgrec", "bt_dkgrec_l05",
+)
 
 
 class _Strict(BaseModel):
@@ -136,7 +139,10 @@ class WeightingConfig(_Strict):
 
 
 class ModelConfig(_Strict):
-    name: Literal["popularity", "recent_popularity", "lightgcn", "static_kg_gcn", "bt_dkgrec"]
+    name: Literal[
+        "popularity", "recent_popularity", "lightgcn", "static_kg_gcn",
+        "bt_dkgrec", "bt_dkgrec_l05",
+    ]
     kind: Literal["heuristic", "gcn"]
     use_side_info: bool
     trainable: bool
@@ -209,7 +215,7 @@ class Config(_Strict):
     def _weighted_bpr_is_ablation_only(self) -> "Config":
         # Decision C: the whole 5-model x 3-seed x 2-cohort matrix uses standard
         # BPR (3.30). Weighted BPR (3.31) is a single ablation row of bt_dkgrec.
-        if self.training.loss == "weighted_bpr" and self.model.name != "bt_dkgrec":
+        if self.training.loss == "weighted_bpr" and not self.model.name.startswith("bt_dkgrec"):
             raise ValueError(
                 "weighted_bpr is an ablation of bt_dkgrec only; the main matrix uses standard bpr"
             )

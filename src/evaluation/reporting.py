@@ -31,13 +31,17 @@ METRIC_LABELS = {
 }
 #: Canonical model order for every table and figure: baselines first, ablation,
 #: then the proposed model. Fixed so readers can compare figures side by side.
-MODEL_ORDER = ("popularity", "recent_popularity", "lightgcn", "static_kg_gcn", "bt_dkgrec")
+MODEL_ORDER = (
+    "popularity", "recent_popularity", "lightgcn", "static_kg_gcn",
+    "bt_dkgrec", "bt_dkgrec_l05",
+)
 MODEL_LABELS = {
     "popularity": "Popularity",
     "recent_popularity": "Recent Popularity",
     "lightgcn": "LightGCN",
     "static_kg_gcn": "Static KG-GCN",
-    "bt_dkgrec": "BT-DKGRec-GCN",
+    "bt_dkgrec": "BT-DKGRec-GCN (λ=0,01)",
+    "bt_dkgrec_l05": "BT-DKGRec-GCN (λ=0,05)",
 }
 #: Models that cannot be run without training; used to flag deterministic std=0.
 DETERMINISTIC_MODELS = ("popularity", "recent_popularity")

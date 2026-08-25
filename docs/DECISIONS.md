@@ -907,3 +907,71 @@ Nên baseline **mạnh lên** sau khi sửa (mọi con số đổi đều đổi
 phải tự ưu ái. Phương án thay thế (hoán vị ngẫu nhiên có seed cố định) trung tính hơn về kỳ
 vọng nhưng khó giải thích hơn và không tự nhiên hơn; nếu hội đồng hỏi, câu trả lời là: mọi quy
 tắc phá hòa đều tùy tiện, cái đáng bảo vệ là nó **cố định và công khai**.
+
+---
+
+## D33 — Dò `λ` trên tập xác thực; giữ cả hai giá trị trong bảng
+
+**Vấn đề.** Sau 30 run, ablation cốt lõi `bt_dkgrec` vs `static_kg_gcn` **không đạt ý nghĩa
+thống kê ở bất kỳ ô nào** (Welch, p = 0,21–0,93; d = 0,32–0,64). Toàn bộ phần tăng đo được quy
+về đồ thị tri thức, không về trọng số behavior-time.
+
+**Đã loại trừ khả năng lỗi cài đặt.** Hai đồ thị khác nhau thật: cùng 9.310.850 phần tử khác 0,
+nhưng sau `D^-½AD^-½` thì 27,5% phần tử lệch quá 10%, lệch trung bình 7,6%. Trọng số biến thiên
+thật (hệ số biến thiên 1,08 trên Original, 1,37 trên Active). Cơ chế chạy đúng thiết kế.
+
+**Nghi phạm còn lại: `λ` chưa bao giờ được dò** — đúng giới hạn đã tự ghi ở D30.
+
+**Phép dò rẻ, chạy trên CPU trước khi tiêu giờ GPU.** Với mỗi cạnh train `(u,i)`, hỏi: user đó
+có thực hiện hành vi mục tiêu trên item đó trong **cửa sổ xác thực** không? Rồi đo AUC của
+trọng số cạnh khi dùng làm điểm phân tách.
+
+| λ | AUC `α·decay` (Original) | AUC `α·decay` (Active) |
+|---:|---:|---:|
+| 0,000 | 0,7862 | 0,7637 |
+| **0,010 ← v11** | 0,9045 | 0,8566 |
+| 0,020 | 0,9180 | 0,8825 |
+| **0,050 ← đỉnh cả hai cohort** | **0,9185** | **0,9012** |
+| 0,100 | 0,9069 | 0,8963 |
+| 0,500 | 0,8840 | 0,8781 |
+
+Ba điều đọc được:
+
+1. **`λ = 0,01` đặt sai.** Tối ưu ở 0,02–0,05, gấp 2–5 lần. Trên cửa sổ train 97 ngày,
+   `λ = 0,01` chỉ suy giảm từ 1,00 xuống 0,38 — quá nhẹ để tạo khác biệt.
+2. **Suy giảm thời gian là thành phần chính.** Bỏ hẳn (λ=0) rớt từ 0,92 xuống 0,79.
+3. **`α` có đóng góp nhưng nhỏ**, khoảng +0,014 AUC so với chỉ dùng suy giảm.
+
+**Giới hạn phải nêu trung thực.** AUC này đo trên 257 (Original) và 198 (Active) cặp `(u,i)`
+mà `filter_seen: true` **loại khỏi Top-K**. Nó là chỉ báo **gián tiếp** về việc trọng số có
+mang thông tin hay không, không phải bằng chứng trực tiếp về chất lượng xếp hạng. Con số này
+định hướng chọn lưới dò, không thay thế phép đo trên `valid ndcg@20`.
+
+**Quyết định: thêm `bt_dkgrec_l05`, KHÔNG sửa `bt_dkgrec` tại chỗ.**
+
+Sửa `λ` tại chỗ thì 6 run cũ phải bị xóa và bảng chỉ còn kết quả sau khi dò — người đọc không
+thấy được việc dò. Giữ hai mô hình cạnh nhau thì bảng **tự nó là bảng dò tham số**:
+
+| Mô hình | λ | Vai trò |
+|---|---|---|
+| `bt_dkgrec` | 0,01 | Giá trị kế thừa, chưa dò |
+| `bt_dkgrec_l05` | 0,05 | Dò trên dữ liệu tập xác thực |
+
+Đó là câu trả lời cho *"vì sao chọn 0,05?"*: có bảng AUC và có cả hai kết quả cuối, chứ không
+phải một con số xuất hiện không giải thích.
+
+**Khác biệt đúng một tham số**, `tests/test_ablation.py` khẳng định điều này:
+`_differing_keys(bt_dkgrec, bt_dkgrec_l05) == {"model", "weighting"}`, trong `model` chỉ khác
+`name`, trong `weighting` chỉ khác `lambda_decay`; `alpha` giữ nguyên. Cả hai dùng **cùng một
+lớp** `BehaviorTimeWeighting` — dò tham số không được phép âm thầm đổi công thức.
+
+**Chi phí:** 6 run (3 seed × 2 cohort) ≈ 3,5 giờ, cộng thời gian dựng lại đồ thị. Việc thêm
+một file vào `configs/` làm mất cả cache `interim` lẫn `processed` (D29 cố ý để danh sách phụ
+thuộc rộng hơn mức tối thiểu), nên mất thêm ~30 phút tiền xử lý cho ra kết quả y hệt. Đây là
+cái giá đã biết trước của việc chọn "thừa phụ thuộc còn hơn sót phụ thuộc".
+
+**Nếu `λ = 0,05` vẫn không tạo khác biệt có ý nghĩa** so với `static_kg_gcn`, kết luận trung
+thực là: trên RetailRocket, trọng số behavior-time mang thông tin về **tương tác lặp lại**
+(AUC 0,92) nhưng thông tin đó không chuyển thành cải thiện xếp hạng cho item chưa xem — mà
+item chưa xem mới là thứ giao thức Top-K đánh giá. Đó là một phát hiện có số đo đi kèm, không
+phải một thất bại im lặng.

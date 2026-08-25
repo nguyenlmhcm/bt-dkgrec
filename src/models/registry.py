@@ -22,15 +22,20 @@ from src.utils.config import Config
 def _graph_models() -> dict[str, type[Recommender]]:
     """Graph models, imported on demand because they require torch.
 
-    All three are the same class with a different name; what separates them is
-    the adjacency matrix Buoc 4 built for each (side information on or off,
-    behavior-time weighting on or off). See ``src/models/static_kg_gcn.py``.
+    All of them are the same class with a different name; what separates them
+    is the adjacency matrix Buoc 4 built for each (side information on or off,
+    behavior-time weighting on or off) and, for ``bt_dkgrec_l05``, the decay
+    rate its config carries. See ``src/models/static_kg_gcn.py``.
     """
     from src.models.bt_dkgrec import BTDKGRec
+    from src.models.bt_dkgrec_l05 import BTDKGRecL05
     from src.models.lightgcn import LightGCN
     from src.models.static_kg_gcn import StaticKGGCN
 
-    return {model.name: model for model in (LightGCN, StaticKGGCN, BTDKGRec)}
+    return {
+        model.name: model
+        for model in (LightGCN, StaticKGGCN, BTDKGRec, BTDKGRecL05)
+    }
 
 
 def available_models() -> tuple[str, ...]:

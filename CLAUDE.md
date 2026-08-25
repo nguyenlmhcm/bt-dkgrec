@@ -110,9 +110,12 @@ Công thức tham chiếu số hiệu trong luận văn: (3.16)–(3.18) trọng
 | Có yếu tố thời gian | `recent_popularity` | Mốc sàn có tính gần đây |
 | Graph CF | `lightgcn` | Baseline học thuật — không dùng side info, không behavior-time |
 | KG tĩnh | `static_kg_gcn` | Ablation — có side info, **không** behavior-time |
-| Đề xuất | `bt_dkgrec` | Đầy đủ |
+| Đề xuất | `bt_dkgrec` | Đầy đủ — `λ = 0,01` kế thừa từ MBGCN/KHGT, **chưa dò** |
+| Đề xuất (dò λ) | `bt_dkgrec_l05` | Đầy đủ — `λ = 0,05` dò trên tập xác thực (D33) |
 
 **Lập luận cốt lõi của luận văn** nằm ở cặp `static_kg_gcn` vs `bt_dkgrec`. Hai mô hình phải khác **đúng một biến**: hàm `edge_weight()`. Mọi thứ khác dùng chung code.
+
+`bt_dkgrec_l05` khác `bt_dkgrec` **đúng một tham số**: `weighting.lambda_decay`. Giữ cả hai trong bảng để người đọc thấy được việc dò tham số, chứ không chỉ thấy kết quả sau khi dò.
 
 Lưu ý: `static_kg_gcn` **không phải** bản tái lập KGAT hay KGCN. Phải ghi rõ điều này khi viết luận văn để tránh hiểu nhầm.
 

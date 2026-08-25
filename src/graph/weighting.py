@@ -134,6 +134,7 @@ class UniformWeighting(BehaviorTimeWeighting):
 #: (docs/DECISIONS.md muc D4). In Buoc 6/7 the model classes inherit from these.
 WEIGHTING_BY_MODEL: dict[str, type[BehaviorTimeWeighting]] = {
     "bt_dkgrec": BehaviorTimeWeighting,
+    "bt_dkgrec_l05": BehaviorTimeWeighting,
     "static_kg_gcn": UniformWeighting,
     "lightgcn": UniformWeighting,
 }

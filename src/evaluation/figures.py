@@ -44,7 +44,8 @@ MODEL_COLORS = {
     "recent_popularity": "#eb6834",  # orange
     "lightgcn": "#1baf7a",           # aqua
     "static_kg_gcn": "#4a3aa7",      # violet
-    "bt_dkgrec": "#e34948",          # red
+    "bt_dkgrec": "#e8927c",          # muted red -- the untuned setting
+    "bt_dkgrec_l05": "#e34948",      # red -- the tuned setting
 }
 #: Greyscale-safe secondary encoding, so print readers keep the identity.
 MODEL_HATCH = {
@@ -53,6 +54,7 @@ MODEL_HATCH = {
     "lightgcn": "\\\\",
     "static_kg_gcn": "xx",
     "bt_dkgrec": "..",
+    "bt_dkgrec_l05": "++",
 }
 
 @dataclass
