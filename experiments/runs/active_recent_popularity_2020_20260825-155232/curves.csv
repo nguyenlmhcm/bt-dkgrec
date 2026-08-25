@@ -1,0 +1,2 @@
+model,cohort,seed,epoch,loss,seconds,evaluated,valid_coverage@10,valid_coverage@20,valid_hit_rate@10,valid_hit_rate@20,valid_ndcg@10,valid_ndcg@20,valid_recall@10,valid_recall@20,note
+recent_popularity,active,2020,0,,,True,0.00038080291718113526,0.0006346715286352254,0.021367521367521368,0.02564102564102564,0.008140484694428836,0.007894778805532448,0.006737225304476766,0.006938669950365858,mo hinh khong hoc — khong co duong hoi tu
