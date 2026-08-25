@@ -34,7 +34,23 @@ from src.utils.logging import get_logger
 
 log = get_logger(__name__)
 
-SEGMENTS = ("warm", "cold", "all")
+#: Warm users split by how many interaction edges they carry in train.
+#:
+#: ``W(u,i)`` is aggregated per ``(visitor, item)`` edge, and the LightGCN
+#: normalisation divides a visitor's row by that visitor's own weight total. A
+#: visitor with a single edge therefore has the weight divided by itself: it
+#: cancels **exactly**, and ``bt_dkgrec`` and ``static_kg_gcn`` are provably
+#: identical for them. 79,6% of RetailRocket visitors are in that band, so the
+#: aggregate warm metric dilutes the mechanism roughly fivefold across a
+#: population where it cannot act. Reporting the bands separately measures it
+#: where it is free to act -- and band 1 is a self-check: a non-zero difference
+#: there means the code is wrong, not that the model is good.
+DEGREE_BANDS = ("warm_deg1", "warm_deg2", "warm_deg3plus")
+
+#: Segments a personalised model can serve -- every warm subset.
+WARM_SEGMENTS = ("warm", *DEGREE_BANDS)
+
+SEGMENTS = ("warm", *DEGREE_BANDS, "cold", "all")
 
 
 @dataclass(frozen=True)
@@ -49,6 +65,9 @@ class EvaluationSet:
         n_relevant_total: Full target count per user, including targets that
             cannot be ranked. Denominator of Recall and NDCG.
         is_warm: Whether each user exists in the train mapping.
+        train_degree: Number of distinct train items per user -- the visitor's
+            edge count in the graph. ``0`` for cold visitors. Drives
+            :data:`DEGREE_BANDS`.
         n_targets_unrankable: How many targets were unrankable overall, split by
             reason -- for the honesty note in the report.
     """
@@ -59,6 +78,7 @@ class EvaluationSet:
     relevant: list[np.ndarray]
     n_relevant_total: list[int]
     is_warm: np.ndarray
+    train_degree: np.ndarray
     n_targets_unrankable: dict[str, int]
 
     @property
@@ -119,6 +139,11 @@ def build_evaluation_set(
         relevant.append(rankable)
         n_relevant_total.append(len(targets))
 
+    # Edge count per evaluated visitor: distinct train items, which is exactly
+    # one graph edge each. Cold visitors have no row in the graph, hence 0.
+    degree_per_visitor = seen.getnnz(axis=1)
+    train_degree = np.where(is_warm, degree_per_visitor[visitor_indices], 0).astype("int64")
+
     evaluation_set = EvaluationSet(
         split=split,
         visitor_ids=visitor_ids,
@@ -126,6 +151,7 @@ def build_evaluation_set(
         relevant=relevant,
         n_relevant_total=n_relevant_total,
         is_warm=is_warm,
+        train_degree=train_degree,
         n_targets_unrankable={
             "item_not_in_train": n_absent,
             "removed_as_already_seen": n_seen_filtered,
@@ -274,14 +300,22 @@ class Evaluator:
         """
         rankings = self.rank(model, evaluation_set)
         warm = evaluation_set.is_warm
-        masks = {"warm": warm, "cold": ~warm, "all": np.ones_like(warm)}
+        degree = evaluation_set.train_degree
+        masks = {
+            "warm": warm,
+            "warm_deg1": warm & (degree == 1),
+            "warm_deg2": warm & (degree == 2),
+            "warm_deg3plus": warm & (degree >= 3),
+            "cold": ~warm,
+            "all": np.ones_like(warm),
+        }
 
         results: dict[str, object] = {"n_users": {}, "unrankable_targets": evaluation_set.n_targets_unrankable}
         for segment, mask in masks.items():
             n_users = int(mask.sum())
             results["n_users"][segment] = n_users  # type: ignore[index]
 
-            if segment != "warm" and not model.supports_cold_start:
+            if segment not in WARM_SEGMENTS and not model.supports_cold_start:
                 # Rule: never mix cold users into a personalised model's metric,
                 # and never report a number the model did not actually produce.
                 results[segment] = None

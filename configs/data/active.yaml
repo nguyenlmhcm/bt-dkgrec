@@ -5,3 +5,22 @@
 cohort:
   name: active
   min_active_events: 5
+
+# Ngan sach dung som RIENG cho cohort nay — ap dong deu cho MOI mo hinh.
+#
+# Can cu (khong phai cam tinh): scripts/analysis/patience_sensitivity.py phat lai
+# luat dung som tren curves.csv cua ca 24 run. Ket qua:
+#   - Original: 10/12 run giu nguyen best_epoch o patience=10  -> ngan sach du.
+#   - Active  : 11/24 run doi best_epoch o patience=10, va o patience=20 thi
+#               active/bt_dkgrec_l05/2022 bi cat o epoch 145 trong khi hai seed
+#               kia can 670-930 epoch moi hoi tu.
+# Duong validation cua cohort Active khong don dieu o MOI mo hinh (bt_dkgrec/2021
+# roi 295->65, static_kg_gcn/2021 roi 305->40 khi siet patience), nen patience=20
+# nam dung ranh gioi du/khong du. Nang len 50 lan eval = 250 epoch.
+#
+# Vi sao dat o day chu khong o configs/models/*: ngan sach phai dong deu giua cac
+# mo hinh duoc so sanh. Nang rieng cho mo hinh de xuat se dat baseline vao the bi
+# thiet — dung loi ma Shehzad & Jannach (RecSys '23) chung minh la lam moi phuong
+# phap trong nhu vuot troi. Xem docs/TONG_QUAN_TAI_LIEU_DUNG_SOM.md.
+training:
+  patience: 50

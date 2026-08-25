@@ -53,7 +53,8 @@ def load_runs(runs_dir: Path, split: str = "test", segment: str = "warm") -> pd.
     Args:
         runs_dir: ``experiments/runs/``.
         split: ``"valid"`` or ``"test"``.
-        segment: ``"warm"``, ``"cold"`` or ``"all"``.
+        segment: ``"warm"``, one of the degree bands ``"warm_deg1"`` /
+            ``"warm_deg2"`` / ``"warm_deg3plus"``, ``"cold"`` or ``"all"``.
 
     Returns:
         Long-format frame with ``cohort``, ``model``, ``seed``, ``n_users`` and

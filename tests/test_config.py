@@ -10,7 +10,7 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from src.utils.config import COHORTS, MODELS, Config, load_config, load_seeds
+from src.utils.config import CONFIG_DIR, COHORTS, MODELS, Config, load_config, load_seeds
 
 
 def test_official_seeds_are_exactly_three() -> None:
@@ -74,6 +74,31 @@ def test_all_models_share_one_training_budget() -> None:
         load_config(model=m).training.max_epochs for m in MODELS
     }
     assert budgets == {1000}
+
+
+def test_early_stopping_budget_is_uniform_within_a_cohort() -> None:
+    """The budget that actually binds is ``patience``, not ``max_epochs``.
+
+    Runs stop on patience long before epoch 1000, so a per-model patience would
+    be a per-model budget wearing a different name. Raising it for the proposed
+    model alone is the exact failure Shehzad & Jannach (RecSys '23) show makes
+    any method look superior. It is therefore a COHORT-level decision, set in
+    ``configs/data/<cohort>.yaml`` and never in ``configs/models/*``.
+    """
+    for cohort in COHORTS:
+        budgets = {load_config(model=m, cohort=cohort).training.patience for m in MODELS}
+        assert len(budgets) == 1, f"{cohort}: patience khong dong deu giua cac mo hinh — {budgets}"
+
+
+def test_no_model_config_may_set_its_own_stopping_budget() -> None:
+    """Enforced at the source: the key must not appear in any model YAML."""
+    import yaml
+
+    for path in sorted((CONFIG_DIR / "models").glob("*.yaml")):
+        loaded = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        training = loaded.get("training") or {}
+        for key in ("patience", "max_epochs", "eval_every"):
+            assert key not in training, f"{path.name} tu dat {key} — ngan sach phai o cap cohort"
 
 
 def test_cohort_threshold_matches_cohort_name() -> None:

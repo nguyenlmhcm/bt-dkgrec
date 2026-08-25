@@ -975,3 +975,80 @@ thực là: trên RetailRocket, trọng số behavior-time mang thông tin về 
 (AUC 0,92) nhưng thông tin đó không chuyển thành cải thiện xếp hạng cho item chưa xem — mà
 item chưa xem mới là thứ giao thức Top-K đánh giá. Đó là một phát hiện có số đo đi kèm, không
 phải một thất bại im lặng.
+
+---
+
+## D34 — Phân tầng người dùng theo bậc, và ngân sách dừng sớm ở cấp cohort
+
+Hai thay đổi, cùng một nguyên nhân: **phép đo hiện tại không đủ sức phân giải để trả lời câu
+hỏi trong tên đề tài** ("đồ thị tri thức **động**").
+
+### Phần 1 — Phân tầng theo bậc
+
+`W(u,i)` được gộp theo từng cạnh `(visitor, item)`, và chuẩn hóa LightGCN chia hàng của mỗi
+user cho tổng trọng số của **chính user đó**. Với user chỉ có **một** cạnh, trọng số bị chia
+cho chính nó và **triệt tiêu đúng bằng 0** — `bt_dkgrec` và `static_kg_gcn` là hai mô hình
+**hoàn toàn giống nhau** đối với những user đó. Đây là hệ quả toán học, không phải quan sát
+thực nghiệm.
+
+Trên RetailRocket, **79,6% user có đúng 1 cạnh** (trung vị = 1). Nghĩa là chỉ số `warm` gộp
+đang pha loãng cơ chế khoảng **5 lần** trên một quần thể mà nó **không thể** hoạt động.
+
+**Quyết định: báo cáo thêm ba phân đoạn con của `warm`** — `warm_deg1`, `warm_deg2`,
+`warm_deg3plus` (`src/evaluation/evaluator.py`, `DEGREE_BANDS`).
+
+Đây **không phải** bới số liệu. Tiên đoán được phát biểu **trước khi đo** và có thể bị bác bỏ:
+
+| nhóm | tiên đoán |
+|---|---|
+| `warm_deg1` | hiệu số **đúng bằng 0** — nếu khác 0 thì **code sai**, không phải mô hình tốt |
+| `warm_deg3plus` | nếu cơ chế có thật thì phải lớn hơn mức gộp |
+
+Cả hai kết cục đều dùng được: hoặc chứng minh được chữ "động" kèm chỉ rõ nó hoạt động ở đâu,
+hoặc kết luận âm sạch và đề án hạ giọng chữ "động" xuống thành đóng góp về **kiến trúc và quy
+trình** thay vì về **độ chính xác**.
+
+Với một đề án *"dự báo hành vi khách hàng"*, khách có lịch sử là nhóm có giá trị thương mại
+nhất — nên phân tầng theo mức độ hoạt động là phân tích đúng nghiệp vụ, không phải mẹo thống kê.
+
+Quy tắc trung thực cũ vẫn giữ: **nhóm rỗng báo `None`, không bao giờ báo 0**. Và ba nhóm này
+là tập con của `warm`, nên luật cold-start **không được** vô hiệu hóa chúng (`WARM_SEGMENTS`).
+
+### Phần 2 — `patience` là quyết định cấp cohort
+
+`scripts/analysis/patience_sensitivity.py` phát lại luật dừng sớm trên `curves.csv` của cả 24
+run (không cần huấn luyện lại):
+
+| cohort | ở patience=10 |
+|---|---|
+| Original | **10/12** run giữ nguyên `best_epoch` → ngân sách đủ |
+| Active | hỏng ở **mọi** mô hình (`bt_dkgrec/2021` 295→65, `static_kg_gcn/2021` 305→40) |
+
+`active/bt_dkgrec_l05/2022` bị cắt ở epoch 145 trong khi hai seed kia cần 670–930 epoch.
+Đường validation của cohort Active **không đơn điệu ở mọi mô hình** — nên việc một run bị cắt
+**không phải đặc tính của λ=0,05**, mà là patience=20 nằm đúng ranh giới đủ/không đủ.
+
+**Quyết định: nâng `patience` lên 50 cho cohort Active, đặt ở `configs/data/active.yaml`,
+áp đồng đều cho mọi mô hình. Cohort Original giữ nguyên 20.**
+
+Vì sao đặt ở cấp cohort chứ không cấp mô hình: nâng riêng cho mô hình đề xuất sẽ đặt baseline
+vào thế bị thiệt — đúng lỗi mà Shehzad & Jannach (RecSys '23) chứng minh là làm **mọi** phương
+pháp trông như vượt trội. Xem `docs/TONG_QUAN_TAI_LIEU_DUNG_SOM.md`.
+
+Hai guard cưỡng chế điều này, và đã được kiểm chứng là **thật sự đỏ khi bị vi phạm**:
+`test_early_stopping_budget_is_uniform_within_a_cohort` và
+`test_no_model_config_may_set_its_own_stopping_budget`.
+
+### Vì sao KHÔNG lưu checkpoint
+
+Đã cân nhắc lưu trọng số để lần sau đo lại mà không phải huấn luyện lại. **Bác bỏ.** Bảng
+embedding ≈ 64 MB/run × 24 run ≈ 1,5 GB, mà `experiments/runs/` **được commit vào git** —
+đó là kênh đồng bộ Colab→VPS duy nhất. Checkpoint không đẩy lên git được, mà không đẩy lên
+thì mất khi phiên Colab kết thúc. Trong kiến trúc này, lưu checkpoint **không giải quyết được
+gì**.
+
+### Ảnh hưởng
+
+Không đụng vào mô hình, đồ thị, chia tách hay guard chống rò rỉ. Huấn luyện có seed cố định
+nên **số liệu gộp phải tái lập đúng như cũ** — nếu lệch thì đó là vấn đề tái lập phải điều
+tra. Khẳng định chính (vượt LightGCN) không bị ảnh hưởng.

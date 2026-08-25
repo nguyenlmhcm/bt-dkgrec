@@ -179,7 +179,124 @@ def test_personalised_model_reports_null_for_cold_and_all(events, mapping, conte
     assert results["warm"] is not None
     assert results["cold"] is None      # not zero -- unmeasured, not measured as 0
     assert results["all"] is None
-    assert results["n_users"] == {"warm": 2, "cold": 1, "all": 3}
+    assert results["n_users"]["warm"] == 2
+    assert results["n_users"]["cold"] == 1
+    assert results["n_users"]["all"] == 3
+
+
+# ══ Phan tang theo bac (Buoc 7 bis) ══════════════════════════════════════
+#
+# W(u,i) is aggregated per (visitor, item) edge and the LightGCN normalisation
+# divides a visitor's row by that visitor's own weight total. For a visitor with
+# a single edge the weight is divided by itself and cancels exactly, so the
+# dynamic and the static knowledge graph are provably identical for them.
+# Reporting the bands separately is what lets the thesis measure the mechanism
+# where it is free to act rather than diluting it across a population where it
+# mathematically cannot.
+
+
+def _degree_fixture() -> tuple[IdMapping, pd.DataFrame]:
+    """Warm visitors of degree 1, 2 and 3, plus a cold one."""
+    mapping = IdMapping(
+        visitor_ids=np.array([1, 2, 3], dtype="int32"),
+        item_ids=np.array([10, 11, 12, 13], dtype="int32"),
+    )
+    rows = [
+        (1, 10, "view", 10 * DAY, "train"),                    # visitor 1: 1 canh
+        (2, 10, "view", 10 * DAY, "train"),                    # visitor 2: 2 canh
+        (2, 11, "view", 11 * DAY, "train"),
+        (3, 10, "view", 10 * DAY, "train"),                    # visitor 3: 3 canh
+        (3, 11, "view", 11 * DAY, "train"),
+        (3, 12, "view", 12 * DAY, "train"),
+        # Repeat events on an existing edge must NOT raise the degree.
+        (1, 10, "addtocart", 20 * DAY, "train"),
+        (1, 13, "addtocart", 110 * DAY, "test"),
+        (2, 13, "addtocart", 110 * DAY, "test"),
+        (3, 13, "addtocart", 110 * DAY, "test"),
+        (9, 13, "addtocart", 110 * DAY, "test"),               # cold
+    ]
+    frame = pd.DataFrame(rows, columns=["visitorid", "itemid", "behavior", "timestamp", "split"])
+    frame["behavior"] = pd.Categorical(
+        frame["behavior"], categories=["view", "addtocart", "transaction"]
+    )
+    frame["split"] = pd.Categorical(frame["split"], categories=["train", "valid", "test"])
+    return mapping, frame
+
+
+def _degree_eval_set():
+    mapping, frame = _degree_fixture()
+    cfg = load_config(model="popularity")
+    indexed = _indexed(frame, mapping)
+    seen = build_seen_matrix(indexed[indexed["split"] == "train"], mapping)
+    return cfg, mapping, seen, build_evaluation_set(indexed, mapping, "test", cfg, seen)
+
+
+def test_train_degree_counts_edges_not_events() -> None:
+    """Visitor 1 has two train events on one item -- that is ONE edge."""
+    _, _, _, eval_set = _degree_eval_set()
+
+    by_visitor = dict(zip(eval_set.visitor_ids.tolist(), eval_set.train_degree.tolist()))
+    assert by_visitor == {1: 1, 2: 2, 3: 3, 9: 0}
+
+
+def test_a_cold_visitor_has_degree_zero_and_joins_no_band() -> None:
+    _, _, _, eval_set = _degree_eval_set()
+
+    position = int(np.flatnonzero(eval_set.visitor_ids == 9)[0])
+    assert eval_set.train_degree[position] == 0
+    assert not eval_set.is_warm[position]
+
+
+def test_degree_bands_partition_the_warm_segment_exactly() -> None:
+    """No warm user may be counted twice, and none may be lost."""
+    cfg, mapping, seen, eval_set = _degree_eval_set()
+    model = Popularity()
+    model.fit(ModelContext(
+        cfg=cfg, mapping=mapping,
+        train_events=_indexed(_degree_fixture()[1], mapping).query("split == 'train'"),
+        interaction_edges=pd.DataFrame(), t_train=T_TRAIN,
+    ))
+    results, _ = Evaluator(cfg, mapping, seen).evaluate(model, eval_set)
+
+    counts = results["n_users"]
+    bands = counts["warm_deg1"] + counts["warm_deg2"] + counts["warm_deg3plus"]
+    assert bands == counts["warm"] == 3
+    assert (counts["warm_deg1"], counts["warm_deg2"], counts["warm_deg3plus"]) == (1, 1, 1)
+
+
+def test_degree_bands_are_measured_for_a_personalised_model() -> None:
+    """They are warm subsets, so the cold-start rule must not null them out."""
+    cfg, mapping, seen, eval_set = _degree_eval_set()
+
+    class PersonalisedModel(Popularity):
+        name, supports_cold_start = "personalised", False
+
+    model = PersonalisedModel()
+    model.fit(ModelContext(
+        cfg=cfg, mapping=mapping,
+        train_events=_indexed(_degree_fixture()[1], mapping).query("split == 'train'"),
+        interaction_edges=pd.DataFrame(), t_train=T_TRAIN,
+    ))
+    results, _ = Evaluator(cfg, mapping, seen).evaluate(model, eval_set)
+
+    for band in ("warm_deg1", "warm_deg2", "warm_deg3plus"):
+        assert results[band] is not None, f"{band} bi bao cao la None"
+    assert results["cold"] is None       # the real cold rule still holds
+
+
+def test_an_empty_band_is_null_rather_than_zero(events, mapping, context) -> None:
+    """Same honesty rule as cold: unmeasured is never reported as 0."""
+    cfg = load_config(model="popularity")
+    indexed = _indexed(events, mapping)
+    seen = build_seen_matrix(indexed[indexed["split"] == "train"], mapping)
+    eval_set = build_evaluation_set(indexed, mapping, "test", cfg, seen)
+
+    model = Popularity()
+    model.fit(context)
+    results, _ = Evaluator(cfg, mapping, seen).evaluate(model, eval_set)
+
+    assert results["n_users"]["warm_deg1"] == 0
+    assert results["warm_deg1"] is None
 
 
 def test_popularity_can_serve_cold_users(events, mapping, context) -> None:

@@ -80,6 +80,9 @@ Script `01_preprocess.py` phải in bảng audit này. Nếu lệch nhiều → 
 - **Warm user**: có lịch sử trong train VÀ có target trong giai đoạn đánh giá
 - **Cold user**: không có embedding cá nhân hóa từ train → báo cáo **riêng**, hoặc dùng phương án dự phòng theo độ phổ biến
 - **Không trộn** warm và cold vào cùng metric của mô hình cá nhân hóa
+- `warm` được báo cáo thêm theo **bậc** (`warm_deg1/2/3plus` — số cạnh của user trong
+  train). User 1 cạnh là nơi trọng số behavior-time **triệt tiêu về 0** do chuẩn hóa;
+  tách ra để đo cơ chế ở nơi nó được phép hoạt động. Xem D34.
 
 ### Chính sách candidate bảo thủ
 
@@ -273,7 +276,8 @@ Sparse ops trên CUDA không bit-exact dù cố định seed:
 experiments/runs/<cohort>_<model>_<seed>_<timestamp>/
 ├── config.yaml      # snapshot config đã dùng
 ├── seed.txt
-├── metrics.json     # Recall/NDCG/HitRate/Coverage @10,@20 — warm/cold/all
+├── metrics.json     # Recall/NDCG/HitRate/Coverage @10,@20
+│                   # warm / warm_deg1 / warm_deg2 / warm_deg3plus / cold / all
 ├── topk.csv         # Top-K từng visitor — demo đọc file này
 ├── curves.csv       # MỘT DÒNG MỖI EPOCH ← chứng minh hội tụ
 ├── env.json         # phiên bản thư viện + GPU thực tế đã chạy (D25)
