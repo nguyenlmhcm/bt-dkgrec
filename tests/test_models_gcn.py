@@ -573,11 +573,22 @@ def test_each_variant_records_its_own_weighting_in_the_run_artifact(all_three_gr
         assert record["supports_cold_start"] is False
 
 
-def test_the_registry_offers_all_five_models() -> None:
-    from src.models.registry import available_models, build_model
+def test_the_registry_offers_every_configurable_model() -> None:
+    """The registry and the config must list exactly the same models.
 
-    assert set(available_models()) == {
-        "popularity", "recent_popularity", "lightgcn", "static_kg_gcn", "bt_dkgrec"
-    }
-    for name in ("lightgcn", "static_kg_gcn", "bt_dkgrec"):
+    Asserted against ``config.MODELS`` rather than a literal list on purpose:
+    a hard-coded set has to be edited every time a variant is added, and the
+    edit gets forgotten -- which is how ``bt_dkgrec_l05`` broke this test on
+    Colab while the VPS suite stayed green. Comparing the two sources catches
+    the real defect instead: a model that can be configured but not built, or
+    built but not configured.
+    """
+    from src.models.registry import available_models, build_model
+    from src.utils.config import MODELS
+
+    assert set(available_models()) == set(MODELS)
+
+    graph_models = [m for m in MODELS if m.startswith(("lightgcn", "static_kg", "bt_dkgrec"))]
+    assert len(graph_models) >= 3
+    for name in graph_models:
         assert build_model(_variant_config(name)).name == name

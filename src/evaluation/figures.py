@@ -4,9 +4,12 @@ Design decisions, fixed once so every figure in the thesis reads as one system:
 
 * **Colour follows the model, never its rank.** ``MODEL_COLORS`` is a fixed
   assignment; a figure that shows only three models keeps each one's colour.
-  The five hues were checked with a colour-vision-deficiency validator and pass
-  the lightness band, chroma floor, adjacent-pair CVD separation (worst 9.2 dE,
-  target >= 8) and normal-vision floor (worst 27.6, floor 15) on a light surface.
+  The hues were checked with a colour-vision-deficiency validator and pass the
+  lightness band, chroma floor, adjacent-pair CVD separation (worst 9.2 dE,
+  target >= 8) and normal-vision floor (worst 27.6, floor 15) on a light
+  surface. The two ``bt_dkgrec`` decay settings deliberately share a hue family
+  -- they are the same model, one parameter apart -- and are separated by
+  lightness plus their own hatch, not by a sixth unrelated colour.
 * **Secondary encoding for print.** A thesis gets photocopied in greyscale, so
   every bar also carries a hatch pattern and a printed value label. That also
   discharges the contrast warning on the aqua slot.
