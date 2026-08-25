@@ -1,0 +1,101 @@
+{
+  "run_id": "original_bt_dkgrec_l05_2021_20260825-072738",
+  "cohort": "original",
+  "model": "bt_dkgrec_l05",
+  "seed": 2021,
+  "model_description": {
+    "model": "bt_dkgrec_l05",
+    "supports_cold_start": false,
+    "embedding_dim": 64,
+    "num_layers": 3,
+    "init_std": 0.1,
+    "learnable": "layer-0 embeddings only (khong co ma tran trong so giua cac lop)",
+    "n_nodes": 1262640,
+    "weighting": "behavior_time",
+    "negative_sampling": {
+      "strategy": "uniform_over_train_items",
+      "num_negatives": 1,
+      "n_collisions_resampled": 42202,
+      "n_collisions_unresolved": 0,
+      "rule_6_checks": 185
+    },
+    "training": {
+      "n_epochs": 185,
+      "best_epoch": 85,
+      "best_valid_metric": 0.03689675291664051,
+      "best_valid_metrics": {
+        "recall@10": 0.052497052564987344,
+        "ndcg@10": 0.030638502042731417,
+        "hit_rate@10": 0.07427536231884058,
+        "coverage@10": 0.010292239134886352,
+        "recall@20": 0.07519613622421593,
+        "ndcg@20": 0.03689675291664051,
+        "hit_rate@20": 0.10326086956521739,
+        "coverage@20": 0.018907296714869383
+      },
+      "monitor": "ndcg@20",
+      "stopped_early": true,
+      "first_loss": 0.6740420783316491,
+      "last_loss": 0.006820232189105722,
+      "seconds": 3138.5,
+      "peak_gpu_mb": 4361.0
+    }
+  },
+  "n_train_items": 205106,
+  "n_train_visitors": 1027985,
+  "valid": {
+    "n_users": {
+      "warm": 552,
+      "cold": 3136,
+      "all": 3688
+    },
+    "unrankable_targets": {
+      "item_not_in_train": 215,
+      "removed_as_already_seen": 257,
+      "total_targets": 5971
+    },
+    "warm": {
+      "recall@10": 0.052497052564987344,
+      "ndcg@10": 0.030638502042731417,
+      "hit_rate@10": 0.07427536231884058,
+      "coverage@10": 0.010292239134886352,
+      "recall@20": 0.07519613622421593,
+      "ndcg@20": 0.03689675291664051,
+      "hit_rate@20": 0.10326086956521739,
+      "coverage@20": 0.018907296714869383
+    },
+    "cold": null,
+    "all": null
+  },
+  "test": {
+    "n_users": {
+      "warm": 593,
+      "cold": 6786,
+      "all": 7379
+    },
+    "unrankable_targets": {
+      "item_not_in_train": 1058,
+      "removed_as_already_seen": 164,
+      "total_targets": 12012
+    },
+    "warm": {
+      "recall@10": 0.02459582295164083,
+      "ndcg@10": 0.014145023518829222,
+      "hit_rate@10": 0.04384485666104553,
+      "coverage@10": 0.011038194884596257,
+      "recall@20": 0.02940043115404602,
+      "ndcg@20": 0.015471997605940374,
+      "hit_rate@20": 0.05564924114671164,
+      "coverage@20": 0.020140805242167464
+    },
+    "cold": null,
+    "all": null
+  },
+  "selection_check": {
+    "monitor": "ndcg@20",
+    "best_epoch": 85,
+    "value_during_training": 0.03689675291664051,
+    "value_after_restore": 0.03689675291664051,
+    "relative_difference": 0.0
+  }
+}
