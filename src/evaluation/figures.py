@@ -102,6 +102,27 @@ GRID = "#dcdcd8"
 SURFACE = "#ffffff"
 
 
+#: Ten file cua tung loai hinh, khong keo theo duoi mo rong. Dat o day vi day la
+#: noi `_save()` sinh ra chung; script sinh hinh va script ghi Word deu tra cuu
+#: qua `figure_path()` de doi ten hinh chi phai sua mot cho.
+FIGURE_NAMES = {
+    "metrics": "fig_compare_{cohort}_k{k}",
+    "loss": "fig_curves_{cohort}",
+    "ablation": "fig_ablation_dynamic_vs_static_k{k}",
+    "warm_cold": "fig_warm_cold_{cohort}_k{k}",
+}
+
+
+def figure_path(out_dir: Path, kind: str, cohort: str = "", k: int = 20,
+                suffix: str = "png") -> Path:
+    """Duong dan cua mot hinh da ve.
+
+    Raises:
+        KeyError: Neu `kind` khong co trong :data:`FIGURE_NAMES`.
+    """
+    return out_dir / f"{FIGURE_NAMES[kind].format(cohort=cohort, k=k)}.{suffix}"
+
+
 def apply_style() -> None:
     """Set the shared rcParams from :data:`OPTIONS`. Called before each figure."""
     scale = OPTIONS.font_scale

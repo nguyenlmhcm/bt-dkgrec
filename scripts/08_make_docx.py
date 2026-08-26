@@ -33,6 +33,7 @@ from scipy import stats
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from src.evaluation.figures import figure_path  # noqa: E402
 from src.evaluation.reporting import MODEL_LABELS, load_runs  # noqa: E402
 from src.utils.logging import get_logger  # noqa: E402
 
@@ -246,15 +247,15 @@ def write_results(doc: Document, frame: pd.DataFrame, cohort: str,
          "phải lỗi tính toán.")
 
     bar, loss = figure_numbers
-    figure(doc, FIGURES / f"{cohort}_metrics.png",
+    figure(doc, figure_path(FIGURES, "metrics", cohort),
            f"Hình {bar}. So sánh các chỉ số test trên {title.lower()}")
-    figure(doc, FIGURES / f"{cohort}_loss.png",
+    figure(doc, figure_path(FIGURES, "loss", cohort),
            f"Hình {loss}. Đường loss huấn luyện của các mô hình trên {cohort} split")
     para(doc,
-         "Trục loss dùng thang log; trên thang tuyến tính mọi đường đều dính vào "
-         "0 sau khoảng epoch 50 và không còn đọc được phần hội tụ. Đường vẽ là "
-         "trung bình theo các seed, dải nền là khoảng min-max giữa các seed. Hai "
-         "mô hình tất định không có đường loss nên không xuất hiện trong hình.")
+         "Mỗi cột kèm nhãn giá trị và một kiểu gạch riêng, nên hình vẫn đọc được "
+         "khi in trắng đen. Thanh sai số là độ lệch chuẩn giữa các seed; hai mô "
+         "hình tất định không có thanh sai số và không có đường loss, nên không "
+         "xuất hiện trong hình đường cong.")
 
 
 def write_432(doc: Document, frame: pd.DataFrame) -> None:
