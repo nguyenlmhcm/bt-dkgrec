@@ -30,19 +30,28 @@ def load():
     return module
 
 
-@pytest.fixture(scope="module")
-def patched(tmp_path_factory) -> Path:
-    out = tmp_path_factory.mktemp("v12") / "v12.docx"
-    module = load()
-    assert module.main.__module__  # module nap duoc
+def run_patch(out: Path, *extra: str) -> Path:
     import sys
+    module = load()
     argv = sys.argv
-    sys.argv = ["10_patch_chuong3.py", "--source", str(V11), "--out", str(out)]
+    sys.argv = ["10_patch_chuong3.py", "--source", str(V11), "--out", str(out), *extra]
     try:
         assert module.main() == 0
     finally:
         sys.argv = argv
     return out
+
+
+@pytest.fixture(scope="module")
+def patched(tmp_path_factory) -> Path:
+    """Ban ra soat: co to nen va co danh muc sua doi."""
+    return run_patch(tmp_path_factory.mktemp("v12") / "v12.docx")
+
+
+@pytest.fixture(scope="module")
+def clean(tmp_path_factory) -> Path:
+    """Ban nop: khong to nen, khong danh muc."""
+    return run_patch(tmp_path_factory.mktemp("v12c") / "v12_clean.docx", "--no-highlight")
 
 
 def count_omath(path: Path) -> int:
@@ -54,8 +63,14 @@ def test_khong_mat_cong_thuc(patched):
     assert count_omath(patched) == count_omath(V11)
 
 
-def test_them_dung_mot_bang(patched):
-    assert len(Document(str(patched)).tables) == len(Document(str(V11)).tables) + 1
+def test_ban_nop_them_dung_mot_bang(clean):
+    """Ban sach chi them Bang 3.6."""
+    assert len(Document(str(clean)).tables) == len(Document(str(V11)).tables) + 1
+
+
+def test_ban_ra_soat_them_hai_bang(patched):
+    """Ban ra soat them ca bang danh muc sua doi."""
+    assert len(Document(str(patched)).tables) == len(Document(str(V11)).tables) + 2
 
 
 def test_giu_nguyen_so_hinh(patched):
@@ -130,3 +145,39 @@ def test_dau_thap_phan_la_dau_cham(patched):
     assert moi, "khong tim thay doan moi de kiem"
     for text in moi:
         assert "0,05" not in text and "79,6" not in text
+
+
+# ── Danh dau cho sua ────────────────────────────────────────────────────
+
+
+def test_danh_muc_sua_doi_nam_o_dau_tai_lieu(patched):
+    """Trang bia v11 la mot BANG, nen de sai cho la danh muc bi day xuong duoi."""
+    doc = Document(str(patched))
+    header = [c.text.strip() for c in doc.tables[0].rows[0].cells]
+    assert header == ["Mục", "Nội dung sửa", "Vì sao"]
+    assert doc.paragraphs[0].text.strip() == "DANH MỤC SỬA ĐỔI SO VỚI BẢN v11"
+
+
+def test_danh_muc_liet_ke_du_sau_muc_da_va(patched):
+    muc = {r.cells[0].text.strip() for r in Document(str(patched)).tables[0].rows[1:]}
+    assert muc == {"§3.6", "§3.4", "§3.5.2", "§3.8", "§3.3.3", "Bảng 3.4", "§3.7.2"}
+
+
+def test_cho_sua_duoc_to_nen(patched):
+    """Khong to nen thi khong ai tim ra cho sua giua 16.606 tu."""
+    from docx.enum.text import WD_COLOR_INDEX
+    doc = Document(str(patched))
+    vang = [p.text for p in doc.paragraphs
+            for r in p.runs if r.font.highlight_color == WD_COLOR_INDEX.YELLOW]
+    assert any("Biến thể này chỉ được dùng" in t for t in vang)
+    assert any("Phép chuẩn hóa này có một hệ quả" in t for t in vang)
+    assert any("Ngân sách huấn luyện được xác định" in t for t in vang)
+
+
+def test_ban_nop_khong_con_dau_vet_ra_soat(clean):
+    from docx.enum.text import WD_COLOR_INDEX
+    doc = Document(str(clean))
+    assert not [r for p in doc.paragraphs for r in p.runs
+                if r.font.highlight_color == WD_COLOR_INDEX.YELLOW]
+    assert "DANH MỤC SỬA ĐỔI" not in doc.paragraphs[0].text
+    assert [p for p in doc.paragraphs if "Biến thể này chỉ được dùng" in p.text]

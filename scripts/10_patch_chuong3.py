@@ -33,6 +33,7 @@ from pathlib import Path
 
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.text import WD_COLOR_INDEX
 from docx.oxml.ns import qn
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -42,6 +43,14 @@ from src.utils.logging import get_logger  # noqa: E402
 log = get_logger(__name__)
 
 SOURCE = Path("docs/De_an_thac_si_v11.docx")
+
+#: Moi doan va bang do script cham vao. Duoc to nen vang o cuoi de nguoi doc
+#: tim thay cho sua ma khong phai do 16.606 tu. Ban nop cuoi cung chay voi
+#: `--no-highlight` de tra lai nen trang.
+TOUCHED: list = []
+
+#: Danh muc sua doi, in thanh mot bang o dau tai lieu khi ra soat.
+CHANGELOG: list[tuple[str, str, str]] = []
 OMML = "{http://schemas.openxmlformats.org/officeDocument/2006/math}"
 
 
@@ -88,6 +97,7 @@ def retext(para, text: str) -> None:
         para.runs[0].text = text
     else:
         para.add_run(text)
+    TOUCHED.append(para)
 
 
 def insert_after(doc: Document, anchor, texts: list[str]):
@@ -100,6 +110,7 @@ def insert_after(doc: Document, anchor, texts: list[str]):
         previous._p.addnext(para._p)
         previous = para
         made.append(para)
+        TOUCHED.append(para)
     return made
 
 
@@ -113,6 +124,7 @@ def insert_table_after(doc: Document, anchor, header: list[str], rows: list[list
         for cell, text in zip(table.add_row().cells, row):
             cell.text = text
     anchor._p.addnext(table._tbl)
+    TOUCHED.append(table)
     return table
 
 
@@ -129,6 +141,11 @@ def cell_containing(doc: Document, needle: str):
 
 def patch_36_loss(doc: Document) -> None:
     """§3.6: weighted BPR la ablation, khong phai loss cua cohort Original."""
+    CHANGELOG.append((
+        '§3.6',
+        'Bỏ câu "Original dùng weighted BPR, Active dùng BPR chuẩn"; công thức (3.31) giữ nguyên nhưng được mô tả đúng vai trò là ablation',
+        'Code mới chạy BPR chuẩn cho toàn bộ ma trận; có assertion chặn weighted_bpr khỏi ma trận chính'))
+
     before = find(doc, "Cần phân biệt hai cấu hình huấn luyện đã tạo ra hai bảng kết quả")
     retext(before,
         "Ngoài BPR chuẩn, đề tài định nghĩa thêm một biến thể có trọng số, trong đó "
@@ -151,6 +168,19 @@ def patch_36_loss(doc: Document) -> None:
 
 def patch_34_lambda(doc: Document) -> None:
     """§3.4: lambda=0.01 khong duoc do; bo sung ket qua quet that va mo hinh thu sau."""
+    CHANGELOG.append((
+        '§3.4',
+        'Bỏ câu "λ=0.01 được lựa chọn trên tập xác thực"; thay bằng hai thiết lập λ=0.01 và λ=0.05',
+        'Việc dò chưa từng xảy ra với λ=0.01; λ=0.01 kế thừa từ công trình trước'))
+    CHANGELOG.append((
+        '§3.4',
+        'Thêm Bảng 3.6 là kết quả quét λ thật trên tập xác thực',
+        'Thay lời khẳng định bằng bằng chứng đo được; đỉnh nằm tại λ=0.05 ở cả hai cohort'))
+    CHANGELOG.append((
+        '§3.4',
+        'Giới thiệu mô hình thứ sáu BT-DKGRec-GCN (λ=0.05)',
+        'Mô hình này có trong mọi bảng Chương 4 nhưng chưa từng được nêu ở Chương 3'))
+
     intro = find(doc, "Thiết lập được chọn để báo cáo dùng λ=0.01")
     retext(intro,
         "Đề tài báo cáo hai thiết lập của hệ số suy giảm. Thiết lập thứ nhất dùng "
@@ -176,6 +206,7 @@ def patch_34_lambda(doc: Document) -> None:
     caption_36.alignment = WD_ALIGN_PARAGRAPH.CENTER
     caption_36.add_run("Bảng 3.6. Kết quả quét hệ số suy giảm λ trên tập xác thực").bold = True
     method._p.addnext(caption_36._p)
+    TOUCHED.append(caption_36)
 
     table_36 = insert_table_after(
         doc, caption_36,
@@ -197,15 +228,22 @@ def patch_34_lambda(doc: Document) -> None:
         "chung toàn bộ phần còn lại của cấu hình.", style="Normal")
     tail.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     table_36._tbl.addnext(tail._p)
+    TOUCHED.append(tail)
 
     entry = doc.add_paragraph(
         "Bảng 3.6. Kết quả quét hệ số suy giảm λ trên tập xác thực",
         style=muc_luc_35.style)
     muc_luc_35._p.addnext(entry._p)
+    TOUCHED.append(entry)
 
 
 def patch_352_cancellation(doc: Document) -> None:
     """§3.5.2: he qua cua chuan hoa doi xung voi visitor bac 1."""
+    CHANGELOG.append((
+        '§3.5.2',
+        'Thêm hệ quả của chuẩn hoá đối xứng: với visitor bậc 1, W(u,i) bị triệt tiêu; 79.6% visitor Original thuộc loại đó',
+        'Đặt ở đây thì đây là dự đoán của lý thuyết và Chương 4 xác nhận; để Chương 4 nói lần đầu thì nó đọc như lời bào chữa'))
+
     anchor = find(doc, "phép chuẩn hóa giúp node có bậc lớn không lấn át hoàn toàn")
     insert_after(doc, anchor, [
         "Phép chuẩn hóa này có một hệ quả cần được nêu trước khi đọc kết quả thực "
@@ -224,6 +262,15 @@ def patch_352_cancellation(doc: Document) -> None:
 
 def patch_38_training(doc: Document) -> None:
     """§3.8: quy trinh thieu early stopping, nhieu seed va curves.csv."""
+    CHANGELOG.append((
+        '§3.8',
+        'Thêm early stopping: tối đa 1000 epoch, đánh giá mỗi 5 epoch, patience 20, riêng cohort Active là 50 và đặt ở cấp cohort',
+        'v11 mô tả một quy trình huấn luyện không có điểm dừng'))
+    CHANGELOG.append((
+        '§3.8',
+        'Thêm ba seed 2020, 2021, 2022; thêm curves.csv; thêm phân tầng warm theo bậc',
+        'Hai lỗ hổng nặng nhất của v11 đã được khắc phục nhưng tài liệu chưa phản ánh'))
+
     retext(find(doc, "Huấn luyện mô hình đối chứng và BT-DKGRec-GCN."),
            "Huấn luyện mô hình đối chứng và BT-DKGRec-GCN trên cùng một ngân sách, "
            "với ba seed 2020, 2021 và 2022.")
@@ -248,6 +295,7 @@ def patch_38_training(doc: Document) -> None:
         "dạng trung bình và độ lệch chuẩn trên ba seed.", style="Normal")
     para.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     anchor._p.addprevious(para._p)
+    TOUCHED.append(para)
 
     last = find(doc, "Không trộn người dùng có lịch sử và người dùng chưa có lịch sử")
     new = doc.add_paragraph(
@@ -255,10 +303,20 @@ def patch_38_training(doc: Document) -> None:
         "thư mục kết quả.", style=last.style)
     new.paragraph_format.left_indent = last.paragraph_format.left_indent
     last._p.addnext(new._p)
+    TOUCHED.append(new)
 
 
 def patch_33_guards(doc: Document) -> None:
     """§3.3: cac dieu kien hop le duoc cai thanh assertion; loc property cu the."""
+    CHANGELOG.append((
+        '§3.3.3',
+        'Nêu rõ 10 assertion chống rò rỉ đang chạy trong pipeline',
+        'v11 chỉ nói "kiểm tra tính hợp lệ", giấu mất điểm mạnh nhất của bản dựng lại'))
+    CHANGELOG.append((
+        'Bảng 3.4',
+        'Ô "Lọc thuộc tính": thay mô tả mơ hồ bằng ngưỡng thật (dưới 5 lần, tối đa 50.000 node, bỏ categoryid và available)',
+        'Người đọc không tái lập được từ một mô tả mơ hồ'))
+
     anchor = find(doc, "vừa bảo đảm graph có cấu trúc nhất quán, vừa ngăn rò rỉ")
     insert_after(doc, anchor, [
         "Các điều kiện trên được cài đặt thành assertion chạy trong pipeline chứ "
@@ -279,10 +337,20 @@ def patch_33_guards(doc: Document) -> None:
                  "giữ lại tối đa 50.000 node phổ biến nhất; hai trường categoryid và "
                  "available không tạo node property vì đã được biểu diễn bằng quan hệ "
                  "riêng")
+    TOUCHED.extend(cell.paragraphs)
 
 
 def patch_372_app(doc: Document) -> None:
     """§3.7.2: ung dung doc bo tep xuat, khong truy van Neo4j truc tiep."""
+    CHANGELOG.append((
+        '§3.7.2',
+        'Ứng dụng đọc bộ tệp CSV xuất ra thay vì truy vấn Neo4j trực tiếp; bỏ mô tả "hai chế độ"',
+        'Mô tả cũ không khớp với ứng dụng đã hiện thực'))
+    CHANGELOG.append((
+        '§3.7.2',
+        'Thêm kết quả kiểm nhất quán hai lớp: 1.570.409 cặp từ 2.024.042 sự kiện, sai khác lớn nhất bằng 0',
+        'Bằng chứng kiểm chứng được, thay cho lời mô tả suông'))
+
     retext(find(doc, "Ứng dụng cho phép chọn người dùng, xem lịch sử tương tác"),
         "Ứng dụng cho phép chọn người dùng, xem lịch sử tương tác, kiểm tra trọng số "
         "cạnh hành vi-thời gian, quan sát đồ thị con Visitor-Item-Category/Property và "
@@ -304,6 +372,59 @@ def patch_372_app(doc: Document) -> None:
         "cạnh của lớp chiếu trên từng cặp visitor-item; trên bản xuất của cohort "
         "Original, phép kiểm đối chiếu 1.570.409 cặp sinh từ 2.024.042 sự kiện và sai "
         "khác tương đối lớn nhất bằng 0.")
+
+
+# ── Danh dau va danh muc sua doi ────────────────────────────────────────
+
+
+def highlight_touched() -> int:
+    """To nen vang moi doan va bang da bi cham vao.
+
+    Khong the trong cho nguoi doc tu tim sau cho sua giua 16.606 tu. Word co
+    Track Changes that su (w:ins/w:del) nhung python-docx khong dung duoc; to
+    nen la cach hien thi chac chan o moi trinh xem, va go duoc bang mot co.
+    """
+    marked = 0
+    for item in TOUCHED:
+        is_table = hasattr(item, "rows")
+        paragraphs = ([para for row in item.rows for cell in row.cells
+                       for para in cell.paragraphs] if is_table else [item])
+        for para in paragraphs:
+            for run in para.runs:
+                run.font.highlight_color = WD_COLOR_INDEX.YELLOW
+                marked += 1
+    return marked
+
+
+def write_changelog(doc: Document) -> None:
+    """Bang danh muc sua doi, chen o dau tai lieu khi ra soat."""
+    # Phai chen truoc PHAN TU DAU TIEN cua body, khong phai truoc doan dau tien:
+    # trang bia cua v11 la mot BANG nam truoc moi doan van, nen chen truoc
+    # `doc.paragraphs[0]` se rot xuong sau trang bia.
+    first = doc.element.body[0]
+
+    heading = doc.add_paragraph("DANH MỤC SỬA ĐỔI SO VỚI BẢN v11", style="Heading 1")
+    first.addprevious(heading._p)
+
+    note = doc.add_paragraph(
+        "Toàn bộ phần được sửa hoặc thêm mới đã được tô nền vàng trong tài liệu. "
+        "Trang này và phần tô nền chỉ phục vụ việc rà soát; bản nộp cuối cùng được "
+        "sinh lại bằng tuỳ chọn --no-highlight để trả lại nền trắng.", style="Normal")
+    note.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+    heading._p.addnext(note._p)
+
+    table = doc.add_table(rows=1, cols=3)
+    table.style = "Table Grid"
+    for cell, text in zip(table.rows[0].cells, ("Mục", "Nội dung sửa", "Vì sao")):
+        cell.text = ""
+        cell.paragraphs[0].add_run(text).bold = True
+    for muc, sua, vi_sao in CHANGELOG:
+        cells = table.add_row().cells
+        cells[0].text, cells[1].text, cells[2].text = muc, sua, vi_sao
+    note._p.addnext(table._tbl)
+
+    spacer = doc.add_paragraph("", style="Normal")
+    table._tbl.addnext(spacer._p)
 
 
 PATCHES = (
@@ -329,6 +450,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", type=Path, default=SOURCE)
     parser.add_argument("--out", type=Path, default=Path("docs/De_an_thac_si_v12.docx"))
+    parser.add_argument("--no-highlight", action="store_true",
+                        help="ban nop cuoi: khong to nen, khong chen danh muc sua doi")
     args = parser.parse_args()
 
     if args.out.resolve() == args.source.resolve():
@@ -341,8 +464,14 @@ def main() -> int:
         patch(doc)
         print(f"  da va  {label}")
 
+    marked = 0
+    if not args.no_highlight:
+        marked = highlight_touched()
+        write_changelog(doc)
+
     after = census(doc)
-    expected = {"cong thuc": before["cong thuc"], "bang": before["bang"] + 1,
+    expected = {"cong thuc": before["cong thuc"],
+                "bang": before["bang"] + 1 + (0 if args.no_highlight else 1),
                 "hinh": before["hinh"]}
     if after != expected:
         raise SystemExit(f"LOI: kiem dem khong khop.\n  truoc: {before}\n  "
@@ -354,6 +483,11 @@ def main() -> int:
     print(f"  cong thuc giu nguyen: {after['cong thuc']}")
     print(f"  bang: {before['bang']} -> {after['bang']} (them Bang 3.6)")
     print(f"  hinh giu nguyen: {after['hinh']}")
+    if args.no_highlight:
+        print("  ban sach: khong to nen, khong co danh muc sua doi")
+    else:
+        print(f"  da to nen vang {marked} doan van/o bang tai {len(TOUCHED)} vi tri")
+        print("  danh muc sua doi nam o trang dau")
     return 0
 
 
