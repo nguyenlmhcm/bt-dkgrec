@@ -188,7 +188,12 @@ class EvaluationConfig(_Strict):
     filter_seen: bool
     candidate_scope: Literal["train_items"]
     coverage_denominator: Literal["train_items"]
-    segments: list[str]
+    # Khong co khoa `segments` o day. Tap segment duoc bao cao la cau truc chu
+    # khong phai nut van: moi dai bac (`warm_deg1/2/3plus`) co duong tinh rieng
+    # trong evaluator, va mo hinh ca nhan hoa co y bo qua `cold`. No duoc dinh
+    # nghia mot cho duy nhat tai `src.evaluation.evaluator.SEGMENTS`. Truoc D34
+    # o day tung co mot khoa `segments` liet ke ba gia tri, khong ai doc, va da
+    # troi thanh sai khi evaluator len sau segment.
 
     @model_validator(mode="after")
     def _primary_k_in_k_values(self) -> "EvaluationConfig":

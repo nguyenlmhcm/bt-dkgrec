@@ -42,8 +42,24 @@ Lấy từ chính `De_an_thac_si_v11.docx`:
 | Tiêu đề | style `Heading 1` / `Heading 2` / `Heading 3` |
 | Bảng | style `Table Grid` |
 | Caption bảng | style `Normal`, căn giữa, **in đậm**, đặt **phía trên** bảng |
+| Caption hình | style `Normal`, căn giữa, **in đậm**, đặt **phía dưới** ảnh |
+| Bề rộng ảnh | 5.71 inch (đúng khổ ảnh Chương 4 của v11) |
 | Số thứ tự bảng | bám theo v11: Bảng 4.5 và 4.6 là hai bảng kết quả chính |
 
 `scripts/08_make_docx.py` dùng chính file v11 làm template để kế thừa toàn bộ
 định nghĩa style, rồi xoá phần thân trước khi ghi nội dung mới. Bản gốc không bị
 sửa. Không tự dựng style mới.
+
+## Vá Chương 3 thay vì sinh lại
+
+Chương 3 chứa 33 đối tượng công thức OMML (Word Equation). `python-docx` không
+đọc và không ghi được chúng: khi trích ra chúng hiện thành ô rỗng. Sinh lại
+chương này đồng nghĩa xoá sạch công thức (3.1)–(3.31).
+
+Vì vậy `scripts/10_patch_chuong3.py` chỉ thay đoạn văn quanh công thức, neo vào
+một chuỗi duy nhất, và dừng ngay nếu neo khớp nhiều hơn một lần hoặc rơi vào
+đoạn có chứa công thức. Sau khi vá, số công thức, số bảng và số hình được đếm
+lại và phải khớp với dự kiến.
+
+Chương 4 có 1 công thức và Chương 5 có 0, nên hai chương đó sinh lại được bằng
+script — và nên sinh lại, để số luôn chạy thẳng từ `experiments/runs/`.

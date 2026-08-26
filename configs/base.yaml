@@ -85,6 +85,7 @@ evaluation:
   # Coverage@K: tu so = so item PHAN BIET xuat hien trong Top-K cua TOAN BO user duoc danh gia;
   #             mau so = |I_train|.
   coverage_denominator: train_items
-  segments: [warm, cold, all]
+  # Tap segment bao cao: xem src/evaluation/evaluator.py muc SEGMENTS.
+  # Khong khai o day de khong co hai ban dinh nghia lech nhau.
 
 seed: 2020   # bi ghi de boi CLI --seed; bo seed chinh thuc nam o experiments/seeds.json
