@@ -1,0 +1,382 @@
+<title>Sổ đối chiếu BT-DKGRec</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+
+<style>
+:root{
+  --ground:#F6F7FA; --panel:#FFFFFF; --panel-2:#EFF1F6;
+  --ink:#14181F; --ink-2:#3C4757; --ink-3:#6B7688;
+  --rule:#DDE1EA; --rule-2:#C7CDDA;
+  --accent:#2F4B99; --accent-soft:#E7ECF8;
+  --bad:#C1352B;   --bad-soft:#FBE9E7;
+  --gap:#A9741A;   --gap-soft:#FBF2DF;
+  --ok:#1B7A5A;    --ok-soft:#E2F2EC;
+  --run:#5A6472;   --run-soft:#ECEEF3;
+  --shadow:0 1px 2px rgba(20,24,31,.05),0 8px 24px -16px rgba(20,24,31,.28);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0F1218; --panel:#161B23; --panel-2:#1D2430;
+    --ink:#E8EBF1; --ink-2:#B3BBC9; --ink-3:#818B9C;
+    --rule:#252D3A; --rule-2:#333D4E;
+    --accent:#8FA9E8; --accent-soft:#1B2540;
+    --bad:#EF8A80; --bad-soft:#2E1B19;
+    --gap:#E0B45E; --gap-soft:#2C2415;
+    --ok:#5EC6A0; --ok-soft:#13291F;
+    --run:#9AA4B4; --run-soft:#1D2430;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -16px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0F1218; --panel:#161B23; --panel-2:#1D2430;
+  --ink:#E8EBF1; --ink-2:#B3BBC9; --ink-3:#818B9C;
+  --rule:#252D3A; --rule-2:#333D4E;
+  --accent:#8FA9E8; --accent-soft:#1B2540;
+  --bad:#EF8A80; --bad-soft:#2E1B19;
+  --gap:#E0B45E; --gap-soft:#2C2415;
+  --ok:#5EC6A0; --ok-soft:#13291F;
+  --run:#9AA4B4; --run-soft:#1D2430;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -16px rgba(0,0,0,.8);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:15px; line-height:1.62; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1080px; margin:0 auto; padding:0 24px 96px}
+h1,h2,h3{font-family:Newsreader,Georgia,"Times New Roman",serif; text-wrap:balance; margin:0}
+.mono{font-family:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace; font-variant-numeric:tabular-nums}
+
+/* ─ head ─ */
+header{border-bottom:1px solid var(--rule); padding:56px 0 30px; margin-bottom:44px}
+.eyebrow{
+  font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--accent); font-weight:600; margin-bottom:14px;
+}
+h1{font-size:clamp(34px,5.6vw,52px); font-weight:600; line-height:1.08; letter-spacing:-.015em}
+.lede{margin:16px 0 0; max-width:60ch; color:var(--ink-2); font-size:16.5px}
+.meta{
+  display:flex; flex-wrap:wrap; gap:8px 22px; margin-top:24px;
+  font-size:12.5px; color:var(--ink-3);
+}
+.meta b{color:var(--ink-2); font-weight:500}
+
+/* ─ counters ─ */
+.stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:1px;
+  background:var(--rule); border:1px solid var(--rule); border-radius:3px; overflow:hidden; margin-bottom:52px}
+.stat{background:var(--panel); padding:18px 18px 16px}
+.stat .n{font-size:27px; font-weight:700; letter-spacing:-.02em; display:block; line-height:1.1}
+.stat .l{font-size:11.5px; color:var(--ink-3); margin-top:5px; display:block; line-height:1.4}
+
+/* ─ sections ─ */
+section{margin-bottom:60px; scroll-margin-top:20px}
+.shead{display:flex; align-items:baseline; gap:14px; margin-bottom:6px; flex-wrap:wrap}
+.shead h2{font-size:27px; font-weight:600; letter-spacing:-.01em}
+.count{font-size:12px; font-weight:600; padding:2px 9px; border-radius:20px; letter-spacing:.02em}
+.sub{color:var(--ink-3); font-size:14px; margin:0 0 26px; max-width:66ch}
+.c-bad{background:var(--bad-soft); color:var(--bad)}
+.c-gap{background:var(--gap-soft); color:var(--gap)}
+.c-ok{background:var(--ok-soft); color:var(--ok)}
+.c-run{background:var(--run-soft); color:var(--run)}
+
+/* ─ ledger ─ */
+.ledger{display:flex; flex-direction:column; gap:1px; background:var(--rule);
+  border:1px solid var(--rule); border-radius:3px; overflow:hidden}
+.row{background:var(--panel); display:grid; grid-template-columns:158px 1fr; gap:0}
+.row .loc{padding:18px 16px; border-right:1px solid var(--rule); background:var(--panel-2)}
+.row .loc .tag{font-size:12.5px; font-weight:600; display:block; line-height:1.35}
+.row .loc .what{font-size:11.5px; color:var(--ink-3); margin-top:3px; display:block}
+.row .body{padding:16px 20px; display:grid; gap:9px}
+.claim{display:grid; grid-template-columns:74px 1fr; gap:12px; align-items:baseline}
+.claim .k{font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; font-weight:600; padding-top:2px}
+.claim.old .k{color:var(--bad)} .claim.new .k{color:var(--ok)}
+.claim.old .v{color:var(--ink-2)} .claim p{margin:0; font-size:14px}
+.ev{font-size:12.5px; color:var(--ink-3); border-left:2px solid var(--rule-2); padding-left:11px; margin-top:2px}
+.stripe-bad{border-left:3px solid var(--bad)}
+.stripe-gap{border-left:3px solid var(--gap)}
+
+/* ─ table ─ */
+.tw{overflow-x:auto; border:1px solid var(--rule); border-radius:3px; background:var(--panel); margin:0 0 10px}
+table{border-collapse:collapse; width:100%; min-width:560px; font-size:13.5px}
+th,td{padding:10px 16px; text-align:left; border-bottom:1px solid var(--rule)}
+th{font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-3); font-weight:600;
+   background:var(--panel-2); white-space:nowrap}
+tbody tr:last-child td{border-bottom:none}
+td.num{text-align:right; font-family:"JetBrains Mono",monospace; font-variant-numeric:tabular-nums; font-size:12.5px}
+.d-bad{color:var(--bad); font-weight:600} .d-ok{color:var(--ok); font-weight:600}
+.zero{color:var(--ok); font-weight:700}
+caption{caption-side:bottom; text-align:left; font-size:12.5px; color:var(--ink-3); padding:11px 16px 0}
+
+/* ─ inventory ─ */
+.inv{display:grid; grid-template-columns:repeat(auto-fit,minmax(268px,1fr)); gap:1px;
+  background:var(--rule); border:1px solid var(--rule); border-radius:3px; overflow:hidden}
+.card{background:var(--panel); padding:18px 20px 20px}
+.card h3{font-size:15.5px; font-weight:600; margin-bottom:3px; font-family:"Be Vietnam Pro",sans-serif;
+  display:flex; align-items:center; gap:8px}
+.dot{width:7px; height:7px; border-radius:50%; flex:none}
+.d-done{background:var(--ok)} .d-part{background:var(--gap)} .d-wait{background:var(--run)}
+.card .n{font-size:12px; color:var(--ink-3); margin:0 0 11px}
+.card ul{margin:0; padding:0; list-style:none; display:grid; gap:6px}
+.card li{font-size:13.2px; color:var(--ink-2); padding-left:15px; position:relative; line-height:1.5}
+.card li::before{content:""; position:absolute; left:0; top:.62em; width:5px; height:1.5px; background:var(--rule-2)}
+.card li b{color:var(--ink); font-weight:600}
+
+/* ─ note ─ */
+.note{background:var(--accent-soft); border:1px solid var(--rule); border-radius:3px;
+  padding:16px 20px; font-size:13.5px; color:var(--ink-2); margin-top:16px}
+.note b{color:var(--ink)}
+code{font-family:"JetBrains Mono",monospace; font-size:.88em; background:var(--panel-2);
+  padding:1px 5px; border-radius:2px; color:var(--ink-2)}
+@media (max-width:620px){
+  .row{grid-template-columns:1fr}
+  .row .loc{border-right:none; border-bottom:1px solid var(--rule); display:flex; gap:10px; align-items:baseline; padding:12px 16px}
+  .claim{grid-template-columns:1fr; gap:2px}
+}
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Đối chiếu v11 với bản dựng lại</div>
+  <h1>Sổ đối chiếu BT-DKGRec</h1>
+  <p class="lede">Bản v11 sai ở đâu, thiếu ở đâu, và những gì đã dựng xong, đã train xong, đã có đủ số đo.</p>
+  <div class="meta">
+    <span>Cập nhật <b>26/08/2026</b></span>
+    <span>Nhánh <b class="mono">exp/active-patience50</b></span>
+    <span>Commit <b class="mono">ba735e9</b></span>
+    <span>Hạn nộp <b>giữa 09/2026</b></span>
+  </div>
+</header>
+
+<div class="stats">
+  <div class="stat"><span class="n mono">36</span><span class="l">run đã train trên <span class="mono">main</span><br>6 mô hình × 3 seed × 2 cohort</span></div>
+  <div class="stat"><span class="n mono">18</span><span class="l">run Active train lại<br>đủ, patience 50</span></div>
+  <div class="stat"><span class="n mono">8/18</span><span class="l">run Original train lại<br>còn 10, ~5,5 giờ T4</span></div>
+  <div class="stat"><span class="n mono">273</span><span class="l">test tự động<br>đang pass</span></div>
+  <div class="stat"><span class="n mono">D1–D34</span><span class="l">quyết định<br>đã ghi lý do</span></div>
+</div>
+
+<!-- ══ SAI ══ -->
+<section>
+  <div class="shead"><h2>Phần v11 nói sai</h2><span class="count c-bad">9 chỗ</span></div>
+  <p class="sub">Sai theo nghĩa: v11 khẳng định một điều mà bản dựng lại đo được ngược lại, hoặc khẳng định một việc chưa từng xảy ra.</p>
+
+  <div class="tw">
+    <table>
+      <caption>Bảng 4.6 của v11 đối chiếu với số đo lại, cohort Active, Recall@20, trung bình 3 seed.</caption>
+      <thead><tr><th>Mô hình</th><th style="text-align:right">v11</th><th style="text-align:right">Đo lại</th><th style="text-align:right">Lệch</th></tr></thead>
+      <tbody>
+        <tr><td>Popularity</td><td class="num">0.006993</td><td class="num">0.006993</td><td class="num zero">0,0%</td></tr>
+        <tr><td>Recent Popularity</td><td class="num">0.003008</td><td class="num">0.003008</td><td class="num zero">0,0%</td></tr>
+        <tr><td>LightGCN</td><td class="num">0.017997</td><td class="num">0.028601</td><td class="num d-bad">+58,9%</td></tr>
+        <tr><td>Static KG-GCN</td><td class="num">0.023677</td><td class="num">0.031317</td><td class="num d-bad">+32,3%</td></tr>
+        <tr><td>BT-DKGRec λ=0,01</td><td class="num">0.027404</td><td class="num">0.032445</td><td class="num d-bad">+18,4%</td></tr>
+        <tr><td>BT-DKGRec λ=0,05</td><td class="num">—</td><td class="num">0.038004</td><td class="num">chưa có trong v11</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note"><b>Vì sao đây là bằng chứng mạnh:</b> hai mô hình tất định khớp v11 <b>đến chữ số cuối cùng</b>. Split, mapping, candidate set và code metric của hai bản là một. Nên phần lệch 18–59% ở các mô hình học được không do code mới khác, mà do <code>epochs: 10</code>. Hệ quả: BT-DKGRec của v11 (0.027404) <b>thấp hơn LightGCN đo lại</b> (0.028601) — mô hình đề xuất thua baseline khi baseline được train tới nơi.</div>
+
+  <div class="ledger" style="margin-top:26px">
+    <div class="row stripe-bad"><div class="loc"><span class="tag">Bảng 4.5 · 4.6</span><span class="what">Kết quả chính</span></div>
+      <div class="body">
+        <div class="claim old"><span class="k v">v11</span><p class="v">Mọi số của LightGCN, Static KG-GCN, BT-DKGRec ở cả hai cohort.</p></div>
+        <div class="claim new"><span class="k">Thực tế</span><p>Không dòng nào còn đúng. Hai dòng heuristic giữ nguyên.</p></div>
+      </div></div>
+
+    <div class="row stripe-bad"><div class="loc"><span class="tag">Bảng 4.1 · 4.4</span><span class="what">Cấu hình</span></div>
+      <div class="body">
+        <div class="claim old"><span class="k">v11</span><p>seed 2026 · 10 epoch · dim 32 · 2 lớp</p></div>
+        <div class="claim new"><span class="k">Thực tế</span><p>3 seed [2020, 2021, 2022] · tối đa 1000 epoch có early stopping · dim 64 · 3 lớp</p></div>
+        <div class="ev">dim 64 / 3 lớp lấy theo LightGCN gốc (He et al., SIGIR 2020) để baseline chạy đúng cấu hình tác giả công bố — D30.</div>
+      </div></div>
+
+    <div class="row stripe-bad"><div class="loc"><span class="tag">§3.4</span><span class="what">Hệ số suy giảm</span></div>
+      <div class="body">
+        <div class="claim old"><span class="k">v11</span><p>“λ=0,01 … là cấu hình thực nghiệm được lựa chọn trên tập xác thực.”</p></div>
+        <div class="claim new"><span class="k">Thực tế</span><p>Không có việc dò nào xảy ra. λ=0,01 kế thừa từ MBGCN/KHGT. Việc dò thật làm ở D33 và cho đỉnh tại <b>λ=0,05</b> trên cả hai cohort.</p></div>
+        <div class="ev">Đây là chỗ duy nhất trong Chương 3 khẳng định một việc chưa từng xảy ra — và giờ đã có bảng quét thật để thay vào.</div>
+      </div></div>
+
+    <div class="row stripe-bad"><div class="loc"><span class="tag">§3.6 · Bảng 4.4</span><span class="what">Hàm mục tiêu</span></div>
+      <div class="body">
+        <div class="claim old"><span class="k">v11</span><p>Original dùng weighted BPR, Active dùng BPR chuẩn “vì đạt validation NDCG@20 cao nhất”.</p></div>
+        <div class="claim new"><span class="k">Thực tế</span><p>Toàn bộ ma trận 6 mô hình × 3 seed × 2 cohort chạy <b>BPR chuẩn</b>. Weighted BPR (3.31) chỉ là ablation, bị guard <code>_weighted_bpr_is_ablation_only</code> chặn khỏi ma trận chính.</p></div>
+        <div class="ev">Nguy hiểm nhất nếu để nguyên: hội đồng sẽ hỏi vì sao hai nhóm người dùng dùng hai hàm mục tiêu khác nhau.</div>
+      </div></div>
+
+    <div class="row stripe-bad"><div class="loc"><span class="tag">§4.4.4 · §5.3.1</span><span class="what">Hạn chế</span></div>
+      <div class="body">
+        <div class="claim old"><span class="k">v11</span><p>“Kết quả hiện dùng một seed, chưa có độ lệch chuẩn, khoảng tin cậy hoặc kiểm định ý nghĩa thống kê.”</p></div>
+        <div class="claim new"><span class="k">Thực tế</span><p>Đã có 3 seed, mean ± std, và kiểm định Welch. Hạn chế này biến mất — nhưng nếu để nguyên thì đề án tự khai một điểm yếu không còn tồn tại.</p></div>
+      </div></div>
+
+    <div class="row stripe-bad"><div class="loc"><span class="tag">§5.4.1</span><span class="what">Hướng phát triển</span></div>
+      <div class="body">
+        <div class="claim old"><span class="k">v11</span><p>Liệt kê 4 việc “cần làm trong tương lai”: chạy nhiều seed · ngân sách siêu tham số đối xứng · early stopping theo validation · tách ablation bỏ category/property.</p></div>
+        <div class="claim new"><span class="k">Thực tế</span><p><b>Cả bốn đều đã làm xong.</b> Chúng là kết quả của v12, không còn là hướng phát triển.</p></div>
+        <div class="ev">Ablation KG chính là cặp LightGCN ↔ Static KG-GCN đang có trong bảng.</div>
+      </div></div>
+
+    <div class="row stripe-bad"><div class="loc"><span class="tag">§3.7.2 · §4.5 · Bảng 4.8</span><span class="what">Ứng dụng</span></div>
+      <div class="body">
+        <div class="claim old"><span class="k">v11</span><p>App “truy vấn trực tiếp trên kho đồ thị tri thức”; Neo4j “có hai chế độ mẫu nhỏ / đầy đủ”.</p></div>
+        <div class="claim new"><span class="k">Thực tế</span><p><code>07_export_neo4j.py</code> xuất CSV với <code>--scope evaluated|all</code>; <code>app/main.py</code> đọc CSV bằng pandas qua ba tab, <b>không kết nối Neo4j</b>.</p></div>
+      </div></div>
+
+    <div class="row stripe-bad"><div class="loc"><span class="tag">§5.1.2</span><span class="what">Số mô hình</span></div>
+      <div class="body">
+        <div class="claim old"><span class="k">v11</span><p>“Đề án đã cài đặt và đánh giá năm phương pháp.”</p></div>
+        <div class="claim new"><span class="k">Thực tế</span><p>Sáu — thêm <code>bt_dkgrec_l05</code>.</p></div>
+      </div></div>
+
+    <div class="row stripe-bad"><div class="loc"><span class="tag">Tóm tắt · Summary</span><span class="what">758 từ</span></div>
+      <div class="body">
+        <div class="claim old"><span class="k">v11</span><p>Chứa số cũ (0.021625 · 0.027404) và kết luận “chưa vượt LightGCN”.</p></div>
+        <div class="claim new"><span class="k">Thực tế</span><p>Phải viết lại theo số mới. Bản tiếng Anh cũng vậy.</p></div>
+      </div></div>
+  </div>
+</section>
+
+<!-- ══ THIẾU ══ -->
+<section>
+  <div class="shead"><h2>Phần v11 thiếu</h2><span class="count c-gap">8 chỗ</span></div>
+  <p class="sub">Không sai — chỉ là không có. Phần lớn là những thứ bản dựng lại đã làm được nhưng tài liệu chưa nói tới, tức đang giấu điểm mạnh.</p>
+
+  <div class="ledger">
+    <div class="row stripe-gap"><div class="loc"><span class="tag">§3.5.2</span><span class="what">Quan trọng nhất</span></div>
+      <div class="body"><div class="claim new"><span class="k">Thiếu</span><p>v11 mô tả chuẩn hóa đối xứng <span class="mono">Â = D<sup>−½</sup>AD<sup>−½</sup></span> <b>đúng</b>, nhưng không nói hệ quả: với user chỉ có một cạnh, W(u,i) bị chia cho chính nó nên trọng số behavior-time <b>triệt tiêu hoàn toàn</b>. 79,6% user Original thuộc loại đó.</p></div>
+      <div class="ev">Nếu điều này chỉ xuất hiện lần đầu ở Chương 4, nó đọc như lời bào chữa sau khi thấy kết quả yếu. Đặt ở 3.5.2 thì nó là dự đoán của lý thuyết và Chương 4 xác nhận.</div></div></div>
+
+    <div class="row stripe-gap"><div class="loc"><span class="tag">Chương 3 · 5</span><span class="what">Mô hình thứ sáu</span></div>
+      <div class="body"><div class="claim new"><span class="k">Thiếu</span><p><code>bt_dkgrec_l05</code> không xuất hiện một lần nào, dù có mặt ở mọi bảng và mọi hình Chương 4.</p></div></div></div>
+
+    <div class="row stripe-gap"><div class="loc"><span class="tag">§3.8</span><span class="what">Quy trình huấn luyện</span></div>
+      <div class="body"><div class="claim new"><span class="k">Thiếu</span><p>Không có early stopping, không có nhiều seed, không có <code>curves.csv</code>. v11 mô tả một quy trình <b>không có điểm dừng</b>.</p></div>
+      <div class="ev">Hình 4.2 và 4.4 hiện đã là bằng chứng hội tụ, nhưng Chương 3 chưa hứa hẹn gì để Chương 4 chứng minh.</div></div></div>
+
+    <div class="row stripe-gap"><div class="loc"><span class="tag">§3.8 · §4.1.2</span><span class="what">Phân tầng theo bậc</span></div>
+      <div class="body"><div class="claim new"><span class="k">Thiếu</span><p>Không có <code>warm_deg1</code> / <code>warm_deg2</code> / <code>warm_deg3plus</code> — chính là chỗ đo được cơ chế “động” ở nơi nó được phép hoạt động (D34).</p></div></div></div>
+
+    <div class="row stripe-gap"><div class="loc"><span class="tag">§3.3</span><span class="what">Chống rò rỉ</span></div>
+      <div class="body"><div class="claim new"><span class="k">Thiếu</span><p>10 assertion trong <code>src/guards/leakage.py</code> chỉ được nhắc bằng một câu chung chung “kiểm tra tính hợp lệ”.</p></div></div></div>
+
+    <div class="row stripe-gap"><div class="loc"><span class="tag">§3.3</span><span class="what">Lọc thuộc tính</span></div>
+      <div class="body"><div class="claim new"><span class="k">Thiếu</span><p>Mô tả mơ hồ “quá thưa hoặc không thuộc phạm vi cấu hình”. Thực tế: <code>min_pv_freq: 5</code>, <code>max_property_nodes: 50000</code>, <code>drop_properties: [categoryid, available]</code>.</p></div></div></div>
+
+    <div class="row stripe-gap"><div class="loc"><span class="tag">§4.2.4</span><span class="what">Ablation</span></div>
+      <div class="body"><div class="claim new"><span class="k">Thiếu</span><p>Ablation <b>đã có</b> dạng thang bậc 4 nấc (xem dưới), nhưng chưa tách đôi behavior-time thành cường độ hành vi (α) và suy giảm thời gian (λ). Hai ô của lưới 2×2 còn trống.</p></div>
+      <div class="ev">Thêm 2 config, 6 run, ~3,5 giờ T4. Ô “chỉ thời gian” tách riêng đúng phần “động” trong tên đề tài.</div></div></div>
+
+    <div class="row stripe-gap"><div class="loc"><span class="tag">Chương 4</span><span class="what">Mục chưa soạn</span></div>
+      <div class="body"><div class="claim new"><span class="k">Thiếu</span><p>4.2.4 (ablation) · 4.4.3 (phân tích lỗi) · 4.4.4 và 5.3.1 (hạn chế) · 4.5 (kiểm chứng ứng dụng).</p></div></div></div>
+  </div>
+</section>
+
+<!-- ══ ĐÃ CÓ ══ -->
+<section>
+  <div class="shead"><h2>Đã dựng, đã train, đã có số đo</h2><span class="count c-ok">đầy đủ</span></div>
+  <p class="sub">Phần này trả lời câu “đã train nhiều rồi mà” — có, và ablation nằm sẵn trong đó.</p>
+
+  <div class="tw">
+    <table>
+      <caption>Thang bậc ablation: mỗi nấc thêm đúng một thành phần. Cohort Active, Recall@20, 3 seed mỗi nấc.</caption>
+      <thead><tr><th>Nấc</th><th>Thêm gì</th><th style="text-align:right">Recall@20</th><th style="text-align:right">So nấc trước</th></tr></thead>
+      <tbody>
+        <tr><td>LightGCN</td><td>không KG, không behavior-time</td><td class="num">0.028601</td><td class="num">—</td></tr>
+        <tr><td>Static KG-GCN</td><td>+ tri thức sản phẩm</td><td class="num">0.031317</td><td class="num d-ok">+9,5%</td></tr>
+        <tr><td>BT-DKGRec λ=0,01</td><td>+ trọng số behavior-time</td><td class="num">0.032445</td><td class="num d-ok">+3,6%</td></tr>
+        <tr><td>BT-DKGRec λ=0,05</td><td>+ λ đã dò trên tập xác thực</td><td class="num">0.038004</td><td class="num d-ok">+17,1%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note">So với Bảng 4.7 của v11 — 4 cấu hình, <b>1 seed</b>, <b>1 cohort</b>, không kiểm định — thang bậc này mạnh hơn hẳn: 4 nấc, <b>3 seed</b>, <b>2 cohort</b>, có Welch. <code>static_kg_gcn.py</code> tự khai trong docstring dòng đầu rằng nó <i>là</i> ablation, và <code>tests/test_ablation.py</code> fail nếu thân class mọc thêm bất cứ thứ gì ngoài <code>name</code>.</div>
+
+  <div class="inv" style="margin-top:28px">
+    <div class="card"><h3><span class="dot d-done"></span>Huấn luyện</h3><p class="n">36 run trên <span class="mono">main</span> · 18 run Active trên nhánh</p>
+      <ul>
+        <li><b>main:</b> 6 mô hình × 3 seed × 2 cohort — đủ</li>
+        <li><b>Active train lại</b> với patience 50 — đủ 18/18</li>
+        <li><b>Original train lại</b> — 8/18, còn 10 run</li>
+        <li>Mỗi run có <code>metrics.json</code>, <code>curves.csv</code>, <code>config.yaml</code>, <code>env.json</code></li>
+      </ul></div>
+
+    <div class="card"><h3><span class="dot d-done"></span>Số đo mỗi run</h3><p class="n">Đủ theo thiết kế, không thiếu</p>
+      <ul>
+        <li>Mô hình cá nhân hóa: <b>warm</b> + 3 dải bậc</li>
+        <li>Heuristic: thêm <b>cold</b> và <b>all</b></li>
+        <li>Recall · NDCG · HitRate · Coverage tại K=10 và K=20</li>
+        <li>Mô hình cá nhân hóa <b>cố ý</b> không có <code>cold</code>: không có embedding cho user chưa từng thấy, ghi 0 sẽ là bịa</li>
+      </ul></div>
+
+    <div class="card"><h3><span class="dot d-done"></span>Chống rò rỉ</h3><p class="n">10 assertion, không được tắt</p>
+      <ul>
+        <li>Split theo thời gian · mapping chỉ từ train</li>
+        <li>Side info cắt tại <span class="mono">T_train</span>, lấy bản ghi mới nhất</li>
+        <li>Candidate ⊆ <span class="mono">I_train</span> · negative chỉ từ train</li>
+        <li>Chọn mô hình chỉ đọc valid, không bao giờ đọc test</li>
+      </ul></div>
+
+    <div class="card"><h3><span class="dot d-done"></span>Guard chống hỏng âm thầm</h3><p class="n">Loại lỗi in ra bảng đẹp nhưng sai</p>
+      <ul>
+        <li><b>Trùng run:</b> chặn việc trộn hai cấu hình vào một ô</li>
+        <li><b>Hai lớp đồ thị:</b> 1.570.409 cặp / 2.024.042 sự kiện, sai lệch <span class="mono">0,000e+00</span></li>
+        <li><b>topk.csv:</b> chặn file của cohort khác</li>
+        <li><b>Ablation:</b> chặn khác biệt thứ hai lọt vào</li>
+      </ul></div>
+
+    <div class="card"><h3><span class="dot d-done"></span>Sinh tài liệu</h3><p class="n">Số chạy thẳng từ run vào Word</p>
+      <ul>
+        <li><b>9 bảng</b> trong <code>Chuong4_viet_lai.docx</code></li>
+        <li><b>4 hình</b> đúng bố cục v11, caption dưới ảnh</li>
+        <li>Hình có nhãn giá trị + gạch, đọc được khi in trắng đen</li>
+        <li><code>make docx</code> phụ thuộc <code>make figures</code> — không thể đóng bảng mới vào hình cũ</li>
+      </ul></div>
+
+    <div class="card"><h3><span class="dot d-done"></span>Mã nguồn</h3><p class="n">33 module · 273 test</p>
+      <ul>
+        <li>8 script pipeline + 9 script phân tích</li>
+        <li>17 file test, <b>273 test pass</b></li>
+        <li>34 quyết định D1–D34 đều ghi lý do</li>
+        <li>App Streamlit 3 tab, chạy được</li>
+      </ul></div>
+  </div>
+</section>
+
+<!-- ══ CÒN LẠI ══ -->
+<section>
+  <div class="shead"><h2>Đang chạy và còn nợ</h2><span class="count c-run">6 việc</span></div>
+  <p class="sub">Xếp theo thứ tự bị chặn: việc không phụ thuộc ai làm trước.</p>
+  <div class="inv">
+    <div class="card"><h3><span class="dot d-part"></span>Colab đang chạy</h3><p class="n">Chặn Chương 4 và 5</p>
+      <ul><li>10 run Original còn lại, ~5,5 giờ T4</li>
+      <li>Xong thì <code>git pull</code> → <code>make docx</code></li>
+      <li>Kiểm <code>warm_deg1</code> phải lệch <b>đúng 0</b> giữa <code>bt_dkgrec</code> và <code>static_kg_gcn</code> — khác 0 nghĩa là code sai</li></ul></div>
+
+    <div class="card"><h3><span class="dot d-wait"></span>Chương 3</h3><p class="n">Không bị chặn — làm được ngay</p>
+      <ul><li>Vá tại chỗ, <b>không sinh lại</b>: 33 công thức OMML không tái tạo được</li>
+      <li>Thứ tự: §3.6 → §3.4 → mô hình thứ sáu → §3.5.2 → §3.8 → §3.3 → §3.7.2</li></ul></div>
+
+    <div class="card"><h3><span class="dot d-wait"></span>Chương 4 và 5</h3><p class="n">Sinh lại toàn bộ bằng script</p>
+      <ul><li>Chương 4 có <b>1</b> công thức, Chương 5 có <b>0</b> — không bị khóa</li>
+      <li>Sinh lại thì số luôn sống, không gõ tay</li></ul></div>
+
+    <div class="card"><h3><span class="dot d-wait"></span>Quyết định cần thầy</h3><p class="n">Trái với quy tắc trong CLAUDE.md</p>
+      <ul><li>Chọn Welch hay paired-by-seed làm kiểm định chính thức</li>
+      <li>73–86% phương sai là hiệu ứng seed dùng chung</li></ul></div>
+
+    <div class="card"><h3><span class="dot d-part"></span>Cần anh quyết</h3><p class="n">Ảnh hưởng mục 4.2.4</p>
+      <ul><li>Có tách đôi behavior-time thành α và λ không</li>
+      <li>Có: nói được nửa nào tạo hiệu quả. Không: dừng ở “cả cụm +3,6%”</li></ul></div>
+
+    <div class="card"><h3><span class="dot d-part"></span>Việc vặt còn mở</h3><p class="n">Nhỏ nhưng đừng quên</p>
+      <ul><li><b>Cổng 8501 vẫn mở ra internet</b>, app không có đăng nhập</li>
+      <li><code>evaluation.segments</code> trong <code>base.yaml</code> khai 3 giá trị nhưng evaluator dùng 6 — khoá này không ai đọc, nên sửa trước khi viết Chương 3</li>
+      <li>Triển khai app qua Caddy trước buổi bảo vệ (đụng cấu hình site đang chạy — hỏi trước)</li></ul></div>
+  </div>
+</section>
+
+</div>
