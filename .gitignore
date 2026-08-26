@@ -13,6 +13,9 @@ experiments/runs/**/train.log
 
 # ── Hình: sinh lại được từ run artifact, không commit ───────────────
 experiments/figures/
+# Bảng Bước 9 cũng là dẫn xuất: `make tables` sinh lại trong vài giây từ
+# experiments/runs/. Commit chúng sẽ tạo nguy cơ bảng cũ mâu thuẫn với run mới.
+experiments/tables/
 
 # ── Paper co ban quyen: giu local, KHONG commit ─────────────────────
 *.pdf
