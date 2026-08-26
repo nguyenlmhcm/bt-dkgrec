@@ -91,7 +91,41 @@ def load_topk(run_dir: Path) -> pd.DataFrame:
     missing = [c for c in TOPK_COLUMNS if c not in frame.columns]
     if missing:
         raise TraceUnavailableError(f"{path} thieu cot: {missing}")
+    assert_topk_belongs_to_run(frame, run_dir)
     return frame
+
+
+def assert_topk_belongs_to_run(topk: pd.DataFrame, run_dir: Path) -> None:
+    """`topk.csv` phai la cua CHINH run nay.
+
+    File nay bi gitignore va duoc chep tay tu Drive, nen viec chep nham run —
+    hoac nham ca cohort — la chuyen se xay ra, khong phai co the xay ra. Neu
+    khong chan, demo hien goi y cua mot cohort trong khi thanh ben ghi ten cohort
+    khac, va khong co dau hieu nao tren man hinh de ai do nhan ra.
+
+    Doi chieu voi `metrics.json` cua chinh run do: so nguoi dung duoc xep hang
+    khong duoc vuot qua so nguoi dung run nay danh gia.
+    """
+    metrics_path = run_dir / "metrics.json"
+    if not metrics_path.exists():
+        return                                  # khong co gi de doi chieu
+
+    import json
+
+    payload = json.loads(metrics_path.read_text(encoding="utf-8"))
+    counts = (payload.get("test") or {}).get("n_users") or {}
+    expected = counts.get("all")
+    if expected is None:
+        return
+
+    actual = int(topk["visitor_id"].nunique())
+    if actual > int(expected):
+        raise TraceUnavailableError(
+            f"topk.csv khong phai cua run nay: file co {actual:,} nguoi dung nhung "
+            f"{run_dir.name} chi danh gia {int(expected):,} "
+            f"(cohort {payload.get('cohort')}). Chep dung file tu Drive: "
+            f"MyDrive/bt-dkgrec/runs/{run_dir.name}/topk.csv"
+        )
 
 
 def visitor_history(trace: TraceLayer, visitor_id: int) -> pd.DataFrame:

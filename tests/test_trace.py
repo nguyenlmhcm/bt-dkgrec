@@ -193,3 +193,50 @@ def test_the_app_states_its_limit_to_the_viewer() -> None:
     source = Path("app/main.py").read_text(encoding="utf-8")
 
     assert "phát lại" in source and "không tự chấm điểm" in source
+
+
+def test_a_topk_from_another_run_is_refused(tmp_path) -> None:
+    """★ Chuyen da xay ra that: topk.csv cua cohort Original bi chep vao thu muc
+    run Active. App se hien goi y cua 593 nguoi dung trong khi run do chi danh
+    gia 234, va thanh ben van ghi "active" — khong dau hieu nao de nhan ra.
+    """
+    run = tmp_path / "active_bt_dkgrec_2020_20260825-173940"
+    run.mkdir()
+    (run / "metrics.json").write_text(json.dumps({
+        "cohort": "active",
+        "test": {"n_users": {"warm": 234, "cold": 0, "all": 234}},
+    }), encoding="utf-8")
+    pd.DataFrame(
+        [(v, "warm", 1, 10, False) for v in range(600)],
+        columns=["visitor_id", "segment", "rank", "item_id", "is_target"],
+    ).to_csv(run / "topk.csv", index=False)
+
+    with pytest.raises(TraceUnavailableError, match="khong phai cua run nay"):
+        load_topk(run)
+
+
+def test_a_matching_topk_is_accepted(tmp_path) -> None:
+    run = tmp_path / "run"
+    run.mkdir()
+    (run / "metrics.json").write_text(json.dumps({
+        "cohort": "active",
+        "test": {"n_users": {"warm": 2, "cold": 0, "all": 2}},
+    }), encoding="utf-8")
+    pd.DataFrame([
+        (1, "warm", 1, 10, True),
+        (2, "warm", 1, 11, False),
+    ], columns=["visitor_id", "segment", "rank", "item_id", "is_target"]).to_csv(
+        run / "topk.csv", index=False)
+
+    assert len(load_topk(run)) == 2
+
+
+def test_a_run_without_metrics_still_loads(tmp_path) -> None:
+    """Khong co gi de doi chieu thi khong chan — chan thi demo chet vi ly do sai."""
+    run = tmp_path / "run"
+    run.mkdir()
+    pd.DataFrame([(1, "warm", 1, 10, True)],
+                 columns=["visitor_id", "segment", "rank", "item_id", "is_target"]
+                 ).to_csv(run / "topk.csv", index=False)
+
+    assert len(load_topk(run)) == 1
