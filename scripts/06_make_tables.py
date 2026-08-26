@@ -26,7 +26,6 @@ from __future__ import annotations
 
 import argparse
 import sys
-from collections import Counter
 from pathlib import Path
 
 import numpy as np
@@ -37,6 +36,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.evaluation.evaluator import DEGREE_BANDS  # noqa: E402
 from src.evaluation.reporting import (  # noqa: E402
+    assert_no_duplicate_cells,
     MODEL_LABELS,
     compare_models,
     format_table,
@@ -56,30 +56,6 @@ COMPARISONS = (
     ("bt_dkgrec_l05", "lightgcn"),
     ("static_kg_gcn", "lightgcn"),
 )
-
-
-def assert_no_duplicate_cells(frame: pd.DataFrame) -> None:
-    """Moi o (cohort, model, seed) chi duoc co DUNG MOT run.
-
-    Day khong phai lo xa. `load_runs()` doc moi thu muc trong `experiments/runs/`
-    va khong loc trung: neu mot run cu (vi du ngan sach dung som khac) con nam
-    canh run moi, `summarize()` se lay trung binh hai cau hinh khac nhau vao cung
-    mot o va bang van in ra binh thuong. Do la hong am tham -- dung loai loi ma
-    ca du an nay dung guard de chan.
-    """
-    if frame.empty:
-        return
-    counts = Counter(zip(frame["cohort"], frame["model"], frame["seed"]))
-    duplicates = {cell: n for cell, n in counts.items() if n > 1}
-    if not duplicates:
-        return
-    lines = [f"  {c}/{m}/{s}: {n} run" for (c, m, s), n in sorted(duplicates.items())]
-    raise SystemExit(
-        "LOI: co o bi trung run — bang se tron nhieu cau hinh vao mot so.\n"
-        + "\n".join(lines)
-        + "\n\nXoa run cu di roi chay lai. Du lieu khong mat: moi run deu con "
-        "trong lich su git."
-    )
 
 
 def paired_test(frame: pd.DataFrame, a: str, b: str, cohort: str, metric: str) -> dict:

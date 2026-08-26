@@ -8,7 +8,7 @@ MODEL     ?= bt_dkgrec
 SEED      ?= 2020
 DEVICE    ?= cuda
 
-.PHONY: help setup preprocess graph train evaluate multiseed tables neo4j app test clean-venv
+.PHONY: help setup preprocess graph train evaluate multiseed tables figures docx neo4j app test clean-venv
 
 help:
 	@echo "BT-DKGRec-GCN"
@@ -25,6 +25,8 @@ help:
 	@echo "  make evaluate RUN=<run_id>                    # [Buoc 5]"
 	@echo "  make multiseed                                # [Buoc 9]"
 	@echo "  make tables                                   # [Buoc 9]"
+	@echo "  make figures                                  # hinh Chuong 4"
+	@echo "  make docx                                     # Word Chuong 4 (bang + hinh)"
 	@echo "  make neo4j / make app                         # [Buoc 10]"
 	@echo ""
 	@echo "  Bien: COHORT=$(COHORT) MODEL=$(MODEL) SEED=$(SEED) DEVICE=$(DEVICE)"
@@ -72,6 +74,14 @@ multiseed:
 tables:
 	@test -f scripts/06_make_tables.py || { echo "CHUA TRIEN KHAI: scripts/06_make_tables.py (Buoc 9)"; exit 1; }
 	$(PY) scripts/06_make_tables.py
+
+figures:
+	$(PY) scripts/09_make_figures.py
+
+# Sinh hinh truoc roi moi ghep vao Word: file .docx nhung anh tai thoi diem ghi,
+# nen chay nguoc thu tu se dong bang so moi vao hinh cu.
+docx: figures
+	$(PY) scripts/08_make_docx.py
 
 neo4j:
 	@test -f scripts/07_export_neo4j.py || { echo "CHUA TRIEN KHAI: scripts/07_export_neo4j.py (Buoc 10)"; exit 1; }

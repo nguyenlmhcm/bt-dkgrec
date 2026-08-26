@@ -28,6 +28,7 @@ import numpy as np
 import pandas as pd
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.shared import Inches
 from scipy import stats
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -38,6 +39,9 @@ from src.utils.logging import get_logger  # noqa: E402
 log = get_logger(__name__)
 
 TEMPLATE = Path("docs/De_an_thac_si_v11.docx")
+FIGURES = Path("docs/figures")
+#: Ben rong anh trong v11. Chieu cao de python-docx tu suy theo ty le.
+FIGURE_WIDTH = Inches(5.71)
 MODEL_ORDER = ("popularity", "recent_popularity", "lightgcn",
                "static_kg_gcn", "bt_dkgrec", "bt_dkgrec_l05")
 SPLIT_LABEL = {"original": "original", "active": "active"}
@@ -82,6 +86,21 @@ def table(document: Document, header: list[str], rows: list[list[str]]) -> None:
         for cell, text in zip(cells, row):
             cell.text = str(text)
     document.add_paragraph()
+
+
+def figure(document: Document, image: Path, text: str) -> None:
+    """Chen hinh: anh can giua, caption in dam can giua dat PHIA DUOI anh.
+
+    Nguoc voi bang -- caption bang dat phia tren. Do la quy uoc cua v11, khong
+    phai lua chon moi; xem `docs/VAN_PHONG_DE_AN.md`.
+    """
+    if not image.exists():
+        para(document, f"[Thiếu hình {image.name}. Chạy scripts/09_make_figures.py.]")
+        return
+    holder = document.add_paragraph()
+    holder.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    holder.add_run().add_picture(str(image), width=FIGURE_WIDTH)
+    caption(document, text)
 
 
 # ── Doc so lieu ─────────────────────────────────────────────────────────
@@ -199,7 +218,8 @@ def write_421(doc: Document) -> None:
 
 
 def write_results(doc: Document, frame: pd.DataFrame, cohort: str,
-                  number: str, table_number: str, title: str) -> None:
+                  number: str, table_number: str, title: str,
+                  figure_numbers: tuple[str, str]) -> None:
     heading(doc, f"{number}. {title}", 3)
     metrics = ["recall@20", "ndcg@20", "hit_rate@20", "coverage@20"]
     labels = ["Recall@20", "NDCG@20", "HitRate@20", "Coverage@20"]
@@ -224,6 +244,17 @@ def write_results(doc: Document, frame: pd.DataFrame, cohort: str,
          "Popularity và Recent Popularity là mô hình tất định, không phụ thuộc "
          "seed, nên độ lệch chuẩn bằng 0. Đây là tính chất của mô hình, không "
          "phải lỗi tính toán.")
+
+    bar, loss = figure_numbers
+    figure(doc, FIGURES / f"{cohort}_metrics.png",
+           f"Hình {bar}. So sánh các chỉ số test trên {title.lower()}")
+    figure(doc, FIGURES / f"{cohort}_loss.png",
+           f"Hình {loss}. Đường loss huấn luyện của các mô hình trên {cohort} split")
+    para(doc,
+         "Trục loss dùng thang log; trên thang tuyến tính mọi đường đều dính vào "
+         "0 sau khoảng epoch 50 và không còn đọc được phần hội tụ. Đường vẽ là "
+         "trung bình theo các seed, dải nền là khoảng min-max giữa các seed. Hai "
+         "mô hình tất định không có đường loss nên không xuất hiện trong hình.")
 
 
 def write_432(doc: Document, frame: pd.DataFrame) -> None:
@@ -395,10 +426,11 @@ def main() -> int:
 
     write_421(doc)
     # So bang bam theo v11: Bang 4.5 va 4.6 la hai bang ket qua chinh.
+    # So hinh cung bam theo v11: 4.1/4.2 cho original, 4.3/4.4 cho active.
     write_results(doc, frame, "original", "4.2.2", "4.5",
-                  "Nhóm người dùng có lịch sử ban đầu")
+                  "Nhóm người dùng có lịch sử ban đầu", ("4.1", "4.2"))
     write_results(doc, frame, "active", "4.2.3", "4.6",
-                  "Nhóm người dùng tích cực")
+                  "Nhóm người dùng tích cực", ("4.3", "4.4"))
     heading(doc, "4.3. So sánh với các mô hình và phương pháp khác", 2)
     write_432(doc, frame)
     write_433(doc, frame)
