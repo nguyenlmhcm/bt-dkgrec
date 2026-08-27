@@ -33,110 +33,116 @@
   --yes:#5FC08A;   --yes-soft:#13291D;
   --no:#DE8A63;    --no-soft:#2C1A12;
 }
-
 *{box-sizing:border-box}
-body{
-  margin:0; background:var(--ground); color:var(--ink);
+body{margin:0; background:var(--ground); color:var(--ink);
   font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
-  font-size:15.5px; line-height:1.68; -webkit-font-smoothing:antialiased;
-}
-.wrap{max-width:1000px; margin:0 auto; padding:0 24px 110px}
-h1,h2,h3{font-family:Spectral,Georgia,"Times New Roman",serif; text-wrap:balance; margin:0}
+  font-size:15.5px; line-height:1.68; -webkit-font-smoothing:antialiased}
+.wrap{max-width:1010px; margin:0 auto; padding:0 24px 110px}
+h1,h2,h3,h4{font-family:Spectral,Georgia,"Times New Roman",serif; text-wrap:balance; margin:0}
 .mono{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-variant-numeric:tabular-nums}
 code{font-family:"IBM Plex Mono",monospace; font-size:.87em; background:var(--panel-2);
   padding:1px 5px; border-radius:2px; color:var(--ink-2); white-space:nowrap}
-a{color:var(--accent)}
 
-/* ── mở đầu ── */
 header{padding:64px 0 34px; border-bottom:2px solid var(--ink)}
 .kicker{font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--accent);
   font-weight:600; margin-bottom:16px}
 h1{font-size:clamp(36px,6vw,58px); font-weight:700; line-height:1.04; letter-spacing:-.02em}
 .sub{font-family:Spectral,serif; font-size:clamp(17px,2.3vw,21px); font-style:italic;
-  color:var(--ink-2); margin:18px 0 0; max-width:56ch; line-height:1.5}
+  color:var(--ink-2); margin:18px 0 0; max-width:58ch; line-height:1.5}
 .chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:26px}
 .chip{font-size:12px; padding:4px 11px; border:1px solid var(--rule-2); border-radius:20px;
   color:var(--ink-2)}
 
-/* ── câu chốt ── */
-.thesis{margin:40px 0 20px; padding:28px 30px; background:var(--panel);
+.part{margin-top:72px; padding-top:22px; border-top:1px solid var(--rule-2)}
+.part .pl{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--accent); font-weight:600}
+.part h2{font-size:34px; font-weight:700; letter-spacing:-.015em; margin:8px 0 6px}
+.part .pd{color:var(--ink-3); font-size:15px; margin:0; max-width:66ch}
+
+.thesis{margin:34px 0 8px; padding:26px 30px; background:var(--panel);
   border-left:4px solid var(--accent); border-radius:0 3px 3px 0}
 .thesis p{margin:0; font-family:Spectral,serif; font-size:19.5px; line-height:1.55}
 .thesis .t{color:var(--time); font-weight:600}
 
-/* ── mạch dọc ── */
-.stage{display:grid; grid-template-columns:76px 1fr; gap:26px; padding-top:52px}
+/* thẻ khái niệm */
+.cards{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+  border-radius:3px; overflow:hidden; margin-top:28px}
+.card{background:var(--panel); padding:20px 22px}
+.card .tag{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--accent); font-weight:600; display:block; margin-bottom:6px}
+.card h3{font-size:20px; font-weight:600; margin-bottom:9px; letter-spacing:-.01em}
+.card p{margin:0 0 11px; max-width:70ch; font-size:14.7px}
+.card p:last-child{margin-bottom:0}
+.card .why{font-size:13.6px; color:var(--ink-2); background:var(--panel-2);
+  border-radius:3px; padding:11px 14px; margin-top:12px}
+.card .why b{color:var(--ink)}
+.card .where{font-size:12.5px; color:var(--ink-3); margin-top:9px}
+
+/* mạch dọc */
+.stage{display:grid; grid-template-columns:70px 1fr; gap:24px; padding-top:46px}
 .rail{position:relative}
 .num{font-family:"IBM Plex Mono",monospace; font-size:13px; font-weight:600;
-  color:var(--panel); background:var(--accent); width:34px; height:34px; border-radius:50%;
+  color:var(--panel); background:var(--accent); width:32px; height:32px; border-radius:50%;
   display:grid; place-items:center; position:relative; z-index:1}
-.rail::after{content:""; position:absolute; left:16.5px; top:38px; bottom:-52px;
+.rail::after{content:""; position:absolute; left:15.5px; top:36px; bottom:-46px;
   width:1.5px; background:var(--rule-2)}
 .stage:last-of-type .rail::after{display:none}
-.stage h2{font-size:27px; font-weight:600; letter-spacing:-.01em; margin-bottom:5px}
-.lede{color:var(--ink-3); font-size:14.5px; margin:0 0 20px; max-width:64ch}
-.stage p{margin:0 0 15px; max-width:68ch}
-.stage h3{font-family:"IBM Plex Sans",sans-serif; font-size:15px; font-weight:600;
-  margin:26px 0 10px; color:var(--ink)}
+.stage h3{font-size:25px; font-weight:600; letter-spacing:-.01em; margin-bottom:5px}
+.lede{color:var(--ink-3); font-size:14.5px; margin:0 0 18px; max-width:66ch}
+.stage p{margin:0 0 14px; max-width:70ch}
+.stage h4{font-family:"IBM Plex Sans",sans-serif; font-size:14.5px; font-weight:600;
+  margin:24px 0 10px}
 
-/* ── bảng ── */
 .tw{overflow-x:auto; border:1px solid var(--rule); border-radius:3px; background:var(--panel);
   margin:0 0 16px}
-table{border-collapse:collapse; width:100%; min-width:520px; font-size:13.5px}
-th,td{padding:9px 15px; text-align:left; border-bottom:1px solid var(--rule)}
+table{border-collapse:collapse; width:100%; min-width:540px; font-size:13.5px}
+th,td{padding:9px 15px; text-align:left; border-bottom:1px solid var(--rule); vertical-align:top}
 th{font-size:10.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-3);
   font-weight:600; background:var(--panel-2); white-space:nowrap}
 tbody tr:last-child td{border-bottom:none}
 td.n{text-align:right; font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums;
-  font-size:12.5px}
+  font-size:12.5px; white-space:nowrap}
 tr.hi td{background:var(--accent-soft)}
-.up{color:var(--yes); font-weight:600} .dn{color:var(--no); font-weight:600}
+.up{color:var(--yes); font-weight:600}
 caption{caption-side:bottom; text-align:left; font-size:12.5px; color:var(--ink-3);
   padding:10px 15px 0; line-height:1.5}
 
-/* ── hộp ── */
 .box{background:var(--panel); border:1px solid var(--rule); border-radius:3px;
-  padding:17px 20px; margin:0 0 16px; font-size:14px; color:var(--ink-2)}
+  padding:16px 20px; margin:0 0 16px; font-size:14px; color:var(--ink-2)}
 .box b{color:var(--ink)}
-.box.time{background:var(--time-soft); border-color:var(--rule)}
-.box.warn{background:var(--no-soft); border-color:var(--rule)}
+.box.time{background:var(--time-soft)} .box.warn{background:var(--no-soft)}
 .box .lbl{font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
   font-weight:600; display:block; margin-bottom:7px}
 .box.time .lbl{color:var(--time)} .box.warn .lbl{color:var(--no)}
 .box:not(.time):not(.warn) .lbl{color:var(--accent)}
 
-/* ── công thức ── */
-.eq{background:var(--panel-3); border-radius:3px; padding:18px 20px; margin:0 0 16px;
-  font-family:"IBM Plex Mono",monospace; font-size:14.5px; overflow-x:auto;
-  color:var(--ink); line-height:1.8}
+.eq{background:var(--panel-3); border-radius:3px; padding:17px 20px; margin:0 0 16px;
+  font-family:"IBM Plex Mono",monospace; font-size:14px; overflow-x:auto;
+  color:var(--ink); line-height:1.85; white-space:pre}
 .eq .c{color:var(--ink-3); font-size:12.5px}
 
-/* ── sơ đồ luồng ── */
-.flow{display:flex; flex-wrap:wrap; align-items:stretch; gap:0; margin:0 0 18px;
-  border:1px solid var(--rule); border-radius:3px; overflow:hidden; background:var(--panel)}
-.step{flex:1 1 150px; padding:14px 15px; border-right:1px solid var(--rule)}
+.flow{display:flex; flex-wrap:wrap; margin:0 0 18px; border:1px solid var(--rule);
+  border-radius:3px; overflow:hidden; background:var(--panel)}
+.step{flex:1 1 148px; padding:13px 15px; border-right:1px solid var(--rule)}
 .step:last-child{border-right:none}
 .step .s{font-family:"IBM Plex Mono",monospace; font-size:10.5px; color:var(--accent);
   font-weight:600; display:block; margin-bottom:5px}
 .step .w{font-size:13.5px; font-weight:500; display:block; line-height:1.4}
 .step .d{font-size:11.5px; color:var(--ink-3); display:block; margin-top:4px; line-height:1.45}
 
-/* ── thang bậc ── */
 .ladder{display:flex; flex-direction:column; gap:1px; background:var(--rule);
   border:1px solid var(--rule); border-radius:3px; overflow:hidden; margin-bottom:16px}
-.rung{background:var(--panel); padding:14px 18px; display:grid;
+.rung{background:var(--panel); padding:13px 18px; display:grid;
   grid-template-columns:1fr auto; gap:14px; align-items:center}
 .rung .m{font-weight:600; font-size:14.5px}
 .rung .adds{font-size:12.5px; color:var(--ink-3); display:block; margin-top:2px}
-.rung .v{font-family:"IBM Plex Mono",monospace; font-size:13px; text-align:right; white-space:nowrap}
-.rung .delta{display:block; font-size:12px; margin-top:2px}
+.rung .v{font-family:"IBM Plex Mono",monospace; font-size:12.5px; text-align:right;
+  white-space:nowrap; color:var(--ink-3)}
 
-/* ── hỏi đáp ── */
 .qa{display:flex; flex-direction:column; gap:1px; background:var(--rule);
   border:1px solid var(--rule); border-radius:3px; overflow:hidden}
 .q{background:var(--panel); padding:16px 20px}
-.q .ask{font-family:Spectral,serif; font-size:16.5px; font-weight:600; margin:0 0 8px;
-  color:var(--ink)}
+.q .ask{font-family:Spectral,serif; font-size:16.5px; font-weight:600; margin:0 0 8px}
 .q .ask::before{content:"H. "; color:var(--accent); font-family:"IBM Plex Mono",monospace;
   font-size:12px; font-weight:600}
 .q p{margin:0; font-size:14px; color:var(--ink-2); max-width:none}
@@ -145,7 +151,7 @@ caption{caption-side:bottom; text-align:left; font-size:12.5px; color:var(--ink-
   border-left:2px solid var(--rule-2)}
 
 ul.tight{margin:0 0 16px; padding-left:0; list-style:none; display:grid; gap:8px}
-ul.tight li{font-size:14px; color:var(--ink-2); padding-left:17px; position:relative; max-width:66ch}
+ul.tight li{font-size:14.2px; color:var(--ink-2); padding-left:17px; position:relative; max-width:68ch}
 ul.tight li::before{content:""; position:absolute; left:0; top:.68em; width:7px; height:1.5px;
   background:var(--accent)}
 ul.tight li b{color:var(--ink); font-weight:600}
@@ -162,12 +168,11 @@ ul.tight li b{color:var(--ink); font-weight:600}
 <header>
   <div class="kicker">Đề án thạc sĩ · BT-DKGRec-GCN · RetailRocket</div>
   <h1>Mạch đề án BT-DKGRec</h1>
-  <p class="sub">Từ ý tưởng đến buổi bảo vệ, theo đúng thứ tự dữ liệu chảy qua hệ thống — mỗi khái niệm gắn với chỗ nó nằm trong code và con số nó tạo ra.</p>
+  <p class="sub">Nền tảng khái niệm, vị trí học thuật, và mạch xuyên suốt từ ý tưởng đến buổi bảo vệ. Mỗi thuật ngữ được định nghĩa ngay chỗ dùng lần đầu.</p>
   <div class="chips">
     <span class="chip">Cập nhật 27/08/2026</span>
     <span class="chip">31/36 run đã xong</span>
     <span class="chip">299 test pass</span>
-    <span class="chip">34 quyết định có ghi lý do</span>
   </div>
 </header>
 
@@ -175,38 +180,193 @@ ul.tight li b{color:var(--ink); font-weight:600}
   <p>Đề án dự báo mỗi khách hàng sắp <b>thêm vào giỏ</b> hoặc <b>mua</b> món nào, bằng cách dựng một đồ thị tri thức trong đó mỗi tương tác mang theo <span class="t">loại hành vi</span> và <span class="t">độ mới</span>, rồi học biểu diễn trên đồ thị đó để xếp hạng Top-K.</p>
 </div>
 
-<!-- ─────────── 1 ─────────── -->
+<!-- ══════════ PHẦN A ══════════ -->
+<div class="part">
+  <div class="pl">Phần A</div>
+  <h2>Nền tảng khái niệm</h2>
+  <p class="pd">Mười khái niệm, sắp theo thứ tự phụ thuộc: mỗi mục chỉ dùng những từ đã được định nghĩa ở mục trước. Mỗi mục trả lời ba câu — nó là gì, vì sao đề án cần nó, nó nằm ở đâu trong code.</p>
+</div>
+
+<div class="cards">
+
+  <div class="card">
+    <span class="tag">A1</span>
+    <h3>Hệ thống gợi ý và phản hồi ẩn</h3>
+    <p>Hệ thống gợi ý xếp hạng các item cho từng người dùng dựa trên lịch sử. Có hai loại tín hiệu. <b>Phản hồi tường minh</b> là điểm số người dùng chấm, ví dụ 4 sao. <b>Phản hồi ẩn</b> là hành động họ làm mà không chấm điểm gì: xem, thêm giỏ, mua.</p>
+    <p>RetailRocket chỉ có phản hồi ẩn. Điều đó kéo theo một hệ quả quan trọng: dữ liệu không có ví dụ âm. Khi một người không mua món X, không rõ họ không thích X hay đơn giản là chưa nhìn thấy X.</p>
+    <div class="why"><b>Vì sao đề án cần biết:</b> vì không có ví dụ âm thật, mô hình phải tự lấy mẫu âm bằng cách bốc ngẫu nhiên một item người dùng chưa tương tác. Đó là lý do hàm mục tiêu là BPR (mục A7) chứ không phải hàm hồi quy điểm số.</div>
+  </div>
+
+  <div class="card">
+    <span class="tag">A2</span>
+    <h3>Warm user và cold user</h3>
+    <p>Đây là hai định nghĩa của riêng giao thức đánh giá trong đề án, không phải thuật ngữ chung của ngành, nên phải phát biểu chính xác.</p>
+    <p><b>Warm user</b> là người thoả đồng thời hai điều kiện: có ít nhất một tương tác trong tập train, <b>và</b> có ít nhất một item mục tiêu trong giai đoạn đang được đánh giá. Điều kiện thứ nhất bảo đảm mô hình đã học được một embedding riêng cho người đó. Điều kiện thứ hai bảo đảm có đáp án để chấm.</p>
+    <p><b>Cold user</b> là người không có tương tác nào trong train. Mô hình cá nhân hoá không có embedding cho họ, nên bất kỳ điểm số nào sinh ra cho nhóm này cũng không phản ánh năng lực cá nhân hoá.</p>
+    <div class="why"><b>Vì sao tách hai nhóm:</b> gộp chung sẽ pha loãng chỉ số của mô hình cá nhân hoá bằng một nhóm mà nó về nguyên tắc không phục vụ được. Ghi 0 cho nhóm cold cũng sai — đó là bịa số. Trong artifact kết quả, mô hình cá nhân hoá <b>cố ý</b> không có dòng <code>cold</code>, còn hai mô hình heuristic thì có, vì chúng xếp hạng được cho mọi người.</div>
+    <div class="where">Số cụ thể: cohort Original có <b class="mono">593</b> warm user trong test, cohort Active có <b class="mono">234</b>. Cài đặt ở <code>src/evaluation/evaluator.py</code>.</div>
+  </div>
+
+  <div class="card">
+    <span class="tag">A3</span>
+    <h3>Đồ thị user-item</h3>
+    <p>Một đồ thị gồm <b>node</b> và <b>cạnh</b>. Ở đây có hai loại node: mỗi người dùng là một node, mỗi sản phẩm là một node. Nếu người <code>u</code> từng tương tác với sản phẩm <code>i</code> thì có một cạnh nối chúng.</p>
+    <p>Đồ thị này là <b>hai phía</b>: cạnh chỉ nối user với item, không bao giờ nối user với user hay item với item. Nó cũng <b>không có hướng</b> — tín hiệu chạy được cả hai chiều.</p>
+    <div class="why"><b>Vì sao dùng đồ thị:</b> vì nó cho phép tín hiệu đi xa hơn một bước. Nếu A và B cùng mua món X, và B còn mua món Y, thì trên đồ thị có đường đi A → X → B → Y dài ba bước. Gợi ý Y cho A chính là khai thác đường đi đó. Đây là ý tưởng cốt lõi của lọc cộng tác, được diễn đạt bằng ngôn ngữ đồ thị.</div>
+  </div>
+
+  <div class="card">
+    <span class="tag">A4</span>
+    <h3>Embedding</h3>
+    <p>Embedding là một vector số gán cho mỗi node. Trong đề án, mỗi vector có 64 chiều. Ban đầu các giá trị là ngẫu nhiên và vô nghĩa; quá trình huấn luyện sẽ đẩy chúng về chỗ có nghĩa.</p>
+    <p>Ý nghĩa đó là <b>khoảng cách</b>. Sau khi học xong, hai user có hành vi giống nhau sẽ có vector gần nhau, và một user sẽ nằm gần những item họ có xu hướng thích. Điểm số của một cặp user-item chính là tích vô hướng của hai vector.</p>
+    <div class="why"><b>Điểm hay bị hiểu nhầm:</b> điểm số này là điểm <b>xếp hạng</b>, không phải xác suất. Giá trị 0.8 không có nghĩa "80% khả năng mua". Nó chỉ có nghĩa khi so với điểm của các item khác của <b>cùng</b> người dùng đó.</div>
+  </div>
+
+  <div class="card">
+    <span class="tag">A5</span>
+    <h3>Lan truyền trên đồ thị và GCN</h3>
+    <p>GCN là mạng nơ-ron tích chập trên đồ thị. Cơ chế của nó gọi là <b>truyền thông điệp</b>: mỗi node lấy embedding của các hàng xóm, gộp lại, và dùng kết quả làm embedding mới của mình.</p>
+    <p>Làm một lần là một <b>lớp</b>. Sau lớp thứ nhất, một user chứa thông tin của các item họ đã tương tác. Sau lớp thứ hai, chứa thêm thông tin của các user khác cũng tương tác với những item đó. Sau lớp thứ ba, tới được các item mà nhóm user kia đã mua. Đề án dùng <b>3 lớp</b>.</p>
+    <div class="why"><b>Vì sao không chồng nhiều lớp hơn:</b> càng nhiều lớp thì embedding của mọi node càng bị san phẳng về giống nhau, hiện tượng gọi là over-smoothing. Ba lớp là vùng thường được báo cáo là tốt nhất trong tài liệu gốc.</div>
+    <div class="where"><code>src/graph/normalize.py</code> và phần lan truyền trong <code>src/models/bt_dkgrec.py</code></div>
+  </div>
+
+  <div class="card">
+    <span class="tag">A6</span>
+    <h3>Chuẩn hoá đối xứng</h3>
+    <p>Nếu cứ cộng thẳng embedding của mọi hàng xóm, một item cực phổ biến có hàng chục nghìn cạnh sẽ áp đảo toàn bộ đồ thị. Chuẩn hoá là bước chia lại cho công bằng.</p>
+    <div class="eq">Â = D<sup>−½</sup> · A · D<sup>−½</sup>   <span class="c">A là ma trận kề, D là ma trận bậc</span></div>
+    <p>Cụ thể, trọng số của cạnh giữa <code>v</code> và <code>j</code> bị chia cho <code>√dᵥ · √dⱼ</code>, trong đó <code>d</code> là tổng trọng số các cạnh nối vào node đó. Chia cho căn bậc hai của <b>cả hai đầu</b> nên gọi là đối xứng.</p>
+    <div class="why"><b>Hệ quả cần nhớ khi bảo vệ:</b> phép chia này cũng nén luôn biên độ của trọng số hành vi-thời gian. Chi tiết ở mục C4.</div>
+  </div>
+
+  <div class="card">
+    <span class="tag">A7</span>
+    <h3>BPR — hàm mục tiêu</h3>
+    <p>BPR là viết tắt của Bayesian Personalized Ranking. Nó không hỏi "món này đáng mấy điểm" mà hỏi <b>"giữa hai món, món nào đáng xếp trên"</b>.</p>
+    <p>Mỗi mẫu huấn luyện là một bộ ba: một user, một item dương (họ đã tương tác thật), và một item âm (bốc ngẫu nhiên từ những item họ chưa tương tác). Hàm mục tiêu ép điểm của item dương cao hơn điểm của item âm.</p>
+    <div class="why"><b>Vì sao hợp với bài toán này:</b> phản hồi ẩn không có điểm số để hồi quy, nhưng luôn có thể phát biểu một thứ tự. BPR khai thác đúng cái luôn có đó. Mẫu âm chỉ được bốc từ tập item train — nếu bốc cả item tương lai thì đã rò rỉ dữ liệu.</div>
+    <div class="where"><code>src/training/loss.py</code>, công thức (3.29)–(3.31) trong đề án</div>
+  </div>
+
+  <div class="card">
+    <span class="tag">A8</span>
+    <h3>Knowledge Graph</h3>
+    <p>Đồ thị tri thức mở rộng đồ thị user-item bằng cách thêm các loại node khác và các loại quan hệ khác. Trong đề án có bốn loại node: <code>visitor</code>, <code>item</code>, <code>category</code>, <code>property</code>. Và bốn loại quan hệ: tương tác, thuộc danh mục, có thuộc tính, danh mục cha.</p>
+    <p>Thông tin thêm vào đó gọi chung là <b>side information</b> — tri thức về sản phẩm, không phải hành vi của người dùng.</p>
+    <div class="why"><b>Lợi ích cụ thể:</b> hai sản phẩm chưa ai mua cùng lúc vẫn có thể được nối gián tiếp qua node category chung. Nhờ đó đồ thị bớt thưa, và item ít lượt tương tác vẫn nhận được tín hiệu.</div>
+  </div>
+
+  <div class="card">
+    <span class="tag">A9</span>
+    <h3>KG tĩnh và KG động</h3>
+    <p><b>KG tĩnh</b> nói được "sản phẩm X thuộc danh mục Y" và "người u từng tương tác với item i". Nó không phân biệt được tương tác đó là <i>xem lướt</i> hay <i>đã mua</i>, cũng không phân biệt <i>hôm qua</i> với <i>tám tháng trước</i>.</p>
+    <p><b>KG động</b> đưa hai thông tin đó vào chính cạnh. Trong đề án, cả loại hành vi lẫn timestamp được nén vào một con số duy nhất: trọng số của cạnh. Đây là chữ "động" trong tên đề tài.</p>
+    <div class="why"><b>Ranh giới cần nói rõ khi bảo vệ:</b> đề án không dùng nhiều snapshot đồ thị theo thời gian, cũng không dự báo cạnh tương lai theo kiểu temporal link prediction. Yếu tố thời gian đi vào <b>một</b> chỗ duy nhất là trọng số cạnh của một snapshot. Phát biểu đúng phạm vi này thì phản biện không bắt bẻ được; phát biểu quá thì bị.</div>
+  </div>
+
+  <div class="card">
+    <span class="tag">A10</span>
+    <h3>Bốn chỉ số đánh giá</h3>
+    <p>Bài toán là xếp hạng nên không dùng Accuracy. Bốn chỉ số dưới đây đều tính ở mức <code>K = 20</code>, nghĩa là chỉ xét 20 item đầu danh sách.</p>
+    <div class="tw"><table>
+      <thead><tr><th>Chỉ số</th><th>Trả lời câu hỏi</th></tr></thead>
+      <tbody>
+        <tr><td><b>Recall@20</b></td><td>Trong tất cả item người đó thật sự sẽ tương tác, danh sách bắt được bao nhiêu phần?</td></tr>
+        <tr><td><b>HitRate@20</b></td><td>Có bắt được ít nhất một món đúng không? Chỉ đếm có hay không.</td></tr>
+        <tr><td><b>NDCG@20</b></td><td>Món đúng nằm ở vị trí cao hay thấp? Đúng ở hạng 1 tính điểm cao hơn đúng ở hạng 20.</td></tr>
+        <tr><td><b>Coverage@20</b></td><td>Toàn hệ thống gợi ý được bao nhiêu phần của kho hàng? Đo mức đa dạng, không đo độ chính xác.</td></tr>
+      </tbody>
+    </table></div>
+    <div class="why"><b>Vì sao giá trị tuyệt đối đều nhỏ:</b> tập ứng viên có 205.106 item, nên một danh sách 20 món chỉ phủ khoảng 0,01% kho hàng. Một mô hình xếp hạng ngẫu nhiên có kỳ vọng Recall@20 khoảng 0.0001. Con số 0.03 vì vậy cao hơn ngẫu nhiên khoảng hai bậc độ lớn. So sánh <b>tương đối</b> giữa các mô hình trong cùng giao thức mới là cơ sở diễn giải.</div>
+  </div>
+
+</div>
+
+<!-- ══════════ PHẦN B ══════════ -->
+<div class="part">
+  <div class="pl">Phần B</div>
+  <h2>Ba công trình nền và ranh giới đóng góp</h2>
+  <p class="pd">Câu hỏi phản biện chắc chắn có: cái gì trong đề án là của người khác, cái gì là của tác giả. Phần này trả lời thẳng.</p>
+</div>
+
+<div class="cards">
+  <div class="card">
+    <span class="tag">B1 · Kiến trúc</span>
+    <h3>LightGCN — He và cộng sự, SIGIR 2020</h3>
+    <p>Trước LightGCN, các mô hình GCN cho gợi ý mượn nguyên kiến trúc từ GCN dùng cho phân loại node, gồm phép biến đổi đặc trưng và hàm kích hoạt phi tuyến ở mỗi lớp. LightGCN chỉ ra rằng với lọc cộng tác, hai thành phần đó <b>không giúp gì</b> mà còn làm khó huấn luyện.</p>
+    <p>Mô hình vì vậy bỏ cả hai, chỉ giữ đúng phép gộp hàng xóm có chuẩn hoá, và lấy embedding cuối bằng cách kết hợp embedding của tất cả các lớp. Tham số học được chỉ còn embedding của lớp 0.</p>
+    <div class="why">
+      <b>Đề án lấy gì:</b> toàn bộ kiến trúc lan truyền, cách kết hợp lớp, hàm tính điểm bằng tích vô hướng, và hàm mục tiêu BPR. Lấy nguyên, không sửa.<br><br>
+      <b>Vì sao lấy nguyên:</b> nếu vừa đổi trọng số cạnh vừa đổi kiến trúc thì không tách được phần thắng đến từ đâu. Giữ kiến trúc cố định là điều kiện để phép so sánh có kiểm soát ở mục C6 có giá trị.<br><br>
+      <b>Đề án cũng lấy siêu tham số của paper:</b> embedding 64 chiều đúng như paper cố định cho mọi mô hình, số lớp 3 nằm trong khoảng 1–4 mà paper khảo sát, hệ số điều chuẩn L2 bằng 1e−4 đúng giá trị paper báo là tối ưu trong hầu hết trường hợp.
+    </div>
+    <div class="where">Trích dẫn [5] trong đề án. Trong code: <code>src/models/lightgcn.py</code></div>
+  </div>
+
+  <div class="card">
+    <span class="tag">B2 · Ý tưởng trọng số hành vi</span>
+    <h3>MBGCN — Jin và cộng sự, SIGIR 2020</h3>
+    <p>MBGCN xử lý dữ liệu <b>đa hành vi</b>: cùng một người có thể xem, thêm giỏ, rồi mua. Đóng góp của paper là mô hình hoá các loại hành vi trên một đồ thị hợp nhất, và học <b>mức đóng góp khác nhau</b> của từng loại hành vi vào hành vi mục tiêu, thay vì coi mọi tương tác như nhau.</p>
+    <div class="why">
+      <b>Đề án lấy gì:</b> lấy <b>ý tưởng</b> rằng loại hành vi phải được phân biệt về mức độ.<br><br>
+      <b>Đề án làm khác chỗ nào:</b> MBGCN <b>học</b> mức đóng góp của từng hành vi như tham số của mô hình. Đề án <b>gán cứng</b> ba con số 1.0, 2.0, 3.0 rồi đưa thẳng vào trọng số cạnh trước khi huấn luyện. Đơn giản hơn nhiều, và đó là một lựa chọn phải nói rõ chứ không nên để người đọc tưởng là học được.
+    </div>
+  </div>
+
+  <div class="card">
+    <span class="tag">B3 · Ý tưởng yếu tố thời gian</span>
+    <h3>KHGT — Xia và cộng sự, AAAI 2021</h3>
+    <p>KHGT cũng làm gợi ý đa hành vi, nhưng dùng kiến trúc graph transformer phân cấp, có tri thức bổ trợ, và đặc biệt là một <b>cơ chế mã hoá thời gian</b> để embedding phản ánh được diễn biến của tương tác theo thời gian.</p>
+    <div class="why">
+      <b>Đề án lấy gì:</b> lấy <b>ý tưởng</b> rằng thời gian của tương tác là tín hiệu đáng đưa vào biểu diễn.<br><br>
+      <b>Đề án làm khác chỗ nào:</b> KHGT mã hoá thời gian bên trong cơ chế attention của transformer. Đề án dùng một hàm suy giảm mũ trên trọng số cạnh, tính xong trước khi huấn luyện, và không có attention nào. Lại là một lựa chọn đơn giản hoá có chủ ý.
+    </div>
+  </div>
+</div>
+
+<div class="box warn" style="margin-top:20px"><span class="lbl">Một lỗ hổng cần xử lý trước khi nộp</span>
+Thư mục tham khảo hiện tại của đề án có <b>18 mục</b> và <b>không có MBGCN, cũng không có KHGT</b>. Trong khi đó, tài liệu quyết định nội bộ ghi rằng <code>α = {1.0, 2.0, 3.0}</code> và <code>λ = 0.01</code> kế thừa từ hai công trình này.<br><br>
+Nếu đề án phát biểu là kế thừa mà không trích dẫn, đó là một điểm yếu trích dẫn. Hai hướng xử lý, chọn một: <b>thêm hai mục</b> vào thư mục tham khảo và trích ở mục 3.4; hoặc <b>sửa lại phát biểu</b> thành "giá trị do tác giả đặt theo trực giác về mức độ ý định, chưa dò tham số" và bỏ hẳn việc quy về hai paper. Hướng thứ nhất trung thực hơn với thực tế thiết kế.
+</div>
+
+<div class="box" style="margin-top:4px"><span class="lbl">Nói thế nào về đóng góp cho an toàn</span>
+Đề án <b>không</b> tuyên bố phát minh ra gợi ý dựa trên đồ thị tri thức, cũng không tuyên bố đạt trạng thái tiên tiến nhất. Đóng góp được giới hạn ở ba thứ có thể kiểm chứng được: <b>lược đồ</b> Behavior-Time DKG cho RetailRocket, <b>cơ chế</b> trọng số hành vi-thời gian trên cạnh, và <b>quy trình đánh giá có kiểm soát</b> tách được ba nguồn tác động. Phát biểu ở mức này thì mọi câu chữ đều có bằng chứng đứng sau.
+</div>
+
+<!-- ══════════ PHẦN C ══════════ -->
+<div class="part">
+  <div class="pl">Phần C</div>
+  <h2>Mạch đề án</h2>
+  <p class="pd">Theo đúng thứ tự dữ liệu chảy qua hệ thống. Mỗi bước dựa trên khái niệm đã định nghĩa ở Phần A.</p>
+</div>
+
 <section class="stage">
-  <div class="rail"><div class="num">1</div></div>
+  <div class="rail"><div class="num">C1</div></div>
   <div>
-    <h2>Đề tài phải chứng minh ba điều, không phải một</h2>
-    <p class="lede">Đây là chỗ dễ rối nhất. Tên đề tài chứa ba mệnh đề chồng lên nhau, và mỗi mệnh đề cần một mô hình đối chứng riêng.</p>
-
-    <p>Tên đề tài là <i>"dự báo hành vi khách hàng sử dụng đồ thị tri thức động"</i>. Ba chữ in đậm dưới đây là ba lời hứa, và toàn bộ thiết kế thực nghiệm tồn tại để kiểm từng lời hứa một:</p>
-
+    <h3>Tên đề tài chứa ba lời hứa</h3>
+    <p class="lede">Đây là chỗ dễ rối nhất, và cũng là chỗ quyết định vì sao phải có sáu mô hình chứ không phải hai.</p>
+    <p>Tên đề tài là <i>"dự báo hành vi khách hàng sử dụng đồ thị tri thức động"</i>. Đó là ba mệnh đề chồng lên nhau, và mỗi mệnh đề cần một mô hình đối chứng riêng để cô lập.</p>
     <div class="tw"><table>
       <thead><tr><th>Lời hứa</th><th>Cặp đối chứng cô lập nó</th><th>Câu hỏi trả lời được</th></tr></thead>
       <tbody>
-        <tr><td><b>dự báo hành vi</b> cá nhân hoá</td><td>Popularity · Recent Popularity ↔ LightGCN</td><td>Biết lịch sử từng người có hơn chỉ biết món nào đang hot không?</td></tr>
+        <tr><td><b>dự báo hành vi</b> cá nhân hoá</td><td>Popularity ↔ LightGCN</td><td>Biết lịch sử từng người có hơn chỉ biết món nào đang bán chạy không?</td></tr>
         <tr><td><b>đồ thị tri thức</b></td><td>LightGCN ↔ Static KG-GCN</td><td>Thêm category và property của sản phẩm có ích không?</td></tr>
         <tr class="hi"><td><b>động</b></td><td>Static KG-GCN ↔ BT-DKGRec-GCN</td><td>Phân biệt loại hành vi và độ mới có ích không?</td></tr>
       </tbody>
-      <caption>Cặp thứ ba là lập luận cốt lõi. Hai mô hình của cặp đó khác nhau <b>đúng một hàm</b> trong code.</caption>
     </table></div>
-
     <div class="box"><span class="lbl">Vì sao phải tách ba</span>
-      Nếu chỉ so mô hình đề xuất với Popularity rồi tuyên bố thắng, người phản biện hỏi ngay: <b>phần thắng đến từ đâu?</b> Từ việc cá nhân hoá, từ tri thức sản phẩm, hay từ chữ "động"? Không tách ra thì không trả lời được, và lời hứa trong tên đề tài không được chứng minh.
+      Nếu chỉ so mô hình đề xuất với Popularity rồi tuyên bố thắng, phản biện hỏi ngay: <b>phần thắng đến từ đâu?</b> Từ cá nhân hoá, từ tri thức sản phẩm, hay từ chữ "động"? Không tách thì không trả lời được, và lời hứa trong tên đề tài không được chứng minh.
     </div>
   </div>
 </section>
 
-<!-- ─────────── 2 ─────────── -->
 <section class="stage">
-  <div class="rail"><div class="num">2</div></div>
+  <div class="rail"><div class="num">C2</div></div>
   <div>
-    <h2>Dữ liệu và cách cắt nó ra</h2>
-    <p class="lede">RetailRocket là log thật của một sàn thương mại điện tử. Mọi con số sau này đều bắt nguồn từ đây.</p>
-
+    <h3>Dữ liệu và cách cắt</h3>
+    <p class="lede">RetailRocket là log thật của một sàn thương mại điện tử. Mọi con số về sau đều bắt nguồn từ đây.</p>
     <div class="tw"><table>
       <thead><tr><th>Thành phần</th><th style="text-align:right">Số lượng</th><th>Vai trò</th></tr></thead>
       <tbody>
@@ -216,65 +376,57 @@ ul.tight li b{color:var(--ink); font-weight:600}
         <tr><td><code>transaction</code></td><td class="n">22.457</td><td>target</td></tr>
         <tr class="hi"><td>Sự kiện target</td><td class="n">91.789</td><td>cart <b>hoặc</b> mua — thứ cần dự báo</td></tr>
       </tbody>
-      <caption>Target chỉ chiếm 3.3% tổng sự kiện. Dữ liệu rất thưa, và điều đó giải thích vì sao các giá trị Recall tuyệt đối đều nhỏ.</caption>
+      <caption>Target chỉ chiếm 3,3% tổng sự kiện. Dữ liệu rất thưa, và đó là một phần lý do các giá trị Recall tuyệt đối đều nhỏ.</caption>
     </table></div>
 
-    <h3>Chia theo thời gian, không xáo trộn</h3>
-    <p>Dữ liệu được cắt 70/10/20 <b>theo trục thời gian</b>: học trên quá khứ, chọn cấu hình trên đoạn giữa, báo cáo trên tương lai. Random split sẽ cho mô hình nhìn thấy tương lai và mọi con số trở nên vô nghĩa.</p>
+    <h4>Vì sao gộp addtocart và transaction làm một</h4>
+    <p>Hai hành vi này cùng thể hiện ý định cao, khác hẳn <code>view</code> vốn chỉ là quan tâm ban đầu. Tách riêng thì mỗi bài toán chỉ còn vài chục nghìn nhãn trên không gian hai trăm nghìn item — quá thưa để cả huấn luyện lẫn đánh giá đáng tin. Việc tách riêng được ghi là hướng mở rộng khi có dữ liệu dày hơn.</p>
 
+    <h4>Chia theo thời gian, không xáo trộn</h4>
+    <p>Dữ liệu cắt 70/10/20 <b>theo trục thời gian</b>: học trên quá khứ, chọn cấu hình trên đoạn giữa, báo cáo trên tương lai. Random split sẽ cho mô hình nhìn thấy tương lai và mọi con số trở nên vô nghĩa.</p>
     <div class="box warn"><span class="lbl">Bẫy dễ sót nhất</span>
-      File <code>item_properties</code> có nhiều dòng cho cùng một item ở các thời điểm khác nhau. Lấy dòng cuối file là nhìn thấy tương lai. Quy tắc đúng: lấy <b>bản ghi mới nhất còn ≤ mốc kết thúc train</b>. Đây là một trong mười assertion chạy trong pipeline.
+      File <code>item_properties</code> có nhiều dòng cho cùng một item ở các thời điểm khác nhau. Lấy dòng cuối file là nhìn thấy tương lai. Quy tắc đúng: lấy <b>bản ghi mới nhất còn ≤ mốc kết thúc train</b>.
     </div>
 
-    <h3>Hai nhóm người dùng</h3>
+    <h4>Hai cohort</h4>
     <ul class="tight">
-      <li><b>Original</b> — toàn bộ, 593 user warm trong tập test. Đây là tập đánh giá chính.</li>
-      <li><b>Active</b> — chỉ user có từ 5 sự kiện trở lên trong train, 234 user. Đây là <b>phân tích phân nhóm thăm dò</b>, không thay thế tập chính. Ngưỡng được chốt trước khi dựng lại đồ thị, và điều đó phải được nói rõ khi trình bày.</li>
+      <li><b>Original</b> — toàn bộ, 593 warm user trong test. Đây là tập đánh giá chính.</li>
+      <li><b>Active</b> — chỉ user có từ 5 sự kiện trở lên trong train, 234 warm user. Đây là <b>phân tích phân nhóm thăm dò</b>. Ngưỡng được chốt trước khi dựng lại đồ thị, và điều đó phải nói rõ khi trình bày.</li>
     </ul>
   </div>
 </section>
 
-<!-- ─────────── 3 ─────────── -->
 <section class="stage">
-  <div class="rail"><div class="num">3</div></div>
+  <div class="rail"><div class="num">C3</div></div>
   <div>
-    <h2>Từ sự kiện thành đồ thị</h2>
-    <p class="lede">Đồ thị tri thức ở đây không phải hình vẽ minh hoạ. Nó là đầu vào trực tiếp của mô hình.</p>
-
+    <h3>Từ sự kiện thành đồ thị</h3>
+    <p class="lede">Đồ thị tri thức ở đây không phải hình minh hoạ. Nó là đầu vào trực tiếp của mô hình.</p>
     <div class="flow">
-      <div class="step"><span class="s">01</span><span class="w">Đọc log</span><span class="d">events.csv, lọc theo mốc train</span></div>
+      <div class="step"><span class="s">01</span><span class="w">Đọc log</span><span class="d">chỉ giữ sự kiện ≤ mốc train</span></div>
       <div class="step"><span class="s">02</span><span class="w">Tạo node</span><span class="d">visitor, item — chỉ từ train</span></div>
       <div class="step"><span class="s">03</span><span class="w">Tính trọng số</span><span class="d">mỗi sự kiện một con số</span></div>
-      <div class="step"><span class="s">04</span><span class="w">Gộp cạnh</span><span class="d">cùng cặp thì cộng trọng số</span></div>
+      <div class="step"><span class="s">04</span><span class="w">Gộp cạnh</span><span class="d">cùng cặp thì cộng dồn</span></div>
       <div class="step"><span class="s">05</span><span class="w">Thêm tri thức</span><span class="d">category, property, cây danh mục</span></div>
     </div>
-
-    <p>Bốn loại node: <code>visitor</code>, <code>item</code>, <code>category</code>, <code>property</code>. Bốn loại quan hệ, trong đó chỉ quan hệ <code>INTERACTED_WITH</code> giữa visitor và item mang thời gian — đó là phần "động"; ba quan hệ còn lại là tri thức sản phẩm tĩnh.</p>
-
-    <div class="box"><span class="lbl">Hai lớp biểu diễn — điểm hay bị hiểu nhầm</span>
+    <p>Trong bốn loại quan hệ, chỉ quan hệ tương tác giữa visitor và item mang thời gian — đó là phần động. Ba quan hệ còn lại là tri thức sản phẩm tĩnh.</p>
+    <div class="box"><span class="lbl">Hai lớp biểu diễn — chỗ hay bị hiểu nhầm</span>
       <b>Lớp lưu vết</b> giữ mỗi sự kiện thành một node riêng, dùng cho Neo4j và cho việc truy vết khi trình diễn. <b>Lớp chiếu</b> gộp mọi sự kiện cùng cặp visitor-item thành <b>một</b> cạnh có trọng số tổng hợp, và đây mới là thứ mô hình học trên đó.<br><br>
-      Trên cohort Original: <b class="mono">2.024.042</b> sự kiện chiếu thành <b class="mono">1.570.409</b> cạnh. Một assertion đối chiếu tổng trọng số của hai lớp trên từng cặp; sai khác tương đối lớn nhất bằng <b class="mono">0</b>.
+      Trên cohort Original: <b class="mono">2.024.042</b> sự kiện chiếu thành <b class="mono">1.570.409</b> cạnh. Một assertion đối chiếu tổng trọng số hai lớp trên từng cặp; sai khác tương đối lớn nhất bằng <b class="mono">0</b>.
     </div>
   </div>
 </section>
 
-<!-- ─────────── 4 ─────────── -->
 <section class="stage">
-  <div class="rail"><div class="num">4</div></div>
+  <div class="rail"><div class="num">C4</div></div>
   <div>
-    <h2>Trọng số hành vi-thời gian</h2>
-    <p class="lede">Đây là đóng góp riêng của đề án. Mọi phần khác đều là khung chuẩn; phần này là ruột.</p>
-
-    <div class="eq">
-Δt = max(0, (T_train − t) / D_day)      <span class="c">← sự kiện đã cũ bao nhiêu ngày</span>
+    <h3>Trọng số hành vi-thời gian</h3>
+    <p class="lede">Đây là đóng góp riêng. Mọi phần khác là khung chuẩn; phần này là ruột.</p>
+    <div class="eq">Δt = max(0, (T_train − t) / D_day)      <span class="c">← sự kiện đã cũ bao nhiêu ngày</span>
 w  = α_b · exp(−λ · Δt)                 <span class="c">← sức nặng của MỘT sự kiện</span>
-W(u,i) = Σ w                            <span class="c">← trọng số cạnh, cộng dồn cả lịch sử</span>
-    </div>
+W(u,i) = Σ w                            <span class="c">← trọng số cạnh, cộng dồn cả lịch sử</span></div>
+    <p><code>α_b</code> là mức ý định của hành vi: <code>view</code> = 1.0, <code>addtocart</code> = 2.0, <code>transaction</code> = 3.0. <code>exp(−λ·Δt)</code> là bộ phai theo thời gian: việc vừa xảy ra giữ gần nguyên sức nặng, việc cũ mờ dần.</p>
 
-    <p><code>α_b</code> là mức nghiêm túc của hành vi: <code>view</code> = 1.0, <code>addtocart</code> = 2.0, <code>transaction</code> = 3.0. Mua đáng tin gấp ba lần xem.</p>
-    <p><code>exp(−λ·Δt)</code> là bộ phai theo thời gian: việc vừa xảy ra giữ gần nguyên sức nặng, việc cũ mờ dần. <code>λ</code> quyết định phai nhanh hay chậm.</p>
-
-    <h3>Hai thiết lập của λ, và vì sao giữ cả hai</h3>
+    <h4>Hai thiết lập của λ</h4>
     <div class="tw"><table>
       <thead><tr><th>λ</th><th style="text-align:right">AUC validation (Original)</th><th style="text-align:right">AUC validation (Active)</th></tr></thead>
       <tbody>
@@ -284,77 +436,60 @@ W(u,i) = Σ w                            <span class="c">← trọng số cạnh
         <tr class="hi"><td class="mono">0.050</td><td class="n">0.9185</td><td class="n">0.9012</td></tr>
         <tr><td class="mono">0.100</td><td class="n">0.9069</td><td class="n">0.8963</td></tr>
       </tbody>
-      <caption>Quét trên tập validation, đo bằng AUC của trọng số cạnh khi dự báo tương tác target. Không tốn GPU cho từng giá trị λ, và không đọc tập test.</caption>
+      <caption>Quét trên tập validation, đo bằng AUC của trọng số cạnh khi dự báo tương tác target. Phép đo này đánh giá chất lượng trọng số <b>trước khi</b> đưa vào huấn luyện, nên không tốn GPU cho từng giá trị λ và không đọc tập test.</caption>
     </table></div>
-
-    <p>λ = 0.01 là giá trị <b>kế thừa</b> từ công trình trước, chưa qua dò. λ = 0.05 là giá trị <b>dò được</b>. Đề án giữ cả hai trong bảng kết quả để người đọc thấy được cả trước và sau khi dò, chứ không chỉ thấy kết quả đã tối ưu.</p>
+    <p>λ = 0.01 là giá trị kế thừa, chưa qua dò. λ = 0.05 là giá trị dò được. Đề án giữ cả hai trong bảng kết quả để người đọc thấy cả trước và sau khi dò.</p>
 
     <div class="box time"><span class="lbl">Biên độ thật — phần dễ nói sai</span>
-      Trọng số không đi thẳng vào mô hình. Nó qua chuẩn hoá đối xứng <code>Â = D^(−½) A D^(−½)</code> trước. Với visitor chỉ có một cạnh, hệ số rút gọn thành <b class="mono">√W / √dᵢ</b> — trọng số vào theo <b>căn bậc hai</b>.<br><br>
+      Trọng số không đi thẳng vào mô hình mà qua chuẩn hoá đối xứng (mục A6) trước. Với visitor chỉ có một cạnh, bậc có trọng số của visitor bằng đúng trọng số cạnh, nên hệ số rút gọn thành <b class="mono">√W / √dᵢ</b> — trọng số vào theo <b>căn bậc hai</b>.<br><br>
       Hệ quả cụ thể: tỉ lệ 3:1 giữa <code>transaction</code> và <code>view</code> sau chuẩn hoá chỉ còn <b class="mono">√3 ≈ 1.73:1</b>. Cơ chế vẫn tác động, nhưng nhẹ hơn con số danh nghĩa của α, và tác động trên mọi nhóm chứ không riêng nhóm nào.
     </div>
   </div>
 </section>
 
-<!-- ─────────── 5 ─────────── -->
 <section class="stage">
-  <div class="rail"><div class="num">5</div></div>
+  <div class="rail"><div class="num">C5</div></div>
   <div>
-    <h2>Mô hình học gì trên đồ thị đó</h2>
-    <p class="lede">Phần này là kiến trúc chuẩn của LightGCN. Đề án không đổi nó, và đó là chủ ý.</p>
-
-    <div class="eq">
-Â = D^(−½) A D^(−½)              <span class="c">← chuẩn hoá đối xứng</span>
+    <h3>Mô hình học gì</h3>
+    <p class="lede">Kiến trúc chuẩn của LightGCN, giữ nguyên có chủ ý — xem mục B1.</p>
+    <div class="eq">Â = D^(−½) A D^(−½)              <span class="c">← chuẩn hoá đối xứng</span>
 h^(l+1) = Â · h^(l)              <span class="c">← lan truyền, lặp L = 3 lớp</span>
 z = mean(h⁰, h¹, h², h³)         <span class="c">← biểu diễn cuối</span>
-s(u,i) = z_u · z_i               <span class="c">← điểm xếp hạng</span>
-    </div>
-
-    <ul class="tight">
-      <li><b>Embedding</b> là vector số biểu diễn một node. Ban đầu ngẫu nhiên, sau khi học thì hai node có hành vi giống nhau sẽ nằm gần nhau.</li>
-      <li><b>Lan truyền</b> là việc mỗi node thu thông tin từ hàng xóm. Sau 3 lớp, một visitor đã "nhìn" được tới các item mà những người giống mình từng mua.</li>
-      <li><b>BPR</b> là hàm mục tiêu: với mỗi visitor, ép điểm của item họ thật sự tương tác cao hơn điểm của một item lấy ngẫu nhiên.</li>
-      <li><b>Top-K</b> là đầu ra: sắp item ứng viên theo điểm giảm dần, lấy K món đầu. Item họ đã tương tác trong train bị loại khỏi danh sách.</li>
-    </ul>
-
-    <div class="box"><span class="lbl">Vì sao không cải tiến phần này</span>
-      Nếu vừa đổi trọng số cạnh vừa đổi kiến trúc, không tách được phần thắng đến từ đâu. Giữ kiến trúc nguyên bản làm cho cặp <code>static_kg_gcn</code> ↔ <code>bt_dkgrec</code> khác nhau đúng một biến.<br><br>
-      Cùng lý do đó: <code>embedding_dim = 64</code>, <code>num_layers = 3</code> lấy theo đúng cấu hình LightGCN gốc công bố, và <b>mọi</b> mô hình dùng chung giá trị này. Baseline vì vậy chạy ở cấu hình tác giả của nó đề xuất, không ai bị thiệt.
+s(u,i) = z_u · z_i               <span class="c">← điểm xếp hạng</span></div>
+    <p>Sau khi có điểm, danh sách Top-K được sinh bằng cách sắp item ứng viên theo điểm giảm dần và lấy K món đầu. Item người dùng đã tương tác trong train bị loại khỏi danh sách.</p>
+    <div class="box"><span class="lbl">Ranh giới ứng viên bảo thủ</span>
+      Tập ứng viên chỉ gồm item xuất hiện trong train. Nếu đáp án là một item chưa từng có trong train, mô hình không thể xếp hạng nó, và trường hợp đó bị tính là <b>trượt</b> chứ không được loại khỏi mẫu số. Cách tính này làm điểm số thấp đi nhưng nhất quán và bảo vệ được.
     </div>
   </div>
 </section>
 
-<!-- ─────────── 6 ─────────── -->
 <section class="stage">
-  <div class="rail"><div class="num">6</div></div>
+  <div class="rail"><div class="num">C6</div></div>
   <div>
-    <h2>Thang bậc — cách chứng minh</h2>
+    <h3>Thang bậc — cách chứng minh</h3>
     <p class="lede">Sáu mô hình không phải sáu ý tưởng rời rạc. Chúng là một thang, mỗi nấc thêm đúng một thành phần.</p>
-
     <div class="ladder">
       <div class="rung"><div><span class="m">Popularity</span><span class="adds">không cá nhân hoá — món nào nhiều người mua nhất</span></div><div class="v">mốc sàn</div></div>
       <div class="rung"><div><span class="m">Recent Popularity</span><span class="adds">+ giới hạn cửa sổ thời gian gần</span></div><div class="v">mốc sàn có thời gian</div></div>
-      <div class="rung"><div><span class="m">LightGCN</span><span class="adds">+ cá nhân hoá bằng đồ thị visitor-item</span></div><div class="v">baseline học thuật</div></div>
-      <div class="rung"><div><span class="m">Static KG-GCN</span><span class="adds">+ tri thức sản phẩm (category, property)</span></div><div class="v">ablation</div></div>
+      <div class="rung"><div><span class="m">LightGCN</span><span class="adds">+ cá nhân hoá bằng đồ thị user-item</span></div><div class="v">baseline học thuật</div></div>
+      <div class="rung"><div><span class="m">Static KG-GCN</span><span class="adds">+ side information: category, property</span></div><div class="v">ablation</div></div>
       <div class="rung"><div><span class="m">BT-DKGRec-GCN (λ=0.01)</span><span class="adds">+ trọng số behavior-time</span></div><div class="v">đề xuất</div></div>
       <div class="rung"><div><span class="m">BT-DKGRec-GCN (λ=0.05)</span><span class="adds">+ λ đã dò trên validation</span></div><div class="v">đề xuất, đã dò</div></div>
     </div>
-
     <div class="box"><span class="lbl">Ablation nằm sẵn trong thang này</span>
       Trong code, <code>static_kg_gcn</code> <b>kế thừa</b> <code>bt_dkgrec</code> và ghi đè đúng <b>một</b> hàm: <code>edge_weight()</code>. Thân class chỉ còn mỗi cái tên.<br><br>
-      Có một test đọc chính file đó và <b>fail</b> nếu thân class mọc thêm bất cứ thứ gì. Khoảnh khắc xuất hiện khác biệt thứ hai, phép so sánh mất tính kiểm soát và lập luận cốt lõi mất bằng chứng.
+      Có một test đọc chính file đó và <b>fail</b> nếu thân class mọc thêm bất cứ thứ gì. Khoảnh khắc xuất hiện khác biệt thứ hai, phép so sánh mất tính kiểm soát và lập luận cốt lõi mất bằng chứng.<br><br>
+      <b>Lưu ý khi trình bày:</b> Static KG-GCN không phải bản tái lập KGAT hay KGCN. Nó là mô hình của chính đề án bị gỡ một thành phần. Không được đổi tên nó thành tên một mô hình đã công bố.
     </div>
   </div>
 </section>
 
-<!-- ─────────── 7 ─────────── -->
 <section class="stage">
-  <div class="rail"><div class="num">7</div></div>
+  <div class="rail"><div class="num">C7</div></div>
   <div>
-    <h2>Kỷ luật thực nghiệm</h2>
+    <h3>Kỷ luật thực nghiệm</h3>
     <p class="lede">Phần này không tạo ra con số nào, nhưng nó là thứ khiến con số có giá trị.</p>
-
-    <h3>Chống rò rỉ dữ liệu — 10 assertion chạy trong pipeline</h3>
+    <h4>Chống rò rỉ dữ liệu — 10 assertion chạy trong pipeline</h4>
     <ul class="tight">
       <li>Split theo thời gian, không chồng lấn</li>
       <li>Ánh xạ định danh chỉ sinh từ train</li>
@@ -363,130 +498,126 @@ s(u,i) = z_u · z_i               <span class="c">← điểm xếp hạng</span
       <li>Mẫu âm chỉ lấy từ item train</li>
       <li>Chọn mô hình chỉ đọc chỉ số validation, <b>không bao giờ</b> đọc test</li>
     </ul>
-    <p>Khi một assertion không thoả, pipeline dừng ngay. Chúng không được tắt để chạy cho qua — một lần tắt là mọi kết quả sinh ra sau đó không còn kiểm chứng được.</p>
+    <p>Khi một assertion không thoả, pipeline dừng ngay tại bước đó. Chúng không được tắt để chạy cho qua — một lần tắt là mọi kết quả sinh ra sau đó không còn kiểm chứng được.</p>
 
-    <h3>Ba sửa chữa so với bản luận văn cũ</h3>
+    <h4>Ba sửa chữa so với bản luận văn cũ</h4>
     <div class="tw"><table>
       <thead><tr><th>Bản v11</th><th>Bản hiện tại</th><th>Vì sao</th></tr></thead>
       <tbody>
-        <tr><td class="mono">epochs: 10</td><td>tối đa 1000 epoch, early stopping theo validation</td><td>LightGCN gốc train 1000 epoch; dừng ở 10 thì baseline chưa hội tụ và so sánh không hợp lệ</td></tr>
+        <tr><td class="mono">epochs: 10</td><td>tối đa 1000 epoch, early stopping theo validation</td><td>LightGCN gốc huấn luyện tới hội tụ; dừng ở 10 thì baseline chưa hội tụ và so sánh không hợp lệ</td></tr>
         <tr><td>một seed</td><td>ba seed 2020, 2021, 2022</td><td>không có nhiều seed thì không phân biệt được cải thiện thật với nhiễu</td></tr>
         <tr><td>không lưu đường huấn luyện</td><td><code>curves.csv</code> mỗi epoch</td><td>để chứng minh được baseline đã hội tụ khi hội đồng hỏi</td></tr>
       </tbody>
     </table></div>
-
     <div class="box"><span class="lbl">Bằng chứng mạnh nhất của cả đề án</span>
       Hai mô hình tất định — Popularity và Recent Popularity — cho ra số <b>khớp bản v11 đến chữ số cuối cùng</b>: <span class="mono">0.006993</span> và <span class="mono">0.003008</span> trên cohort Active.<br><br>
-      Điều đó chứng minh split, mapping, tập ứng viên và code metric của bản dựng lại <b>giống hệt</b> bản cũ. Nên phần lệch ở các mô hình học được không phải do cài đặt khác, mà do ngân sách huấn luyện. Không có cặp số này thì mọi chênh lệch đều có thể bị quy cho lỗi code.
+      Điều đó chứng minh split, mapping, tập ứng viên và code metric của bản dựng lại <b>giống hệt</b> bản cũ. Nên phần lệch ở các mô hình học được không phải do cài đặt khác, mà do ngân sách huấn luyện.
     </div>
   </div>
 </section>
 
-<!-- ─────────── 8 ─────────── -->
 <section class="stage">
-  <div class="rail"><div class="num">8</div></div>
+  <div class="rail"><div class="num">C8</div></div>
   <div>
-    <h2>Kết quả hiện có</h2>
+    <h3>Kết quả hiện có</h3>
     <p class="lede">Recall@20, trung bình trên các seed đã chạy. Đọc theo nấc thang: mỗi dòng thêm đúng một thành phần so với dòng trên.</p>
-
     <div class="tw"><table>
       <thead><tr><th>Mô hình</th><th style="text-align:right">Original · 593 user</th><th style="text-align:right">Active · 234 user</th></tr></thead>
       <tbody>
         <tr><td>Popularity</td><td class="n">0.011974</td><td class="n">0.006993</td></tr>
         <tr><td>Recent Popularity</td><td class="n">0.013176</td><td class="n">0.003008</td></tr>
         <tr><td>LightGCN</td><td class="n">0.023736</td><td class="n">0.028601</td></tr>
-        <tr><td>Static KG-GCN</td><td class="n">0.027178 <span class="up">+14.5%</span></td><td class="n">0.031317 <span class="up">+9.5%</span></td></tr>
-        <tr class="hi"><td>BT-DKGRec-GCN (λ=0.01)</td><td class="n">0.032291 <span class="up">+18.8%</span></td><td class="n">0.032445 <span class="up">+3.6%</span></td></tr>
-        <tr class="hi"><td>BT-DKGRec-GCN (λ=0.05)</td><td class="n">chưa chạy</td><td class="n">0.038004 <span class="up">+21.4%</span></td></tr>
+        <tr><td>Static KG-GCN</td><td class="n">0.027178 <span class="up">+14,5%</span></td><td class="n">0.031317 <span class="up">+9,5%</span></td></tr>
+        <tr class="hi"><td>BT-DKGRec-GCN (λ=0.01)</td><td class="n">0.032291 <span class="up">+18,8%</span></td><td class="n">0.032445 <span class="up">+3,6%</span></td></tr>
+        <tr class="hi"><td>BT-DKGRec-GCN (λ=0.05)</td><td class="n">chưa chạy</td><td class="n">0.038004 <span class="up">+21,4%</span></td></tr>
       </tbody>
       <caption>Phần trăm là mức tăng so với nấc ngay trên. Cột Original: BT-DKGRec (λ=0.01) mới có <b>một</b> seed nên chưa dùng để kết luận; λ=0.05 chưa chạy. Cột Active đủ ba seed cho mọi mô hình.</caption>
     </table></div>
-
-    <h3>Đọc bảng này thế nào</h3>
     <ul class="tight">
       <li><b>Cá nhân hoá thắng rõ ràng.</b> LightGCN gấp đôi Popularity ở cả hai cohort. Lời hứa thứ nhất đạt.</li>
-      <li><b>Tri thức sản phẩm có ích.</b> +9.5% đến +14.5% khi thêm category và property. Lời hứa thứ hai đạt.</li>
-      <li><b>Chữ "động" có tín hiệu, chưa kết luận.</b> Trên Active đủ ba seed, thêm behavior-time cho +3.6%, và λ đã dò cho +21.4% so với đồ thị tĩnh. Nhưng cần kiểm định thống kê và cần cohort Original đủ seed trước khi phát biểu.</li>
+      <li><b>Tri thức sản phẩm có ích.</b> +9,5% đến +14,5% khi thêm category và property. Lời hứa thứ hai đạt.</li>
+      <li><b>Chữ "động" có tín hiệu, chưa kết luận.</b> Trên Active đủ ba seed, thêm behavior-time cho +3,6%, và λ đã dò cho +21,4% so với đồ thị tĩnh. Nhưng cần kiểm định thống kê và cần cohort Original đủ seed trước khi phát biểu.</li>
     </ul>
-
     <div class="box warn"><span class="lbl">Chưa được phép nói gì</span>
-      Cohort Original còn thiếu 5 run. Cho tới khi đủ, mọi phát biểu về "động" chỉ giới hạn trong cohort Active — vốn là <b>phân tích thăm dò</b>, không phải tập đánh giá chính. Nói quá phạm vi này là chỗ phản biện sẽ bắt.
+      Cohort Original còn thiếu 5 run. Cho tới khi đủ, mọi phát biểu về "động" chỉ giới hạn trong cohort Active — vốn là phân tích thăm dò, không phải tập đánh giá chính. Nói quá phạm vi này là chỗ phản biện sẽ bắt.
     </div>
   </div>
 </section>
 
-<!-- ─────────── 9 ─────────── -->
-<section class="stage">
-  <div class="rail"><div class="num">9</div></div>
-  <div>
-    <h2>Chuẩn bị bảo vệ</h2>
-    <p class="lede">Mười câu hỏi có khả năng cao, kèm câu trả lời và bằng chứng cụ thể để chỉ ra.</p>
+<!-- ══════════ PHẦN D ══════════ -->
+<div class="part">
+  <div class="pl">Phần D</div>
+  <h2>Chuẩn bị bảo vệ</h2>
+  <p class="pd">Mười một câu hỏi khả năng cao, kèm câu trả lời và bằng chứng cụ thể để chỉ ra.</p>
+</div>
 
-    <div class="qa">
-      <div class="q"><p class="ask">Baseline LightGCN đã hội tụ chưa, hay bị dừng sớm cho dễ thắng?</p>
-        <p>Đã hội tụ. Mọi mô hình chạy tối đa 1000 epoch với early stopping theo validation, ngưỡng đặt ở cấp cohort nên trong cùng một cohort mọi mô hình nhận cùng ngân sách.</p>
-        <p class="ev">Chỉ ra: Hình 4.2 và 4.4 — đường loss phẳng hẳn. Mỗi lần chạy có <code>curves.csv</code> ghi từng epoch.</p></div>
+<div class="qa" style="margin-top:26px">
+  <div class="q"><p class="ask">Baseline LightGCN đã hội tụ chưa, hay bị dừng sớm cho dễ thắng?</p>
+    <p>Đã hội tụ. Mọi mô hình chạy tối đa 1000 epoch với early stopping theo validation, ngưỡng đặt ở cấp cohort nên trong cùng một cohort mọi mô hình nhận cùng ngân sách.</p>
+    <p class="ev">Chỉ ra: Hình 4.2 và 4.4 — đường loss phẳng hẳn. Mỗi lần chạy có <code>curves.csv</code> ghi từng epoch.</p></div>
 
-      <div class="q"><p class="ask">Vì sao dùng embedding 64 chiều và 3 lớp?</p>
-        <p>Lấy đúng theo cấu hình LightGCN gốc đã công bố, và áp dụng cho <b>mọi</b> mô hình trong ma trận. Cách này khiến baseline chạy ở cấu hình tác giả của nó đề xuất chứ không phải cấu hình bất lợi.</p></div>
+  <div class="q"><p class="ask">Vì sao dùng embedding 64 chiều và 3 lớp?</p>
+    <p>Lấy theo cấu hình LightGCN gốc: paper cố định embedding 64 chiều cho mọi mô hình và khảo sát số lớp trong khoảng 1 đến 4. Hệ số điều chuẩn L2 cũng lấy giá trị 1e−4 mà paper báo là tối ưu trong hầu hết trường hợp. Áp dụng cho <b>mọi</b> mô hình trong ma trận, nên baseline chạy ở cấu hình tác giả của nó đề xuất.</p>
+    <p class="ev">Nếu bị hỏi sâu hơn: learning rate 0.005 và batch size 65.536 <b>không</b> lấy từ paper mà kế thừa từ bản v11. Trả lời thẳng chỗ này, đừng nói gộp là "theo paper".</p></div>
 
-      <div class="q"><p class="ask">Static KG-GCN có phải là KGAT hay KGCN không?</p>
-        <p>Không. Đây là mô hình đối chứng tự xây dựng, chính là mô hình đề xuất bị gỡ đi một thành phần. Nó không đại diện cho nhóm mô hình KG đã công bố, và đề án không so trực tiếp với điểm số công bố trên bộ dữ liệu khác.</p></div>
+  <div class="q"><p class="ask">Static KG-GCN có phải là KGAT hay KGCN không?</p>
+    <p>Không. Đây là mô hình đối chứng tự xây dựng, chính là mô hình đề xuất bị gỡ đi một thành phần. Nó không đại diện cho nhóm mô hình KG đã công bố, và đề án không đưa điểm số công bố trên bộ dữ liệu khác vào bảng so sánh.</p></div>
 
-      <div class="q"><p class="ask">Vì sao chọn λ = 0.05?</p>
-        <p>Quét λ trên tập validation, đo bằng AUC của trọng số cạnh khi dự báo tương tác target. Đỉnh nằm ở 0.05 trên cả hai cohort. Giá trị 0.01 của bản trước là kế thừa từ công trình khác, chưa từng được dò trên dữ liệu này.</p>
-        <p class="ev">Chỉ ra: Bảng 3.6 trong Chương 3.</p></div>
+  <div class="q"><p class="ask">Đóng góp của đề án khác gì MBGCN và KHGT?</p>
+    <p>MBGCN <b>học</b> mức đóng góp của từng loại hành vi như tham số mô hình; đề án <b>gán cứng</b> ba giá trị rồi đưa vào trọng số cạnh trước khi huấn luyện. KHGT mã hoá thời gian bên trong cơ chế attention của transformer; đề án dùng một hàm suy giảm mũ tính sẵn trên cạnh, không có attention.</p>
+    <p>Đề án lấy <b>ý tưởng</b> từ hai hướng đó và đơn giản hoá có chủ ý, đổi lại là một phép so sánh có kiểm soát chặt hơn. Đây là lựa chọn thiết kế, không phải hạn chế bị bỏ sót.</p></div>
 
-      <div class="q"><p class="ask">Vì sao nhóm Active chỉ có 234 người dùng? Có phải chọn nhóm dễ không?</p>
-        <p>Ngưỡng từ 5 sự kiện trở lên được chốt <b>trước khi</b> dựng lại ánh xạ và đồ thị. Kết quả trên nhóm này được trình bày là phân tích phân nhóm thăm dò, không thay thế tập đánh giá chính là Original.</p></div>
+  <div class="q"><p class="ask">Vì sao chọn λ = 0.05?</p>
+    <p>Quét λ trên tập validation, đo bằng AUC của trọng số cạnh khi dự báo tương tác target. Đỉnh nằm ở 0.05 trên cả hai cohort. Giá trị 0.01 của bản trước là kế thừa, chưa từng được dò trên dữ liệu này, và đề án giữ cả hai để người đọc thấy cả trước lẫn sau khi dò.</p>
+    <p class="ev">Chỉ ra: Bảng 3.6 trong Chương 3.</p></div>
 
-      <div class="q"><p class="ask">Làm sao biết không có rò rỉ dữ liệu?</p>
-        <p>Mười assertion chạy ngay trong pipeline, kiểm split theo thời gian, ánh xạ chỉ từ train, side information cắt đúng mốc, tập ứng viên và mẫu âm chỉ từ train, và bước chọn mô hình chỉ đọc validation. Assertion không thoả thì pipeline dừng, và chúng không được phép tắt.</p></div>
+  <div class="q"><p class="ask">Warm user là gì, và vì sao chỉ đánh giá trên 593 người?</p>
+    <p>Warm user là người có ít nhất một tương tác trong train <b>và</b> có ít nhất một item mục tiêu trong giai đoạn đánh giá. Điều kiện thứ nhất bảo đảm mô hình có embedding riêng cho họ; điều kiện thứ hai bảo đảm có đáp án để chấm.</p>
+    <p>Con số 593 nhỏ vì sau khi cắt theo thời gian, phần lớn người dùng không xuất hiện lại ở giai đoạn test, hoặc có xuất hiện nhưng chỉ với hành vi <code>view</code> vốn không phải target. Người không có lịch sử train được báo cáo riêng, không trộn vào chỉ số của mô hình cá nhân hoá.</p></div>
 
-      <div class="q"><p class="ask">Chênh lệch này có phải chỉ do may mắn của một lần chạy?</p>
-        <p>Mỗi cấu hình chạy ba seed, báo cáo trung bình kèm độ lệch chuẩn, và so sánh bằng kiểm định thống kê. Hai mô hình heuristic có độ lệch chuẩn bằng 0 vì chúng tất định, không phải vì tính sai.</p></div>
+  <div class="q"><p class="ask">Vì sao nhóm Active chỉ có 234 người dùng? Có phải chọn nhóm dễ không?</p>
+    <p>Ngưỡng từ 5 sự kiện trở lên được chốt <b>trước khi</b> dựng lại ánh xạ và đồ thị. Kết quả trên nhóm này được trình bày là phân tích phân nhóm thăm dò, không thay thế tập đánh giá chính là Original.</p></div>
 
-      <div class="q"><p class="ask">Coverage của mô hình đề xuất thấp hơn baseline ở vài chỗ. Giải thích thế nào?</p>
-        <p>Báo cáo đúng như đo được. Mô hình có xu hướng tập trung vào tập item hẹp hơn; đây là hạn chế được nêu thẳng trong phần thảo luận, không phải chỉ số bị giấu đi.</p></div>
+  <div class="q"><p class="ask">Làm sao biết không có rò rỉ dữ liệu?</p>
+    <p>Mười assertion chạy ngay trong pipeline, kiểm split theo thời gian, ánh xạ chỉ từ train, side information cắt đúng mốc, tập ứng viên và mẫu âm chỉ từ train, và bước chọn mô hình chỉ đọc validation. Assertion không thoả thì pipeline dừng, và chúng không được phép tắt.</p></div>
 
-      <div class="q"><p class="ask">Ứng dụng demo có suy luận thật không?</p>
-        <p>Không, và giới hạn này được nêu rõ trong đề án. Danh sách Top-K trên giao diện là kết quả thật của mô hình, được nạp lại từ tệp kết quả đánh giá đã lưu. Kho mã chưa lưu trạng thái mô hình để phục vụ suy luận theo từng yêu cầu.</p></div>
+  <div class="q"><p class="ask">Chênh lệch này có phải chỉ do may mắn của một lần chạy?</p>
+    <p>Mỗi cấu hình chạy ba seed, báo cáo trung bình kèm độ lệch chuẩn, và so sánh bằng kiểm định thống kê. Hai mô hình heuristic có độ lệch chuẩn bằng 0 vì chúng tất định, không phải vì tính sai.</p></div>
 
-      <div class="q"><p class="ask">Vì sao số trong bản luận văn cũ khác số bây giờ?</p>
-        <p>Vì bản cũ huấn luyện 10 epoch cho mọi mô hình nên chưa mô hình nào hội tụ. Bằng chứng: hai mô hình tất định cho ra số khớp bản cũ đến chữ số cuối cùng, chứng tỏ split, ánh xạ và code metric của hai bản là một; phần lệch nằm đúng ở các mô hình cần huấn luyện.</p>
-        <p class="ev">Đây là câu trả lời mạnh nhất trong toàn bộ danh sách. Nên chuẩn bị kỹ.</p></div>
-    </div>
-  </div>
-</section>
+  <div class="q"><p class="ask">Coverage của mô hình đề xuất thấp hơn baseline ở vài chỗ. Giải thích thế nào?</p>
+    <p>Báo cáo đúng như đo được. Mô hình có xu hướng tập trung vào tập item hẹp hơn; đây là hạn chế được nêu thẳng trong phần thảo luận, không phải chỉ số bị giấu đi.</p></div>
 
-<!-- ─────────── 10 ─────────── -->
-<section class="stage">
-  <div class="rail"><div class="num">10</div></div>
-  <div>
-    <h2>Bản đồ tra cứu</h2>
-    <p class="lede">Mỗi khái niệm nằm ở đâu trong code và ở mục nào trong đề án.</p>
+  <div class="q"><p class="ask">Vì sao số trong bản luận văn cũ khác số bây giờ?</p>
+    <p>Vì bản cũ huấn luyện 10 epoch cho mọi mô hình nên chưa mô hình nào hội tụ. Bằng chứng: hai mô hình tất định cho ra số khớp bản cũ đến chữ số cuối cùng, chứng tỏ split, ánh xạ và code metric của hai bản là một; phần lệch nằm đúng ở các mô hình cần huấn luyện.</p>
+    <p class="ev">Đây là câu trả lời mạnh nhất trong danh sách. Nên chuẩn bị kỹ.</p></div>
+</div>
 
-    <div class="tw"><table>
-      <thead><tr><th>Khái niệm</th><th>File</th><th>Mục đề án</th></tr></thead>
-      <tbody>
-        <tr><td>Chia dữ liệu theo thời gian</td><td><code>src/data/splitter.py</code></td><td>3.2.2 · 4.1.2</td></tr>
-        <tr><td>Ánh xạ định danh chỉ từ train</td><td><code>src/data/mapping.py</code></td><td>3.3.1</td></tr>
-        <tr><td>Chống rò rỉ dữ liệu</td><td><code>src/guards/leakage.py</code></td><td>3.3.3 · 3.8</td></tr>
-        <tr><td>Công thức trọng số (3.16)–(3.18)</td><td><code>src/graph/weighting.py</code></td><td>3.4</td></tr>
-        <tr><td>Dựng đồ thị</td><td><code>src/graph/builder.py</code></td><td>3.3</td></tr>
-        <tr><td>Chuẩn hoá đối xứng (3.24)–(3.26)</td><td><code>src/graph/normalize.py</code></td><td>3.5.2</td></tr>
-        <tr><td>Mô hình đề xuất</td><td><code>src/models/bt_dkgrec.py</code></td><td>3.5</td></tr>
-        <tr><td>Ablation — khác đúng một hàm</td><td><code>src/models/static_kg_gcn.py</code></td><td>4.2.4 · 4.3.3</td></tr>
-        <tr><td>Hàm mục tiêu BPR (3.29)–(3.31)</td><td><code>src/training/loss.py</code></td><td>3.6</td></tr>
-        <tr><td>Metric và phân đoạn theo bậc</td><td><code>src/evaluation/evaluator.py</code></td><td>4.1.2 · 4.4</td></tr>
-        <tr><td>Sinh bảng kết quả</td><td><code>scripts/06_make_tables.py</code></td><td>4.2 · 4.3</td></tr>
-        <tr><td>Sinh hình Chương 4</td><td><code>src/evaluation/figures.py</code></td><td>Hình 4.1–4.4</td></tr>
-        <tr><td>Xuất đồ thị cho Neo4j</td><td><code>src/export/neo4j_export.py</code></td><td>3.7.2 · 4.5</td></tr>
-        <tr><td>Ứng dụng demo</td><td><code>app/main.py</code></td><td>3.7 · 4.5</td></tr>
-        <tr><td>Toàn bộ quyết định kèm lý do</td><td><code>docs/DECISIONS.md</code></td><td>—</td></tr>
-      </tbody>
-    </table></div>
-  </div>
-</section>
+<!-- ══════════ bản đồ ══════════ -->
+<div class="part">
+  <div class="pl">Tra cứu</div>
+  <h2>Khái niệm nằm ở đâu</h2>
+  <p class="pd">Mỗi khái niệm gắn với file trong code và mục trong đề án.</p>
+</div>
+
+<div class="tw" style="margin-top:24px"><table>
+  <thead><tr><th>Khái niệm</th><th>File</th><th>Mục đề án</th></tr></thead>
+  <tbody>
+    <tr><td>Chia dữ liệu theo thời gian</td><td><code>src/data/splitter.py</code></td><td>3.2.2 · 4.1.2</td></tr>
+    <tr><td>Ánh xạ định danh chỉ từ train</td><td><code>src/data/mapping.py</code></td><td>3.3.1</td></tr>
+    <tr><td>Warm / cold, phân tầng theo bậc</td><td><code>src/evaluation/evaluator.py</code></td><td>4.1.2 · 4.4</td></tr>
+    <tr><td>Chống rò rỉ dữ liệu</td><td><code>src/guards/leakage.py</code></td><td>3.3.3 · 3.8</td></tr>
+    <tr><td>Công thức trọng số (3.16)–(3.18)</td><td><code>src/graph/weighting.py</code></td><td>3.4</td></tr>
+    <tr><td>Dựng đồ thị</td><td><code>src/graph/builder.py</code></td><td>3.3</td></tr>
+    <tr><td>Chuẩn hoá đối xứng (3.24)–(3.26)</td><td><code>src/graph/normalize.py</code></td><td>3.5.2</td></tr>
+    <tr><td>Mô hình đề xuất</td><td><code>src/models/bt_dkgrec.py</code></td><td>3.5</td></tr>
+    <tr><td>Ablation — khác đúng một hàm</td><td><code>src/models/static_kg_gcn.py</code></td><td>4.2.4 · 4.3.3</td></tr>
+    <tr><td>Hàm mục tiêu BPR (3.29)–(3.31)</td><td><code>src/training/loss.py</code></td><td>3.6</td></tr>
+    <tr><td>Sinh bảng kết quả</td><td><code>scripts/06_make_tables.py</code></td><td>4.2 · 4.3</td></tr>
+    <tr><td>Sinh hình Chương 4</td><td><code>src/evaluation/figures.py</code></td><td>Hình 4.1–4.4</td></tr>
+    <tr><td>Xuất đồ thị cho Neo4j</td><td><code>src/export/neo4j_export.py</code></td><td>3.7.2 · 4.5</td></tr>
+    <tr><td>Ứng dụng demo</td><td><code>app/main.py</code></td><td>3.7 · 4.5</td></tr>
+    <tr><td>Toàn bộ quyết định kèm lý do</td><td><code>docs/DECISIONS.md</code></td><td>—</td></tr>
+  </tbody>
+</table></div>
 
 </div>

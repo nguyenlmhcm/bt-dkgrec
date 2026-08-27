@@ -9,12 +9,27 @@ tại để không lặp lại.
 | # | Quy tắc | v11 | Sai lần đầu |
 |:-:|---|---|---|
 | 1 | **Giữ thuật ngữ tiếng Anh** | `behavior-time weighting`, `side information`, `split`, `seed`, `validation`, `knowledge graph`, `embedding`, `target`, `Coverage` | dịch hết sang tiếng Việt |
-| 2 | **Dấu thập phân là dấu chấm** | `0.021625` | `0,021625` |
+| 2 | **Giá trị metric dùng dấu chấm** | `0.021625` | `0,021625` |
+| 2b | **Phần trăm dùng dấu phẩy** | `78,81%` · `5,89%` | `78.81%` |
 | 3 | **Không in đậm giữa đoạn** | không có | in đậm khắp nơi |
 | 4 | **Không dùng dấu gạch ngang tu từ** | không có | dùng liên tục |
 | 5 | **Câu dài, dày thông tin**, nối bằng dấu chấm phẩy và "do đó", "vì vậy" | xem mẫu dưới | câu ngắn dằn nhịp |
 | 6 | **Trình bày, không thuyết phục** — nêu rồi dừng | — | "Cần phân biệt...", "Nói cách khác...", "Đây là hệ quả toán học, không phải quan sát thực nghiệm" |
 | 7 | **Kết luận có phòng hộ** | "có thể hữu ích hơn", "đóng góp phù hợp không phải tuyên bố ưu thế phổ quát" | khẳng định dứt khoát |
+
+## Hai quy ước số, không phải một
+
+Quy tắc 2 ban đầu ghi gọn là "dấu thập phân là dấu chấm". Đối chiếu lại v11 thì
+thấy thiếu: v11 dùng **hai** quy ước khác nhau tuỳ loại số.
+
+| Loại | v11 dùng | Ví dụ |
+|---|---|---|
+| Giá trị metric | dấu **chấm** | `0.010188`, `0.007535`, `0.000476` |
+| Phần trăm | dấu **phẩy** | `78,81%`, `97,58%`, `5,89%` |
+
+Đây cũng là quy ước locale vi-VN: `validate_copy.py` của
+`vietnamese-tech-writing` báo lỗi `NUM003` với `14.5%` và yêu cầu `14,5%`.
+Giá trị metric giữ dấu chấm vì chúng được in thẳng từ code.
 
 ## Câu mẫu của v11
 
