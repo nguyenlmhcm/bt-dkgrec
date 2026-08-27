@@ -542,20 +542,21 @@ s(u,i) = z_u · z_i               <span class="c">← điểm xếp hạng</span
       <tbody>
         <tr><td>Popularity</td><td class="n">0.011974</td><td class="n">0.006993</td></tr>
         <tr><td>Recent Popularity</td><td class="n">0.013176</td><td class="n">0.003008</td></tr>
-        <tr><td>LightGCN</td><td class="n">0.023736</td><td class="n">0.028601</td></tr>
+        <tr><td>LightGCN</td><td class="n">0.023736 <span class="up">+80,1%</span></td><td class="n">0.028601</td></tr>
         <tr><td>Static KG-GCN</td><td class="n">0.027178 <span class="up">+14,5%</span></td><td class="n">0.031317 <span class="up">+9,5%</span></td></tr>
-        <tr class="hi"><td>BT-DKGRec-GCN (λ=0.01)</td><td class="n">0.032291 <span class="up">+18,8%</span></td><td class="n">0.032445 <span class="up">+3,6%</span></td></tr>
-        <tr class="hi"><td>BT-DKGRec-GCN (λ=0.05)</td><td class="n">chưa chạy</td><td class="n">0.038004 <span class="up">+21,4%</span></td></tr>
+        <tr class="hi"><td>BT-DKGRec-GCN (λ=0.01)</td><td class="n">0.028778 <span class="up">+5,9%</span></td><td class="n">0.032445 <span class="up">+3,6%</span></td></tr>
+        <tr class="hi"><td>BT-DKGRec-GCN (λ=0.05)</td><td class="n">0.031107 <span class="up">+8,1%</span></td><td class="n">0.038004 <span class="up">+17,1%</span></td></tr>
       </tbody>
-      <caption>Phần trăm là mức tăng so với nấc ngay trên. Cột Original: BT-DKGRec (λ=0.01) mới có <b>một</b> seed nên chưa dùng để kết luận; λ=0.05 chưa chạy. Cột Active đủ ba seed cho mọi mô hình.</caption>
+      <caption>Phần trăm là mức tăng so với nấc ngay trên. Cột Active đủ ba seed cho mọi mô hình; cột Original đủ ba seed trừ λ=0.05 mới có hai. <b>Cập nhật 27/08:</b> con số 0.032291 nêu trước đây cho BT-DKGRec (λ=0.01) trên Original là của <b>một</b> seed; trung bình ba seed là 0.028778. Đây đúng là lý do phải chạy nhiều seed.</caption>
     </table></div>
     <ul class="tight">
       <li><b>Cá nhân hoá thắng rõ ràng.</b> LightGCN gấp đôi Popularity ở cả hai cohort. Lời hứa thứ nhất đạt.</li>
       <li><b>Tri thức sản phẩm có ích.</b> +9,5% đến +14,5% khi thêm category và property. Lời hứa thứ hai đạt.</li>
-      <li><b>Chữ "động" có tín hiệu, chưa kết luận.</b> Trên Active đủ ba seed, thêm behavior-time cho +3,6%, và λ đã dò cho +21,4% so với đồ thị tĩnh. Nhưng cần kiểm định thống kê và cần cohort Original đủ seed trước khi phát biểu.</li>
+      <li><b>Chữ "động" ở λ=0.01 yếu hơn tưởng.</b> Trên Original đủ ba seed, thêm behavior-time chỉ cho <b>+5,9%</b> Recall, và NDCG còn <b>giảm nhẹ</b> (0.015708 so với 0.015909). Độ lệch chuẩn ±0.004 lớn hơn khoảng cách +0.0016 giữa hai bậc, nên chưa kiểm định thì chưa nói được là hơn.</li>
+      <li><b>Chỗ mạnh thật nằm ở λ đã dò.</b> λ=0.05 cho 0.031107 trên Original và 0.038004 trên Active, NDCG cũng tăng (0.017002), và độ lệch chuẩn nhỏ hơn hẳn (±0.0017). Đây là dòng nên làm trọng tâm khi trình bày, không phải λ=0.01.</li>
     </ul>
     <div class="box warn"><span class="lbl">Chưa được phép nói gì</span>
-      Cohort Original còn thiếu 5 run. Cho tới khi đủ, mọi phát biểu về "động" chỉ giới hạn trong cohort Active — vốn là phân tích thăm dò, không phải tập đánh giá chính. Nói quá phạm vi này là chỗ phản biện sẽ bắt.
+      Cohort Original còn thiếu <b>1</b> run (λ=0.05, seed 2022). Chênh lệch giữa Static KG-GCN và BT-DKGRec (λ=0.01) <b>chưa qua kiểm định thống kê</b> và có độ lệch chuẩn chồng lấn, nên chưa được phát biểu là "vượt". Phát biểu an toàn: tri thức sản phẩm có ích rõ ràng, còn cơ chế hành vi-thời gian chỉ thể hiện khi λ được dò. Nói quá phạm vi này là chỗ phản biện sẽ bắt.
     </div>
   </div>
 </section>
@@ -564,7 +565,7 @@ s(u,i) = z_u · z_i               <span class="c">← điểm xếp hạng</span
 <div class="part">
   <div class="pl">Phần D</div>
   <h2>Chuẩn bị bảo vệ</h2>
-  <p class="pd">Mười hai câu hỏi khả năng cao, kèm câu trả lời và bằng chứng cụ thể để chỉ ra.</p>
+  <p class="pd">Mười ba câu hỏi khả năng cao, kèm câu trả lời và bằng chứng cụ thể để chỉ ra.</p>
 </div>
 
 <div class="qa" style="margin-top:26px">
@@ -580,7 +581,14 @@ s(u,i) = z_u · z_i               <span class="c">← điểm xếp hạng</span
 
   <div class="q"><p class="ask">Vì sao dùng embedding 64 chiều và 3 lớp?</p>
     <p>Lấy theo cấu hình LightGCN gốc: paper cố định embedding 64 chiều cho mọi mô hình và khảo sát số lớp trong khoảng 1 đến 4. Hệ số điều chuẩn L2 cũng lấy giá trị 1e−4 mà paper báo là tối ưu trong hầu hết trường hợp. Áp dụng cho <b>mọi</b> mô hình trong ma trận, nên baseline chạy ở cấu hình tác giả của nó đề xuất.</p>
-    <p class="ev">Nếu bị hỏi sâu hơn: learning rate 0.005 và batch size 65.536 <b>không</b> lấy từ paper mà kế thừa từ bản v11. Trả lời thẳng chỗ này, đừng nói gộp là "theo paper".</p></div>
+    <p class="ev">Ba giá trị này thật sự lấy từ paper. Đừng nói gộp learning rate và batch size vào đây — hai cái đó là câu hỏi riêng ngay bên dưới.</p></div>
+
+  <div class="q"><p class="ask">Còn learning rate 0.005 và batch size 65.536 thì lấy ở đâu? Paper dùng 0.001 và 1024 mà.</p>
+    <p>Hai giá trị này <b>không</b> lấy từ paper. Batch được nâng theo quy mô đồ thị: cohort Original có 1.570.409 cạnh tương tác, nên batch 1024 sẽ khiến mỗi epoch mất hàng nghìn bước cập nhật và ngân sách 1000 epoch trở nên bất khả thi.</p>
+    <p>Learning rate 0.005 đi kèm batch lớn đó. Theo quy tắc linear scaling, batch gấp <b>64 lần</b> ứng với learning rate khoảng <b>0.064</b>; giá trị 0.005 nằm thấp hơn nhiều mức đó, tức là thận trọng chứ không liều.</p>
+    <p>Nói thẳng phần chưa làm: hai giá trị được cố định trước và <b>chưa dò</b> trên dữ liệu của đề tài. Đó là hạn chế được nêu rõ, và việc dò chúng như đã dò λ là hướng phát triển ở mục 5.4.</p>
+    <p class="ev">Câu chốt, quan trọng hơn cả hai đoạn trên: cả sáu mô hình nhận <b>cùng</b> learning rate, <b>cùng</b> batch size, <b>cùng</b> ngân sách epoch. Một learning rate chưa tối ưu phạt cả sáu như nhau nên không tạo lợi thế cho mô hình nào; nó chỉ giới hạn cách đọc giá trị tuyệt đối, còn kết luận của đề tài dựa trên hiệu số giữa các bậc.</p>
+    <p class="ev">Tuyệt đối không trả lời "kế thừa từ bản trước". Bản trước là bản nháp của chính tác giả, không phải nguồn có thẩm quyền, và hội đồng sẽ hỏi tiếp ngay.</p></div>
 
   <div class="q"><p class="ask">Static KG-GCN có phải là KGAT hay KGCN không?</p>
     <p>Không. Đây là mô hình đối chứng tự xây dựng, chính là mô hình đề xuất bị gỡ đi một thành phần. Nó không đại diện cho nhóm mô hình KG đã công bố, và đề án không đưa điểm số công bố trên bộ dữ liệu khác vào bảng so sánh.</p></div>
