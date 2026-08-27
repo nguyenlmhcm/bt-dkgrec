@@ -144,9 +144,9 @@ code{font-family:"JetBrains Mono",monospace; font-size:.88em; background:var(--p
   <h1>Sổ đối chiếu BT-DKGRec</h1>
   <p class="lede">Bản v11 sai ở đâu, thiếu ở đâu, và những gì đã dựng xong, đã train xong, đã có đủ số đo.</p>
   <div class="meta">
-    <span>Cập nhật <b>26/08/2026</b></span>
+    <span>Cập nhật <b>27/08/2026</b></span>
     <span>Nhánh <b class="mono">exp/active-patience50</b></span>
-    <span>Commit <b class="mono">ba735e9</b></span>
+    <span>Commit <b class="mono">exp/active-patience50</b></span>
     <span>Hạn nộp <b>giữa 09/2026</b></span>
   </div>
 </header>
@@ -154,10 +154,21 @@ code{font-family:"JetBrains Mono",monospace; font-size:.88em; background:var(--p
 <div class="stats">
   <div class="stat"><span class="n mono">36</span><span class="l">run đã train trên <span class="mono">main</span><br>6 mô hình × 3 seed × 2 cohort</span></div>
   <div class="stat"><span class="n mono">18</span><span class="l">run Active train lại<br>đủ, patience 50</span></div>
-  <div class="stat"><span class="n mono">8/18</span><span class="l">run Original train lại<br>còn 10, ~5,5 giờ T4</span></div>
-  <div class="stat"><span class="n mono">273</span><span class="l">test tự động<br>đang pass</span></div>
+  <div class="stat"><span class="n mono">13/18</span><span class="l">run Original train lại<br>còn 5, ~3,8 giờ T4</span></div>
+  <div class="stat"><span class="n mono">299</span><span class="l">test tự động<br>đang pass</span></div>
   <div class="stat"><span class="n mono">D1–D34</span><span class="l">quyết định<br>đã ghi lý do</span></div>
 </div>
+
+<section>
+  <div class="shead"><h2>Đính chính 27/08</h2><span class="count c-bad">lỗi của tôi</span></div>
+  <p class="sub">Một lập luận trong bản trước của trang này sai. Ghi lại thay vì lặng lẽ thay chữ.</p>
+  <div class="note" style="background:var(--bad-soft)">
+    <b>Đã viết sai:</b> với user chỉ có một cạnh, trọng số bị chia cho chính nó nên behavior-time weighting <i>triệt tiêu hoàn toàn</i>, và 79,6% user Original thuộc nhóm đó.<br><br>
+    <b>Thực tế:</b> triệt tiêu chỉ xảy ra với chuẩn hóa <b>theo hàng</b> <code>D⁻¹A</code>. Mô hình dùng dạng <b>đối xứng</b> <code>D<sup>−½</sup>AD<sup>−½</sup></code>, nơi mẫu số là <code>√d<sub>u</sub></code> chứ không phải <code>d<sub>u</sub></code>, nên hệ số còn lại là <code>√W / √d<sub>i</sub></code> — trọng số vào theo <b>căn bậc hai</b>, tỉ lệ 3:1 còn <code>√3 ≈ 1,73:1</code>. Và 79,6% là của 1.027.985 visitor trong <b>train</b>; trong 593 user được <b>đánh giá</b>, bậc 1 chiếm 43,7%.<br><br>
+    <b>Phát hiện ra nhờ đâu:</b> tiên đoán <code>warm_deg1</code> phải lệch đúng 0 được phát biểu <b>trước khi đo</b>, kèm ngưỡng bác bỏ. Số về: lệch +0.00386. Không có ngưỡng đó thì con số này đã trôi qua.<br><br>
+    <b>Hệ quả:</b> trung tính, nghiêng về tốt. Lập luận cũ là lời giải thích cho kết quả yếu; số thật cho thấy <code>bt_dkgrec</code> thắng <code>static_kg_gcn</code> ở mọi dải bậc. Đã sửa ở 12 chỗ.
+  </div>
+</section>
 
 <!-- ══ SAI ══ -->
 <section>
