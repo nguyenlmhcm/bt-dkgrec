@@ -52,6 +52,7 @@ def main() -> int:
 
     frame = load_runs(args.runs_dir, split="test", segment="warm")
     assert_no_duplicate_cells(frame)
+    cold = load_runs(args.runs_dir, split="test", segment="cold")
 
     written = []
     for cohort in ("original", "active"):
@@ -65,6 +66,22 @@ def main() -> int:
             log.warning("cohort %s chua co run nao co duong loss", cohort)
         else:
             written.append(curve)
+
+        # Warm va cold bao canh nhau, khong bao gio lay trung binh chung. Ham tra
+        # None khi cohort khong co user cold do duoc — mot hinh rong se ngu y
+        # rang segment da duoc do va bang khong.
+        pair = figures.plot_warm_cold(frame, cold, cohort, args.out_dir, k=PRIMARY_K)
+        if pair is None:
+            log.info("cohort %s khong co user cold — bo qua hinh warm/cold", cohort)
+        else:
+            written.append(pair)
+
+    # So sanh cot loi cua de tai: KG tinh so voi KG dong. Ham nay ve ca hai cohort
+    # canh nhau nen goi MOT lan, ngoai vong lap.
+    if {"static_kg_gcn", "bt_dkgrec"} <= set(frame["model"]):
+        written.append(figures.plot_ablation_pair(frame, args.out_dir, k=PRIMARY_K))
+    else:
+        log.warning("chua du cap static_kg_gcn/bt_dkgrec — bo qua hinh ablation")
 
     print(f"Da ghi {len(written)} hinh vao {args.out_dir}:")
     for path in written:
