@@ -45,13 +45,22 @@ def test_unknown_figure_kind_raises_rather_than_guessing():
         figure_path(Path("/tmp/x"), "khong-ton-tai", "active")
 
 
-def test_the_two_scripts_agree_on_where_figures_live():
-    """Rang buoc chinh: ca hai script dung cung mot ham va cung mot thu muc."""
+def test_script_sinh_hinh_dung_ham_dung_chung():
     maker = _script("09_make_figures.py")
-    docx = _script("08_make_docx.py")
     assert maker.figures.figure_path is figure_path
-    assert docx.figure_path is figure_path
-    assert docx.FIGURES == Path("docs/figures")
+
+
+def test_script_ghi_word_tim_hinh_dung_cho():
+    """Rang buoc chinh: ca hai script dung cung mot ham va cung mot thu muc.
+
+    Tach rieng khoi test tren vi `08_make_docx.py` can python-docx, thu vien
+    chi co tren VPS. Colab cai requirements-colab.txt va khong co no; gop chung
+    mot test se lam gay pytest cua notebook train.
+    """
+    pytest.importorskip("docx", reason="can python-docx — chi chay tren VPS")
+    docx_script = _script("08_make_docx.py")
+    assert docx_script.figure_path is figure_path
+    assert docx_script.FIGURES == Path("docs/figures")
 
 
 def test_the_maker_does_not_reimplement_the_palette():

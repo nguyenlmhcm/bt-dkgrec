@@ -13,7 +13,12 @@ import shutil
 from pathlib import Path
 
 import pytest
-from docx import Document
+
+# Chi VPS moi sinh tai lieu; Colab cai requirements-colab.txt va khong co
+# python-docx. Bo qua ca module thay vi lam gay `pytest` cua notebook train.
+pytest.importorskip("docx", reason="can python-docx — chi chay tren VPS")
+
+from docx import Document  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 V11 = ROOT / "docs" / "De_an_thac_si_v11.docx"
