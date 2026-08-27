@@ -157,8 +157,10 @@ def main() -> int:
                       f"{format_table(summarize(frame, k=args.k), k=args.k)}")
     write(args.out_dir / f"bang_phan_tang_{args.split}_k{args.k}.md",
           "# Phan tang theo bac cua nguoi dung (D34)\n\n"
-          "Trong so behavior-time bi chuan hoa triet tieu voi nguoi dung chi co MOT canh.\n"
-          "Nhom `warm_deg1` vi vay la phep tu kiem: chenh lech lon o do can duoc giai thich.\n\n"
+          "Chuan hoa doi xung dua trong so vao lan truyen theo CAN BAC HAI: voi nguoi dung\n"
+          "mot canh he so la sqrt(W)/sqrt(d_i), nen ti le 3:1 giua transaction va view\n"
+          "con khoang 1,73:1. Bac nguoi dung la bien dong hanh manh nhat cua luong tin\n"
+          "hieu ca nhan hoa, nen tach ra de thay hieu qua den tu nhom nao.\n\n"
           + "\n\n".join(blocks))
 
     # ── Bang kiem dinh ──────────────────────────────────────────────────

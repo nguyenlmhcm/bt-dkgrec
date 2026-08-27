@@ -36,15 +36,23 @@ log = get_logger(__name__)
 
 #: Warm users split by how many interaction edges they carry in train.
 #:
-#: ``W(u,i)`` is aggregated per ``(visitor, item)`` edge, and the LightGCN
-#: normalisation divides a visitor's row by that visitor's own weight total. A
-#: visitor with a single edge therefore has the weight divided by itself: it
-#: cancels **exactly**, and ``bt_dkgrec`` and ``static_kg_gcn`` are provably
-#: identical for them. 79,6% of RetailRocket visitors are in that band, so the
-#: aggregate warm metric dilutes the mechanism roughly fivefold across a
-#: population where it cannot act. Reporting the bands separately measures it
-#: where it is free to act -- and band 1 is a self-check: a non-zero difference
-#: there means the code is wrong, not that the model is good.
+#: ``W(u,i)`` is aggregated per ``(visitor, item)`` edge, then symmetric
+#: normalisation divides it by ``sqrt(d_u) * sqrt(d_i)``. For a visitor with a
+#: single edge ``d_u == W``, so the coefficient becomes ``sqrt(W)/sqrt(d_i)``:
+#: the weight enters under a **square root**, it does not cancel. A 3:1 ratio
+#: between ``transaction`` and ``view`` is compressed to ``sqrt(3) ~ 1.73:1``,
+#: so behavior-time weighting acts more weakly than its nominal alpha suggests,
+#: and it acts on every band rather than only on high-degree visitors.
+#:
+#: An earlier revision of this comment claimed exact cancellation. That would
+#: hold for row normalisation ``D^-1 A``; this model uses the symmetric form
+#: ``D^-1/2 A D^-1/2`` of LightGCN. The claim was falsified by measurement: on
+#: Original the two models differ on ``warm_deg1``, and `scripts/analysis/
+#: normdiff.py` reproduces ``sqrt(W)/sqrt(d_i)`` numerically.
+#:
+#: Degree is still worth reporting separately: it is the strongest covariate of
+#: how much personalised signal a visitor carries, and the bands let the write-up
+#: state where the gain comes from instead of averaging it away.
 DEGREE_BANDS = ("warm_deg1", "warm_deg2", "warm_deg3plus")
 
 #: Segments a personalised model can serve -- every warm subset.

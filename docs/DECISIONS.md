@@ -985,24 +985,54 @@ hỏi trong tên đề tài** ("đồ thị tri thức **động**").
 
 ### Phần 1 — Phân tầng theo bậc
 
-`W(u,i)` được gộp theo từng cạnh `(visitor, item)`, và chuẩn hóa LightGCN chia hàng của mỗi
-user cho tổng trọng số của **chính user đó**. Với user chỉ có **một** cạnh, trọng số bị chia
-cho chính nó và **triệt tiêu đúng bằng 0** — `bt_dkgrec` và `static_kg_gcn` là hai mô hình
-**hoàn toàn giống nhau** đối với những user đó. Đây là hệ quả toán học, không phải quan sát
-thực nghiệm.
+> **Đính chính 27/08/2026.** Lập luận nền của phần này ban đầu viết sai và đã bị chính
+> tiên đoán của nó bác bỏ. Phần dưới giữ lại quyết định (báo cáo theo bậc) nhưng thay
+> lý do. Xem "Vì sao tiên đoán bị bác bỏ" ở cuối mục.
 
-Trên RetailRocket, **79,6% user có đúng 1 cạnh** (trung vị = 1). Nghĩa là chỉ số `warm` gộp
-đang pha loãng cơ chế khoảng **5 lần** trên một quần thể mà nó **không thể** hoạt động.
+`W(u,i)` được gộp theo từng cạnh `(visitor, item)`, rồi chuẩn hóa đối xứng chia nó cho
+`√dᵤ · √dᵢ`. Với user chỉ có **một** cạnh thì `dᵤ = W`, nên hệ số còn lại là:
+
+```
+â = W / (√W · √dᵢ) = √W / √dᵢ
+```
+
+Trọng số vào theo **căn bậc hai**, **không triệt tiêu**. Tỉ lệ 3:1 giữa `transaction` và
+`view` sau chuẩn hóa còn `√3 ≈ 1,73:1`. Behavior-time weighting vì vậy tác động **nhẹ hơn
+giá trị danh nghĩa của α**, nhưng tác động trên **mọi** dải bậc chứ không riêng user nhiều cạnh.
+
+Phân bố bậc trong **593 user được đánh giá** của cohort Original: bậc 1 là 259 (43,7%),
+bậc 2 là 76 (12,8%), bậc ≥3 là 258 (43,5%). Con số 79,6% từng ghi ở đây là của **1.027.985
+visitor trong tập train**, không phải của tập được đánh giá — hai quần thể khác nhau.
 
 **Quyết định: báo cáo thêm ba phân đoạn con của `warm`** — `warm_deg1`, `warm_deg2`,
 `warm_deg3plus` (`src/evaluation/evaluator.py`, `DEGREE_BANDS`).
 
+Quyết định này **giữ nguyên** sau khi lý do ban đầu bị bác bỏ, nhưng với lý do khác: bậc là
+biến đồng hành mạnh nhất của lượng tín hiệu cá nhân hóa mà một user mang theo, nên tách ra
+cho phép nói **hiệu quả đến từ đâu** thay vì bình quân hóa nó đi.
+
 Đây **không phải** bới số liệu. Tiên đoán được phát biểu **trước khi đo** và có thể bị bác bỏ:
 
-| nhóm | tiên đoán |
-|---|---|
-| `warm_deg1` | hiệu số **đúng bằng 0** — nếu khác 0 thì **code sai**, không phải mô hình tốt |
-| `warm_deg3plus` | nếu cơ chế có thật thì phải lớn hơn mức gộp |
+| nhóm | tiên đoán (đã phát biểu trước khi đo) | kết quả |
+|---|---|---|
+| `warm_deg1` | hiệu số **đúng bằng 0** | **BỊ BÁC BỎ** — lệch +0.00386 (Original, seed 2020) |
+| `warm_deg3plus` | nếu cơ chế có thật thì phải lớn hơn mức gộp | chưa kết luận, cần đủ ba seed |
+
+#### Vì sao tiên đoán bị bác bỏ
+
+Tiên đoán được suy ra từ chuẩn hóa **theo hàng** `D⁻¹A`, nơi `W/dᵤ = W/W = 1` thật sự triệt
+tiêu. Mô hình dùng dạng **đối xứng** `D^(−1/2) A D^(−1/2)` của LightGCN, nơi mẫu số là `√dᵤ`
+chứ không phải `dᵤ`. Hai phép chuẩn hóa bị lẫn khi viết mục này.
+
+Kiểm bằng số cho user bậc 1, `dᵢ = 100`: `W=1 → â=0,100`; `W=5 → â=0,224`; `W=20 → â=0,447`.
+Hệ số thay đổi theo `W`, đúng bằng `√W/√dᵢ`.
+
+Hai lý do phụ khiến nó không thể triệt tiêu kể cả khi chỉ xét một user: embedding cuối là
+trung bình qua các lớp và **có cả lớp 0** vốn không nhân với `Â`; và `Â` đối xứng nên đổi
+trọng số của một user cũng đổi `dᵢ` và embedding item trên toàn đồ thị.
+
+Giá trị của tiên đoán không nằm ở chỗ nó đúng. Nó được phát biểu trước, kèm ngưỡng bác bỏ
+rõ ràng, nên khi số liệu về thì sai lầm lộ ra ngay thay vì trôi vào Chương 4.
 
 Cả hai kết cục đều dùng được: hoặc chứng minh được chữ "động" kèm chỉ rõ nó hoạt động ở đâu,
 hoặc kết luận âm sạch và đề án hạ giọng chữ "động" xuống thành đóng góp về **kiến trúc và quy

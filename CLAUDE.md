@@ -81,8 +81,10 @@ Script `01_preprocess.py` phải in bảng audit này. Nếu lệch nhiều → 
 - **Cold user**: không có embedding cá nhân hóa từ train → báo cáo **riêng**, hoặc dùng phương án dự phòng theo độ phổ biến
 - **Không trộn** warm và cold vào cùng metric của mô hình cá nhân hóa
 - `warm` được báo cáo thêm theo **bậc** (`warm_deg1/2/3plus` — số cạnh của user trong
-  train). User 1 cạnh là nơi trọng số behavior-time **triệt tiêu về 0** do chuẩn hóa;
-  tách ra để đo cơ chế ở nơi nó được phép hoạt động. Xem D34.
+  train). Chuẩn hóa đối xứng đưa trọng số vào theo **căn bậc hai** — với user bậc 1 hệ
+  số là `√W/√dᵢ` — nên tỉ lệ 3:1 giữa `transaction` và `view` còn `√3 ≈ 1,73:1`. Cơ chế
+  tác động **nhẹ hơn danh nghĩa nhưng trên mọi dải bậc**. Tách theo bậc để thấy hiệu quả
+  đến từ nhóm nào. Xem D34, gồm cả phần đính chính lập luận "triệt tiêu" đã bị bác bỏ.
 
 ### Chính sách candidate bảo thủ
 

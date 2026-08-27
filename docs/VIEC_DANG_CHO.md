@@ -24,12 +24,16 @@ make tables                                   # bảng Markdown
 .venv/bin/python scripts/analysis/degree_bands.py   # phân tầng theo bậc
 ```
 
-**Con số cần nhìn:** `warm_deg3plus` trên cohort Original (~50 user trong 593).
-Đây là nhóm duy nhất mà behavior-time weighting có thể tác động — 79,6% user chỉ
-có 1 cạnh nên trọng số bị chuẩn hoá triệt tiêu đúng bằng 0.
+**Con số cần nhìn:** cả ba dải bậc trên cohort Original. Phân bố thật trong 593
+user được đánh giá: bậc 1 là 259 (43,7%), bậc 2 là 76 (12,8%), bậc ≥3 là 258
+(43,5%). Con số 79,6% từng ghi ở đây là của 1.027.985 visitor trong tập train,
+không phải của tập được đánh giá.
 
-**Tiên đoán đã phát biểu trước:** `warm_deg1` phải cho hiệu số **đúng bằng 0**
-giữa `bt_dkgrec` và `static_kg_gcn`. Khác 0 nghĩa là code sai.
+**Tiên đoán cũ đã bị bác bỏ.** Trước đây mục này ghi `warm_deg1` phải cho hiệu số
+đúng bằng 0. Sai: chuẩn hoá đối xứng cho hệ số `√W/√dᵢ`, tức trọng số vào theo
+căn bậc hai chứ không triệt tiêu. Đo trên Original seed 2020 cho `warm_deg1`
+lệch +0.00386, phù hợp với công thức đúng. Việc triệt tiêu chỉ xảy ra với chuẩn
+hoá theo hàng `D⁻¹A`, không phải dạng đối xứng mà mô hình dùng.
 
 **Kiểm tái lập:** số liệu Original mới phải trùng bản trên `main`. Lệch thì phải
 điều tra trước khi dùng.

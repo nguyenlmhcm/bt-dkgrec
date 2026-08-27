@@ -367,32 +367,35 @@ def write_433(doc: Document, frame: pd.DataFrame) -> None:
          "Static KG-GCN thấp hơn LightGCN trên original split. Giá trị 0.013668 "
          "của v11 phản ánh một lần chạy chưa hội tụ.")
     para(doc,
-         "Hiệu ứng nhỏ của behavior-time weighting có thể giải thích bằng cấu "
-         "trúc dữ liệu. Trọng số W(u,i) được gộp theo từng cạnh giữa một người "
-         "dùng và một item, trong khi phép chuẩn hóa đối xứng Â = D^(−1/2) A "
-         "D^(−1/2) chia hàng của mỗi người dùng cho tổng trọng số của chính "
-         "người dùng đó. Với người dùng chỉ có một cạnh trong graph, trọng số "
-         "bị chia cho chính nó; vì thứ tự xếp hạng theo từng người dùng bất "
-         "biến với phép nhân một hằng số dương, mô hình có behavior-time "
-         "weighting và mô hình tĩnh sinh ra cùng một thứ tự cho những người "
-         "dùng đó.")
+         "Hiệu ứng nhỏ của behavior-time weighting có thể giải thích một phần "
+         "bằng cách phép chuẩn hóa đưa trọng số vào lan truyền. Trọng số "
+         "W(u,i) được gộp theo từng cạnh giữa một người dùng và một item, sau "
+         "đó phép chuẩn hóa đối xứng Â = D^(−1/2) A D^(−1/2) chia trọng số đó "
+         "cho tích căn bậc hai của bậc hai đầu cạnh. Với người dùng chỉ có một "
+         "cạnh trong graph, bậc có trọng số của người dùng bằng đúng trọng số "
+         "cạnh, nên hệ số còn lại là căn bậc hai của W(u,i) chia cho căn bậc "
+         "hai của bậc item; trọng số đi vào lan truyền theo căn bậc hai chứ "
+         "không giữ nguyên độ lớn danh nghĩa. Tỉ lệ 3:1 giữa transaction và "
+         "view sau chuẩn hóa vì vậy còn khoảng 1.73:1.")
 
-    caption(doc, "Bảng 4.12. Phân bố bậc người dùng trong tập huấn luyện RetailRocket")
-    table(doc, ["Số cạnh trong graph", "Tỷ lệ người dùng"], [
-        ["1", "79.6%"], ["2", "12.0%"], ["từ 3 trở lên", "8.4%"],
+    caption(doc, "Bảng 4.12. Phân bố bậc người dùng trong tập đánh giá cohort Original")
+    table(doc, ["Số cạnh trong graph", "Số người dùng", "Tỷ lệ"], [
+        ["1", "259", "43.7%"], ["2", "76", "12.8%"], ["từ 3 trở lên", "258", "43.5%"],
     ])
 
     para(doc,
-         "Cơ chế behavior-time weighting vì vậy không tác động tới khoảng bốn "
-         "phần năm số người dùng trong tập đánh giá, và chỉ số tính gộp trên "
-         "toàn bộ nhóm warm pha loãng hiệu ứng khoảng năm lần: một cải thiện "
-         "25% trên nhóm chiếm 20.4% sẽ xuất hiện ở mức khoảng 5% khi tính trên "
-         "toàn nhóm, cùng bậc độ lớn với các giá trị quan sát được trong Bảng 4.10.")
+         "Biên độ bị nén này áp dụng cho mọi người dùng chứ không riêng nhóm "
+         "có ít cạnh, và nó thu hẹp khoảng cách kỳ vọng giữa mô hình dùng "
+         "behavior-time weighting và mô hình dùng trọng số đồng nhất mà không "
+         "xóa bỏ khoảng cách đó. Vì bậc của người dùng quyết định lượng tín "
+         "hiệu cá nhân hóa mà mô hình có được, kết quả được báo cáo thêm theo "
+         "phân tầng bậc để thấy hiệu quả đến từ nhóm nào thay vì bình quân hóa "
+         "trên toàn nhóm warm.")
     para(doc,
          "Quan sát này dẫn tới hai hệ quả. Về thực nghiệm, kết quả cần được báo "
          "cáo thêm theo phân tầng bậc người dùng để đo hiệu ứng trên nhóm mà cơ "
          "chế có thể tác động. Về thiết kế, hướng cải tiến là đưa tín hiệu thời "
-         "gian vào vị trí không bị phép chuẩn hóa theo người dùng triệt tiêu, "
+         "gian vào vị trí không bị phép chuẩn hóa nén biên độ, "
          "chẳng hạn vào hàm mục tiêu huấn luyện, hoặc vào cấu trúc graph thông "
          "qua nhiều snapshot thời gian thay vì chỉ qua trọng số cạnh của một "
          "snapshot.")

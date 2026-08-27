@@ -1,8 +1,12 @@
 """So sanh dong/tinh tren tung phan doan bac (D34).
 
-Tien doan phat bieu TRUOC khi do:
-  warm_deg1     -> hieu so DUNG BANG 0 (trong so bi chuan hoa triet tieu)
-  warm_deg3plus -> neu co che co that thi phai lon hon muc gop
+Tien doan phat bieu TRUOC khi do, va ket qua:
+  warm_deg1     -> hieu so DUNG BANG 0            BI BAC BO (lech +0.00386)
+  warm_deg3plus -> lon hon muc gop neu co che that  chua ket luan, can du 3 seed
+
+Tien doan thu nhat suy ra tu chuan hoa THEO HANG D^-1 A, noi W/d_u = 1. Mo hinh
+dung dang DOI XUNG D^-1/2 A D^-1/2, noi he so la sqrt(W)/sqrt(d_i): trong so vao
+theo can bac hai, khong triet tieu. Xem DECISIONS.md D34, phan dinh chinh.
 """
 import sys; sys.path.insert(0, '/root/ThS_HUIT/bt-dkgrec')
 from pathlib import Path

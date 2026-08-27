@@ -1,13 +1,25 @@
 """Does behaviour-time weighting change WHICH items dominate a user's profile,
 or only the overall SCALE of that user's row?
 
-Ranking is per user: z_u . z_j compared across j. Multiplying z_u by any
-constant leaves that user's ranking untouched. So a weighting that only
-rescales a user's row is INERT by construction.
-
 Per user, correlate the bt_dkgrec row of A_hat with the static row.
-  corr ~ 1.0  -> same mix, only scale changed  -> inert for ranking
-  corr <  1.0 -> the mix really changed        -> a real lever
+  corr ~ 1.0  -> same mix, only the scale changed
+  corr <  1.0 -> the mix of neighbours really changed
+
+WARNING, added 2026-08-27. This file used to conclude that a row which is only
+rescaled is "INERT by construction" for ranking. That conclusion is wrong and
+was falsified by measurement (bt_dkgrec and static_kg_gcn differ on warm_deg1).
+Three reasons a pure row rescale is not inert:
+
+  1. Symmetric normalisation does not cancel W. The denominator is sqrt(d_u),
+     not d_u, so a degree-1 user keeps a coefficient of sqrt(W)/sqrt(d_i).
+  2. The final embedding is the mean over layers and includes h^0, which is
+     never multiplied by A_hat. Scaling A_hat therefore does not scale z_u; it
+     rotates it.
+  3. A_hat is symmetric, so rescaling user u's row also rescales column u,
+     which moves item degrees and item embeddings for everyone.
+
+What this script still measures correctly is amplitude: how often the weighting
+changes the mix of a user's neighbours rather than only the scale.
 """
 import sys; sys.path.insert(0,'/root/ThS_HUIT/bt-dkgrec')
 import numpy as np, scipy.sparse as sp

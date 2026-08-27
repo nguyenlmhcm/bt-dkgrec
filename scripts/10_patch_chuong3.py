@@ -237,26 +237,32 @@ def patch_34_lambda(doc: Document) -> None:
     TOUCHED.append(entry)
 
 
-def patch_352_cancellation(doc: Document) -> None:
-    """§3.5.2: he qua cua chuan hoa doi xung voi visitor bac 1."""
+def patch_352_bien_do(doc: Document) -> None:
+    """§3.5.2: chuan hoa doi xung nen bien do trong so theo can bac hai.
+
+    Ban dau muc nay viet la trong so bi TRIET TIEU voi visitor bac 1. Sai: do la
+    he qua cua chuan hoa theo hang D^-1 A, khong phai dang doi xung. Xem
+    DECISIONS.md D34, phan dinh chinh.
+    """
     CHANGELOG.append((
         '§3.5.2',
-        'Thêm hệ quả của chuẩn hoá đối xứng: với visitor bậc 1, W(u,i) bị triệt tiêu; 79.6% visitor Original thuộc loại đó',
-        'Đặt ở đây thì đây là dự đoán của lý thuyết và Chương 4 xác nhận; để Chương 4 nói lần đầu thì nó đọc như lời bào chữa'))
+        'Thêm hệ quả của chuẩn hoá đối xứng: trọng số vào lan truyền theo căn bậc hai, tỉ lệ 3:1 giữa transaction và view còn 1.73:1',
+        'Cho người đọc biên độ thật của cơ chế trước khi đọc số, thay vì để Chương 4 giải thích sau'))
 
     anchor = find(doc, "phép chuẩn hóa giúp node có bậc lớn không lấn át hoàn toàn")
     insert_after(doc, anchor, [
-        "Phép chuẩn hóa này có một hệ quả cần được nêu trước khi đọc kết quả thực "
-        "nghiệm. Với một visitor chỉ có duy nhất một cạnh trong graph train, bậc có "
-        "trọng số của node đó bằng đúng trọng số của cạnh đó, nên thừa số W(u,i) xuất "
-        "hiện đồng thời ở tử số và ở mẫu số của phép chuẩn hóa và bị triệt tiêu; "
-        "embedding thu được không phụ thuộc vào giá trị của W(u,i), và thứ hạng Top-K "
-        "sinh ra cho visitor đó trùng với thứ hạng mà một mô hình không dùng "
-        "behavior-time weighting sinh ra. Trong tập huấn luyện Original, 79.6% visitor "
-        "có đúng một cạnh, do đó behavior-time weighting chỉ có thể tác động lên phần "
-        "visitor còn lại. Đây là lý do đề tài báo cáo nhóm warm tách thêm theo bậc của "
-        "visitor trong train, và là ràng buộc cần tính đến khi diễn giải mức chênh "
-        "lệch giữa BT-DKGRec-GCN và Static KG-GCN ở Chương 4.",
+        "Phép chuẩn hóa này quyết định biên độ thực tế của trọng số cạnh, nên cần "
+        "được nêu trước khi đọc kết quả thực nghiệm. Với một visitor chỉ có duy nhất "
+        "một cạnh trong graph train, bậc có trọng số của visitor bằng đúng trọng số "
+        "của cạnh đó, nên hệ số chuẩn hóa rút gọn thành căn bậc hai của W(u,i) chia "
+        "cho căn bậc hai của bậc item; trọng số đi vào lan truyền theo căn bậc hai "
+        "chứ không giữ nguyên độ lớn danh nghĩa. Tỉ lệ 3:1 giữa transaction và view "
+        "theo cấu hình alpha ở Bảng 3.5 vì vậy còn khoảng 1.73:1 sau chuẩn hóa. Phép "
+        "nén biên độ này áp dụng cho mọi visitor chứ không riêng nhóm ít cạnh, và nó "
+        "thu hẹp khoảng cách kỳ vọng giữa BT-DKGRec-GCN và Static KG-GCN mà không xóa "
+        "bỏ khoảng cách đó. Vì bậc của visitor quyết định lượng tín hiệu cá nhân hóa "
+        "mà mô hình có được, đề tài báo cáo nhóm warm tách thêm theo bậc của visitor "
+        "trong tập huấn luyện để thấy hiệu quả đến từ nhóm nào.",
     ])
 
 
@@ -430,7 +436,7 @@ def write_changelog(doc: Document) -> None:
 PATCHES = (
     ("§3.6  weighted BPR chi la ablation", patch_36_loss),
     ("§3.4  lambda: bo sung ket qua quet that + mo hinh thu sau", patch_34_lambda),
-    ("§3.5.2 he qua triet tieu trong so o visitor bac 1", patch_352_cancellation),
+    ("§3.5.2 bien do that cua trong so sau chuan hoa", patch_352_bien_do),
     ("§3.8  early stopping, ba seed, curves.csv", patch_38_training),
     ("§3.3  assertion chong ro ri + loc property cu the", patch_33_guards),
     ("§3.7.2 ung dung doc bo tep xuat", patch_372_app),

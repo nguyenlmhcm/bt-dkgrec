@@ -125,7 +125,7 @@ def test_khong_ghi_de_doan_chua_cong_thuc(tmp_path):
 @pytest.mark.parametrize("cau", [
     "Biến thể này chỉ được dùng trong thí nghiệm loại bỏ thành phần",
     "Thiết lập thứ hai dùng λ=0.05",
-    "Phép chuẩn hóa này có một hệ quả",
+    "Phép chuẩn hóa này quyết định biên độ thực tế",
     "Ngân sách huấn luyện được xác định bằng early stopping",
     "Các điều kiện trên được cài đặt thành assertion",
     "Bước xuất dữ liệu sinh ra một bộ tệp CSV",
@@ -138,6 +138,11 @@ def test_noi_dung_moi_co_mat(patched, cau):
     "Các giá trị này là cấu hình thực nghiệm được lựa chọn trên tập xác thực",
     "Original người dùng có lịch sử đánh giá dùng weighted BPR",
     "Kho dữ liệu Neo4j có hai chế độ",
+    # Lap luan "triet tieu" da bi so lieu bac bo (D34, phan dinh chinh); no
+    # KHONG duoc quay lai file .docx duoi bat ky dang nao.
+    "bị triệt tiêu",
+    "triệt tiêu hoàn toàn",
+    "79.6%",
 ])
 def test_cau_sai_da_bi_go(patched, cau_cu):
     assert not [p for p in Document(str(patched)).paragraphs if cau_cu in p.text]
@@ -175,7 +180,7 @@ def test_cho_sua_duoc_to_nen(patched):
     vang = [p.text for p in doc.paragraphs
             for r in p.runs if r.font.highlight_color == WD_COLOR_INDEX.YELLOW]
     assert any("Biến thể này chỉ được dùng" in t for t in vang)
-    assert any("Phép chuẩn hóa này có một hệ quả" in t for t in vang)
+    assert any("Phép chuẩn hóa này quyết định biên độ" in t for t in vang)
     assert any("Ngân sách huấn luyện được xác định" in t for t in vang)
 
 

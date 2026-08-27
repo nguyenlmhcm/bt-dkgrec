@@ -106,10 +106,15 @@ Phân bố số cạnh tương tác mỗi user, cohort Original (1.027.985 user)
 | đúng 2 | 12,0% | 123.420 |
 | từ 3 trở lên | 8,4% | 85.994 |
 
-**Trung vị: 1 cạnh.**
+**Trung vị: 1 cạnh.** Lưu ý: đây là phân bố của **toàn bộ visitor trong train**. Trong
+**593 user thực sự được đánh giá**, phân bố khác hẳn — bậc 1 là 43,7%, bậc 2 là 12,8%,
+bậc ≥3 là 43,5%.
 
-User một cạnh không có "tỷ lệ tương đối" nào — `w(u,i)` là hệ số nhân duy nhất trên toàn
-hàng. Vô hiệu tuyệt đối.
+User một cạnh chỉ có một phần tử khác 0 trên hàng của `Â`, nên behavior-time weighting
+không đổi được **thành phần** hàng đó; nó chỉ đổi **hệ số**, và hệ số đó là `√W/√dᵢ`.
+
+> **Đính chính 27/08/2026.** Bản trước kết luận từ đây rằng đổi hệ số là "vô hiệu tuyệt
+> đối" với xếp hạng. Sai. Xem mục "Vì sao suy luận cũ sai" bên dưới.
 
 Trong nhóm 8,4% có ≥3 cạnh, đo trực tiếp trên `Â` (mẫu 4.000 user, 341 đủ điều kiện):
 
@@ -119,15 +124,35 @@ Trong nhóm 8,4% có ≥3 cạnh, đo trực tiếp trên `Â` (mẫu 4.000 user
 | Mix đổi thật (corr < 0,95) | 11,7% |
 | Hệ số tỷ lệ hàng, trung vị | 0,888 |
 
-**Ghép lại: trọng số behavior-time chỉ có thể tác động lên thứ hạng của khoảng 1–3% user.**
-Đó là lý do `d = 0,32` — không phải λ sai, không phải α sai, mà là cấu trúc dữ liệu chặn.
+### Vì sao suy luận cũ sai
+
+Suy luận cũ là: đổi hệ số của hàng `Â` chỉ nhân `z_u` với một hằng số dương, mà nhân hằng
+số thì không đổi thứ hạng `z_u · z_j` theo `j`, nên trọng số vô hiệu. Ba lỗ hổng:
+
+1. **Chuẩn hoá không triệt tiêu `W`.** Mẫu số là `√dᵤ` chứ không phải `dᵤ`, nên với user
+   bậc 1 hệ số là `√W/√dᵢ` — vẫn phụ thuộc `W`.
+2. **Embedding cuối là trung bình qua các lớp, có cả lớp 0.** `h⁰` không nhân với `Â`, nên
+   nhân `Â` với một hằng số **không** nhân `z_u` với hằng số đó; hướng của `z_u` đổi.
+3. **`Â` đối xứng.** Đổi hàng của user `u` cũng đổi cột `u`, tức đổi `dᵢ` và embedding của
+   item, tức đổi thứ hạng của **mọi** user.
+
+Số liệu bác bỏ suy luận cũ: trên Original seed 2020, ở đúng nhóm `warm_deg1` mà suy luận cũ
+nói là vô hiệu, `bt_dkgrec` đạt Recall@20 = 0.02490 còn `static_kg_gcn` đạt 0.02104.
+
+### Phần đo vẫn giữ nguyên giá trị
+
+Các số đo trên `Â` ở trên (62,8% hàng có tương quan > 0,99; hệ số tỷ lệ trung vị 0,888) là
+**phép đo thật** và vẫn đúng. Điều chúng cho biết là behavior-time weighting **chủ yếu đổi
+tỷ lệ chứ ít khi đổi thành phần** hàng — đó là một phát biểu về biên độ, không phải một
+phát biểu về việc vô hiệu.
 
 ### Câu để viết vào đề án
 
-> Trọng số behavior-time trên cạnh bị giới hạn về mặt cấu trúc trên dữ liệu thương mại
-> điện tử đuôi dài: 79,6% người dùng chỉ có một tương tác, khiến trọng số trở thành phép
-> đổi tỷ lệ thuần túy — vô hiệu với xếp hạng theo từng người dùng. Đo trên ma trận kề đã
-> chuẩn hóa, chỉ 1–3% người dùng có hồ sơ thực sự bị thay đổi tỷ lệ tương đối.
+> Chuẩn hoá đối xứng đưa trọng số cạnh vào lan truyền theo căn bậc hai: tỉ lệ 3:1 giữa
+> `transaction` và `view` sau chuẩn hoá còn `√3 ≈ 1,73:1`. Behavior-time weighting vì vậy
+> tác động với biên độ nhỏ hơn giá trị danh nghĩa của α; đo trên ma trận kề đã chuẩn hoá,
+> phần lớn hàng chỉ đổi tỷ lệ chứ không đổi thành phần lân cận. Điều này giải thích vì sao
+> mức chênh lệch quan sát được giữa đồ thị động và đồ thị tĩnh nhỏ, nhưng không triệt tiêu.
 
 Không paper nào trong hai paper nền (LightGCN, KHGT) có phân tích tương tự.
 
@@ -148,10 +173,14 @@ Ma trận 30 run hiện tại dùng **`loss: bpr` ở khắp nơi** (`configs/ba
 Trong v11, thời gian đi vào **hai** chỗ: trọng số cạnh **và** trọng số từng mẫu trong hàm
 loss. Ta đã tắt chỗ thứ hai.
 
-**Vì sao chỗ thứ hai quan trọng:** user một cạnh đóng góp một mẫu huấn luyện; nhân mẫu đó
-với `w` thay đổi mức ảnh hưởng của nó lên **bảng embedding dùng chung**. Đây là hiệu ứng
-toàn cục, **không bị triệt tiêu** bởi chuẩn hóa theo user — tức là nó tránh đúng cái bẫy
-ở mục 2.
+**Vì sao chỗ thứ hai đáng quan tâm:** nhân mẫu huấn luyện với `w` thay đổi mức ảnh hưởng
+của nó lên **bảng embedding dùng chung**, và trọng số vào loss **tuyến tính** chứ không bị
+căn bậc hai nén như khi vào qua `Â`. Đây là một vị trí khác cho cùng tín hiệu, với biên độ
+lớn hơn.
+
+Lưu ý ràng buộc đã chốt: đưa trọng số vào cả hai chỗ làm hai cấu hình khác nhau ở **hai**
+biến thay vì một, nên `weighted_bpr` chỉ được dùng trong ablation và bị guard chặn khỏi ma
+trận chính.
 
 Code đã có sẵn và đã test: `LOSS_BY_NAME`, `weighted_bpr_loss` (`src/training/loss.py`),
 guard `_weighted_bpr_is_ablation_only` (`src/utils/config.py`). Chỉ cần một dòng config.
