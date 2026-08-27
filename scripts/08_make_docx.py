@@ -165,7 +165,7 @@ def write_421(doc: Document) -> None:
         ["patience", "20 (original), 50 (active)", "phép kiểm độ nhạy trên curves.csv"],
         ["eval_every", "5 epoch", "validation NDCG@20"],
         ["monitor", "NDCG@20 trên validation", "không dùng chỉ số test để chọn mô hình"],
-        ["batch_size", "65.536", "đặt theo quy mô đồ thị: 1.570.409 cạnh tương tác"],
+        ["batch_size", "65.536 (2^16)", "mỗi batch lan truyền lại toàn đồ thị; batch lớn giữ số lần lan truyền ở 24 mỗi epoch"],
         ["learning_rate", "0.005", "đi kèm batch lớn; chưa dò trên dữ liệu đề tài"],
         ["reg_weight", "0.0001", "LightGCN mục 4.1.2, tối ưu trong hầu hết trường hợp"],
         ["loss", "BPR chuẩn, một mẫu âm", "công thức (3.17)"],
@@ -206,13 +206,29 @@ def write_421(doc: Document) -> None:
          "hình mà tác giả của nó công bố.")
     para(doc,
          "Về learning_rate và batch_size, hai giá trị này không lấy từ LightGCN, "
-         "vốn dùng learning rate 0.001 và mini-batch 1024. Batch được nâng lên "
-         "65.536 theo quy mô đồ thị: với 1.570.409 cạnh tương tác trên cohort "
-         "Original, batch 1024 sẽ khiến mỗi epoch mất hàng nghìn bước cập nhật và "
-         "ngân sách 1000 epoch trở nên không khả thi. Learning rate 0.005 đi kèm "
-         "batch lớn đó; theo quy tắc linear scaling, một batch gấp 64 lần sẽ ứng "
-         "với learning rate khoảng 0.064, nên giá trị 0.005 nằm thấp hơn nhiều so "
-         "với mức quy tắc này gợi ý và mang tính thận trọng.")
+         "vốn dùng learning rate 0.001 và mini-batch 1024. Lý do dùng batch lớn "
+         "nằm ở cấu trúc của vòng lặp huấn luyện: phép lan truyền embedding được "
+         "thực hiện trên toàn bộ đồ thị ở mỗi batch, nên chi phí của một epoch tỉ "
+         "lệ với số batch chứ không tỉ lệ với số cặp huấn luyện. Với 1.570.409 "
+         "cạnh tương tác trên cohort Original, batch 65.536 cho 24 batch mỗi epoch "
+         "và do đó 24 lần lan truyền toàn đồ thị; batch 1024 sẽ cho 1.534 batch "
+         "mỗi epoch, tức gấp 64 lần số lần lan truyền.")
+    para(doc,
+         "Chênh lệch này được đo trực tiếp trên các lần chạy của đề tài. Một lần "
+         "chạy LightGCN trên cohort Original mất 32,1 phút cho 170 epoch, tương "
+         "ứng 472 mili giây cho mỗi batch; ở batch 1024, cùng số epoch sẽ cần "
+         "khoảng 34 giờ. Với ma trận 36 lần chạy, cấu hình batch nhỏ vượt xa ngân "
+         "sách tính toán khả dụng. Giá trị 65.536 là một luỹ thừa của hai theo quy "
+         "ước cấp phát bộ nhớ trên GPU, và được áp dụng thống nhất cho mọi mô hình "
+         "graph-based trong ma trận.")
+    para(doc,
+         "Learning rate 0.005 đi kèm batch lớn đó. Theo quy tắc linear scaling, "
+         "một batch gấp 64 lần sẽ ứng với learning rate khoảng 0.064; giá trị "
+         "0.005 nằm thấp hơn nhiều mức đó. Hướng lệch này là hướng an toàn, vì "
+         "learning rate cao hơn mức quy tắc có thể làm quá trình huấn luyện phân "
+         "kỳ khi chưa có pha warmup, trong khi learning rate thấp hơn chỉ làm mô "
+         "hình học chậm hơn trên mỗi epoch và được bù bằng ngân sách 1000 epoch "
+         "cùng cơ chế dừng sớm.")
     para(doc,
          "Hai giá trị trên được cố định trước và chưa được dò trên dữ liệu của đề "
          "tài; đây là một hạn chế được nêu rõ chứ không phải một lựa chọn được "
