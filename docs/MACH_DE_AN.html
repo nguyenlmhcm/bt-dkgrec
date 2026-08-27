@@ -376,8 +376,24 @@ Nếu đề án phát biểu là kế thừa mà không trích dẫn, đó là m
         <tr><td><code>transaction</code></td><td class="n">22.457</td><td>target</td></tr>
         <tr class="hi"><td>Sự kiện target</td><td class="n">91.789</td><td>cart <b>hoặc</b> mua — thứ cần dự báo</td></tr>
       </tbody>
-      <caption>Target chỉ chiếm 3,3% tổng sự kiện. Dữ liệu rất thưa, và đó là một phần lý do các giá trị Recall tuyệt đối đều nhỏ.</caption>
+      <caption>Target chỉ chiếm 3,33% tổng sự kiện; riêng <code>transaction</code> là 0,81%. Dữ liệu rất thưa, và đó là một phần lý do các giá trị Recall tuyệt đối đều nhỏ. Điều này <b>không</b> ảnh hưởng tới kết luận: mọi mô hình chạy trên cùng một tập ứng viên, nên so sánh nằm ở hiệu số giữa các dòng, không ở giá trị tuyệt đối.</caption>
     </table></div>
+
+    <h4>Vì sao chọn RetailRocket</h4>
+    <p>Bộ dữ liệu được chọn theo <b>yêu cầu của mô hình</b>, không theo độ dễ của kết quả. BT-DKGRec cần đồng thời bốn thứ, và rất ít bộ công khai có đủ cả bốn.</p>
+    <div class="tw"><table>
+      <thead><tr><th>Điều kiện bắt buộc</th><th>Thành phần nào của mô hình cần</th><th>RetailRocket đáp ứng</th></tr></thead>
+      <tbody>
+        <tr><td>Nhiều loại hành vi, phân biệt được target</td><td>hệ số <code>α_b</code></td><td>ba loại: view / addtocart / transaction</td></tr>
+        <tr><td>Timestamp ở mức từng sự kiện</td><td>suy giảm <code>exp(−λ·Δt)</code></td><td>138,0 ngày liên tục, độ phân giải mili-giây</td></tr>
+        <tr><td>Thuộc tính sản phẩm</td><td>cạnh item–property của KG</td><td>2.922.197 cạnh, 28.237 giá trị thuộc tính</td></tr>
+        <tr><td>Danh mục có quan hệ cha–con</td><td>cạnh category và category–parent</td><td>1.312 danh mục, 1.291 cạnh cha–con</td></tr>
+      </tbody>
+      <caption>Thiếu bất kỳ dòng nào thì một thành phần của mô hình không chạy được. MovieLens chỉ có một loại hành vi nên không có phễu xem → mua để mô hình hoá; các bộ review của Amazon không có chuỗi duyệt trước khi mua.</caption>
+    </table></div>
+    <div class="box"><span class="lbl">Đảo ngược lập luận về độ thưa</span>
+      Độ thưa 3,33% <b>chính là bài toán</b>, không phải khiếm khuyết của dữ liệu. Tỷ lệ chuyển đổi thật của thương mại điện tử vốn dưới 1%. Nếu chọn một bộ dữ liệu mà hành vi mục tiêu dày đặc thì tín hiệu phụ trợ trở nên thừa và đóng góp của đề án <b>không đo được</b>. Độ thưa là điều kiện để phần đóng góp có ý nghĩa.
+    </div>
 
     <h4>Vì sao gộp addtocart và transaction làm một</h4>
     <p>Hai hành vi này cùng thể hiện ý định cao, khác hẳn <code>view</code> vốn chỉ là quan tâm ban đầu. Tách riêng thì mỗi bài toán chỉ còn vài chục nghìn nhãn trên không gian hai trăm nghìn item — quá thưa để cả huấn luyện lẫn đánh giá đáng tin. Việc tách riêng được ghi là hướng mở rộng khi có dữ liệu dày hơn.</p>
@@ -548,10 +564,16 @@ s(u,i) = z_u · z_i               <span class="c">← điểm xếp hạng</span
 <div class="part">
   <div class="pl">Phần D</div>
   <h2>Chuẩn bị bảo vệ</h2>
-  <p class="pd">Mười một câu hỏi khả năng cao, kèm câu trả lời và bằng chứng cụ thể để chỉ ra.</p>
+  <p class="pd">Mười hai câu hỏi khả năng cao, kèm câu trả lời và bằng chứng cụ thể để chỉ ra.</p>
 </div>
 
 <div class="qa" style="margin-top:26px">
+  <div class="q"><p class="ask">Vì sao chọn bộ dữ liệu này để thực nghiệm? Dữ liệu thưa như vậy thì kết quả có đáng tin không?</p>
+    <p>Bộ dữ liệu được chọn theo yêu cầu của mô hình, không theo độ dễ của kết quả. Mô hình cần đồng thời nhiều loại hành vi có phân biệt target, timestamp ở mức từng sự kiện để tính suy giảm theo thời gian, và thuộc tính sản phẩm cùng cây danh mục để dựng được đồ thị tri thức. RetailRocket có đủ cả bốn, lại là log thật của một sàn thương mại điện tử chứ không phải dữ liệu tổng hợp.</p>
+    <p>Về độ thưa: 3,33% chính là bài toán cần giải, không phải khiếm khuyết. Nếu hành vi mục tiêu dày đặc thì tín hiệu phụ trợ trở nên thừa và đóng góp của đề án không đo được.</p>
+    <p>Về độ tin cậy: kết luận của đề án là <b>hiệu số giữa các mô hình</b>, không phải giá trị Recall tuyệt đối. Mọi mô hình chạy trên cùng split thời gian, cùng ánh xạ, cùng tập ứng viên, cùng ba seed, có kiểm định thống kê. Độ thưa ảnh hưởng như nhau tới mọi dòng nên không làm sai lệch thứ hạng.</p>
+    <p class="ev">Nếu bị hỏi bồi "sao không chọn bộ khác cho số đẹp hơn": Recall cao hơn nhờ đổi sang bộ dữ liệu dễ hơn không phải bằng chứng mô hình tốt hơn — nó chỉ chứng minh bộ dữ liệu dễ hơn. Nên tự nêu trước hạn chế: đề án thực nghiệm trên một bộ dữ liệu, việc lặp lại trên Tmall hoặc Taobao UserBehavior là hướng phát triển.</p></div>
+
   <div class="q"><p class="ask">Baseline LightGCN đã hội tụ chưa, hay bị dừng sớm cho dễ thắng?</p>
     <p>Đã hội tụ. Mọi mô hình chạy tối đa 1000 epoch với early stopping theo validation, ngưỡng đặt ở cấp cohort nên trong cùng một cohort mọi mô hình nhận cùng ngân sách.</p>
     <p class="ev">Chỉ ra: Hình 4.2 và 4.4 — đường loss phẳng hẳn. Mỗi lần chạy có <code>curves.csv</code> ghi từng epoch.</p></div>
