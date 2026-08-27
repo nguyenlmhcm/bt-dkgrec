@@ -69,7 +69,7 @@ sửa. Không tự dựng style mới.
 
 Chương 3 chứa 33 đối tượng công thức OMML (Word Equation). `python-docx` không
 đọc và không ghi được chúng: khi trích ra chúng hiện thành ô rỗng. Sinh lại
-chương này đồng nghĩa xoá sạch công thức (3.1)–(3.31).
+chương này đồng nghĩa xoá sạch công thức của cả chương.
 
 Vì vậy `scripts/10_patch_chuong3.py` chỉ thay đoạn văn quanh công thức, neo vào
 một chuỗi duy nhất, và dừng ngay nếu neo khớp nhiều hơn một lần hoặc rơi vào

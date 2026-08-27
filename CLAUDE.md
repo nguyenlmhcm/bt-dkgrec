@@ -103,7 +103,10 @@ events (train) ──► Behavior-Time DKG ──► weighted GCN ──► BPR 
 
 Chi tiết đồ thị, công thức, Cypher DDL: **`docs/KG_DESIGN.md`**.
 
-Công thức tham chiếu số hiệu trong luận văn: (3.16)–(3.18) trọng số, (3.24)–(3.27) lan truyền, (3.29)–(3.31) loss.
+Công thức tham chiếu số hiệu trong luận văn **từ bản v14 trở đi**: (3.6)–(3.8)
+trọng số, (3.11)–(3.14) lan truyền, (3.16)–(3.18) loss. Bản v13 trở về trước dùng
+lần lượt (3.16)–(3.18), (3.24)–(3.27), (3.29)–(3.31); `scripts/12_cat_cong_thuc.py`
+cắt 13 công thức thừa rồi đánh số lại.
 
 ---
 
@@ -333,4 +336,4 @@ Giới hạn này đã được nêu trung thực trong luận văn (mục 3.7.2
 
 - `docs/KG_DESIGN.md` — thiết kế đồ thị, công thức, Cypher DDL
 - `docs/PLAN.md` — kế hoạch hoàn thiện luận văn
-- Luận văn v11 (.docx) — đặc tả gốc, tham chiếu công thức (3.16)–(3.31)
+- Luận văn v11 (.docx) — đặc tả gốc; số hiệu công thức của v11 đã lỗi thời, xem dòng trên
