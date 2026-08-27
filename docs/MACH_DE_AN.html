@@ -565,7 +565,7 @@ s(u,i) = z_u · z_i               <span class="c">← điểm xếp hạng</span
 <div class="part">
   <div class="pl">Phần D</div>
   <h2>Chuẩn bị bảo vệ</h2>
-  <p class="pd">Mười ba câu hỏi khả năng cao, kèm câu trả lời và bằng chứng cụ thể để chỉ ra.</p>
+  <p class="pd">Mười bảy câu hỏi khả năng cao, kèm câu trả lời và bằng chứng cụ thể để chỉ ra.</p>
 </div>
 
 <div class="qa" style="margin-top:26px">
@@ -584,11 +584,39 @@ s(u,i) = z_u · z_i               <span class="c">← điểm xếp hạng</span
     <p class="ev">Ba giá trị này thật sự lấy từ paper. Đừng nói gộp learning rate và batch size vào đây — hai cái đó là câu hỏi riêng ngay bên dưới.</p></div>
 
   <div class="q"><p class="ask">Còn learning rate 0.005 và batch size 65.536 thì lấy ở đâu? Paper dùng 0.001 và 1024 mà.</p>
-    <p>Hai giá trị này <b>không</b> lấy từ paper. Batch được nâng theo quy mô đồ thị: cohort Original có 1.570.409 cạnh tương tác, nên batch 1024 sẽ khiến mỗi epoch mất hàng nghìn bước cập nhật và ngân sách 1000 epoch trở nên bất khả thi.</p>
-    <p>Learning rate 0.005 đi kèm batch lớn đó. Theo quy tắc linear scaling, batch gấp <b>64 lần</b> ứng với learning rate khoảng <b>0.064</b>; giá trị 0.005 nằm thấp hơn nhiều mức đó, tức là thận trọng chứ không liều.</p>
+    <p>Hai giá trị này <b>không</b> lấy từ paper. Lý do dùng batch lớn nằm ở cấu trúc vòng lặp huấn luyện: phép lan truyền embedding chạy trên <b>toàn bộ đồ thị ở mỗi batch</b>, nên chi phí một epoch tỉ lệ với <b>số batch</b> chứ không phải số cặp huấn luyện.</p>
+    <div class="tw"><table>
+      <thead><tr><th>batch</th><th style="text-align:right">batch/epoch</th><th style="text-align:right">lần lan truyền toàn đồ thị</th><th style="text-align:right">một lần chạy</th></tr></thead>
+      <tbody>
+        <tr class="hi"><td class="mono">65.536 = 2<sup>16</sup></td><td class="n">24</td><td class="n">24 / epoch</td><td class="n">32,1 phút · đo được</td></tr>
+        <tr><td class="mono">1.024 (paper)</td><td class="n">1.534</td><td class="n">1.534 / epoch</td><td class="n">~34 giờ · ước tính</td></tr>
+      </tbody>
+      <caption>LightGCN trên cohort Original, 170 epoch, 1.570.409 cạnh. Mỗi batch mất 472 ms và chứa đúng một lần lan truyền toàn đồ thị. Nhân 36 lần chạy, cấu hình batch nhỏ cần khoảng 71 ngày.</caption>
+    </table></div>
+    <p>Learning rate 0.005 đi kèm batch lớn đó. Theo quy tắc linear scaling, batch gấp <b>64 lần</b> ứng với learning rate khoảng <b>0.064</b>; giá trị 0.005 chỉ bằng <b>1/13</b> mức đó. Hướng lệch này là hướng an toàn: learning rate <b>cao hơn</b> quy tắc có thể làm huấn luyện phân kỳ khi không có pha warmup, còn <b>thấp hơn</b> chỉ làm mô hình học chậm hơn mỗi epoch và được bù bằng ngân sách 1000 epoch.</p>
+    <p>Nguồn gốc con số: 65.536 là 2<sup>16</sup> theo quy ước luỹ thừa hai của GPU; mặc định trong code mô hình vốn là 2.048, còn 65.536 do lớp chạy trên Kaggle ghi đè. Đây là quyết định <b>hạ tầng chạy máy</b>, không phải quyết định mô hình.</p>
     <p>Nói thẳng phần chưa làm: hai giá trị được cố định trước và <b>chưa dò</b> trên dữ liệu của đề tài. Đó là hạn chế được nêu rõ, và việc dò chúng như đã dò λ là hướng phát triển ở mục 5.4.</p>
     <p class="ev">Câu chốt, quan trọng hơn cả hai đoạn trên: cả sáu mô hình nhận <b>cùng</b> learning rate, <b>cùng</b> batch size, <b>cùng</b> ngân sách epoch. Một learning rate chưa tối ưu phạt cả sáu như nhau nên không tạo lợi thế cho mô hình nào; nó chỉ giới hạn cách đọc giá trị tuyệt đối, còn kết luận của đề tài dựa trên hiệu số giữa các bậc.</p>
     <p class="ev">Tuyệt đối không trả lời "kế thừa từ bản trước". Bản trước là bản nháp của chính tác giả, không phải nguồn có thẩm quyền, và hội đồng sẽ hỏi tiếp ngay.</p></div>
+
+  <div class="q"><p class="ask">Ba giá trị α = 1.0 / 2.0 / 3.0 ở đâu ra? Sao không phải 1 / 5 / 10?</p>
+    <p>Ba giá trị này do tác giả đặt theo thứ bậc mức độ ý định: <code>view</code> là quan tâm ban đầu, <code>addtocart</code> là ý định rõ hơn, <code>transaction</code> là chuyển đổi. Ý tưởng phân biệt mức độ giữa các loại hành vi kế thừa từ MBGCN [19].</p>
+    <p><b>Nói thẳng: ba giá trị này chưa được dò.</b> Đề tài chỉ dò λ — quét năm giá trị trên tập xác thực rồi chọn theo AUC. Với α thì không có bước tương ứng, nên không có bằng chứng nào cho thấy 1/2/3 tốt hơn 1/3/5 hay 1/5/10.</p>
+    <p class="ev">Đừng nói "α kế thừa từ MBGCN" như thể lấy nguyên con số. MBGCN <b>học</b> mức đóng góp như tham số mô hình; đề tài <b>gán cứng</b> ba số. Cái kế thừa là ý tưởng, không phải giá trị. Việc dò α như đã dò λ nên được nêu ở phần hướng phát triển.</p></div>
+
+  <div class="q"><p class="ask">Đóng góp mới của đề tài là gì?</p>
+    <p>Ba thứ, và cả ba đều kiểm chứng được. Thứ nhất là <b>lược đồ</b> Behavior-Time Dynamic Knowledge Graph cho Retail Rocket, đưa loại hành vi, độ mới thời gian, thuộc tính sản phẩm và cây danh mục vào cùng một đồ thị. Thứ hai là <b>cơ chế</b> gán trọng số cạnh theo hành vi và thời gian rồi đưa vào lan truyền. Thứ ba là <b>quy trình đánh giá có kiểm soát</b> tách được ba nguồn tác động bằng thang sáu bậc, mỗi bậc thêm đúng một thành phần.</p>
+    <p class="ev">Đề án <b>không</b> tuyên bố phát minh gợi ý dựa trên đồ thị tri thức, cũng không tuyên bố đạt trạng thái tiên tiến nhất. Phát biểu ở mức trên thì mọi câu chữ đều có bằng chứng đứng sau; phát biểu quá thì phản biện bắt ngay.</p></div>
+
+  <div class="q"><p class="ask">Mô hình có bị overfit không?</p>
+    <p>Có, ở mức nhẹ, và điều đó được xử lý đúng cách. Đường validation của LightGCN trên Original đạt đỉnh NDCG@20 = 0.025628 ở <b>epoch 70</b>, sau đó đi ngang rồi tụt xuống 0.023321 ở epoch 170 — dạng hội tụ kèm chớm overfit.</p>
+    <p>Điểm mấu chốt: cơ chế dừng sớm <b>khôi phục tham số của epoch tốt nhất</b> chứ không giữ tham số của epoch cuối. Mô hình được báo cáo là mô hình ở epoch 70, không phải epoch 170.</p>
+    <p class="ev">Chỉ ra: <code>curves.csv</code> của từng lần chạy, cột <code>valid_ndcg@20</code>. Đây cũng là bằng chứng cho câu "baseline đã hội tụ chưa" — đường đi xuống chứng tỏ đã qua đỉnh, không phải bị dừng khi còn đang lên.</p></div>
+
+  <div class="q"><p class="ask">Ứng dụng chạy thật được không, hay chỉ là demo?</p>
+    <p>Ứng dụng <b>không tự tính điểm</b>. Nó đọc tệp <code>topk.csv</code> sinh ra từ lần chạy đã lưu và truy vấn Neo4j để hiển thị lịch sử, trọng số cạnh và đồ thị con. Đây là giới hạn <b>có chủ đích</b>, không phải thiếu sót.</p>
+    <p>Lý do: nếu app tự suy luận, nó có thể sinh ra con số khác với bảng kết quả trong luận văn, và khi đó không còn biết con số nào là con số được báo cáo. Giữ app ở vai trò phát lại kết quả offline thì mọi thứ hiển thị đều truy ngược được về một lần chạy cụ thể.</p>
+    <p class="ev">Mục 3.7.2 đã nêu thẳng giới hạn này, và đoạn cuối ghi rõ đề án chưa đánh giá độ trễ, thông lượng, A/B testing hay cơ chế cập nhật mô hình trong môi trường thực. Trả lời thẳng, đừng hứa app là hệ thống vận hành.</p></div>
 
   <div class="q"><p class="ask">Static KG-GCN có phải là KGAT hay KGCN không?</p>
     <p>Không. Đây là mô hình đối chứng tự xây dựng, chính là mô hình đề xuất bị gỡ đi một thành phần. Nó không đại diện cho nhóm mô hình KG đã công bố, và đề án không đưa điểm số công bố trên bộ dữ liệu khác vào bảng so sánh.</p></div>
