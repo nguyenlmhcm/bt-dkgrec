@@ -165,11 +165,11 @@ def write_421(doc: Document) -> None:
         ["patience", "20 (original), 50 (active)", "phép kiểm độ nhạy trên curves.csv"],
         ["eval_every", "5 epoch", "validation NDCG@20"],
         ["monitor", "NDCG@20 trên validation", "không dùng chỉ số test để chọn mô hình"],
-        ["batch_size", "65.536", "kế thừa cấu hình v11"],
-        ["learning_rate", "0.005", "kế thừa cấu hình v11"],
-        ["reg_weight", "0.0001", "kế thừa cấu hình v11"],
-        ["loss", "BPR chuẩn, một mẫu âm", "công thức (3.30)"],
-        ["num_negatives", "1", "kế thừa cấu hình v11"],
+        ["batch_size", "65.536", "đặt theo quy mô đồ thị: 1.570.409 cạnh tương tác"],
+        ["learning_rate", "0.005", "đi kèm batch lớn; chưa dò trên dữ liệu đề tài"],
+        ["reg_weight", "0.0001", "LightGCN mục 4.1.2, tối ưu trong hầu hết trường hợp"],
+        ["loss", "BPR chuẩn, một mẫu âm", "công thức (3.17)"],
+        ["num_negatives", "1", "theo BPR gốc, một mẫu âm cho mỗi cặp dương"],
         ["seed", "2020, 2021, 2022", "cố định trước, lưu trong experiments/seeds.json"],
     ])
 
@@ -204,6 +204,27 @@ def write_421(doc: Document) -> None:
          "khoảng 1 đến 4. Mọi mô hình trong ma trận dùng chung hai giá trị này, "
          "nên không mô hình đối chứng nào chạy ở cấu hình bất lợi so với cấu "
          "hình mà tác giả của nó công bố.")
+    para(doc,
+         "Về learning_rate và batch_size, hai giá trị này không lấy từ LightGCN, "
+         "vốn dùng learning rate 0.001 và mini-batch 1024. Batch được nâng lên "
+         "65.536 theo quy mô đồ thị: với 1.570.409 cạnh tương tác trên cohort "
+         "Original, batch 1024 sẽ khiến mỗi epoch mất hàng nghìn bước cập nhật và "
+         "ngân sách 1000 epoch trở nên không khả thi. Learning rate 0.005 đi kèm "
+         "batch lớn đó; theo quy tắc linear scaling, một batch gấp 64 lần sẽ ứng "
+         "với learning rate khoảng 0.064, nên giá trị 0.005 nằm thấp hơn nhiều so "
+         "với mức quy tắc này gợi ý và mang tính thận trọng.")
+    para(doc,
+         "Hai giá trị trên được cố định trước và chưa được dò trên dữ liệu của đề "
+         "tài; đây là một hạn chế được nêu rõ chứ không phải một lựa chọn được "
+         "trình bày như đã tối ưu. Hạn chế này không ảnh hưởng tới kết luận của "
+         "chương, vì cả sáu mô hình trong ma trận đều nhận cùng learning_rate, "
+         "cùng batch_size, cùng ngân sách epoch và cùng cơ chế dừng sớm; một "
+         "learning rate chưa tối ưu do đó tác động như nhau lên mọi mô hình và "
+         "không tạo lợi thế cho mô hình nào. Điều kiện này chỉ giới hạn cách diễn "
+         "giải giá trị tuyệt đối của các chỉ số, trong khi kết luận của đề tài "
+         "dựa trên chênh lệch giữa các mô hình đo trong cùng một giao thức. Việc "
+         "dò learning_rate và batch_size theo cách đã dò λ được nêu là hướng phát "
+         "triển ở mục 5.4.")
     para(doc,
          "Ngân sách dừng sớm được đặt ở cấp split và áp dụng đồng đều cho mọi "
          "mô hình trong cùng split, không đặt riêng cho mô hình đề xuất. Nâng "
