@@ -403,6 +403,30 @@ def write_433(doc: Document, frame: pd.DataFrame) -> None:
          "Kết quả này cũng khác kết luận trong bản v11, nơi mục 4.3.3 ghi nhận "
          "Static KG-GCN thấp hơn LightGCN trên original split. Giá trị 0.013668 "
          "của v11 phản ánh một lần chạy chưa hội tụ.")
+
+    figure(doc, figure_path(FIGURES, "ablation"),
+           "Hình 4.5. Đồ thị tri thức tĩnh so với đồ thị tri thức động, "
+           "cả bốn chỉ số tại K = 20")
+    para(doc,
+         "Hình 4.5 đặt hai mô hình của cặp ablation cạnh nhau trên cả hai nhóm "
+         "người dùng. Hai mô hình khác nhau đúng một hàm tính trọng số cạnh, nên "
+         "khoảng cách giữa hai cột trong mỗi nhóm chỉ số là phần quy về được cho "
+         "cơ chế behavior-time weighting. Thanh sai số là độ lệch chuẩn giữa ba "
+         "seed; khoảng cách giữa hai cột nhỏ hơn thanh sai số ở phần lớn các chỉ "
+         "số, và điều này được nêu lại trong phần hạn chế.")
+
+    warm_cold = figure_path(FIGURES, "warm_cold", cohort="original")
+    if warm_cold.is_file():
+        figure(doc, warm_cold,
+               "Hình 4.6. Người dùng có lịch sử so với người dùng chưa có lịch sử, "
+               "nhóm đánh giá ban đầu tại K = 20")
+        para(doc,
+             "Hình 4.6 báo cáo hai nhóm cạnh nhau chứ không lấy trung bình chung. "
+             "Mô hình cá nhân hóa không có embedding cho người dùng chưa có lịch "
+             "sử trong tập huấn luyện, nên chỉ các mô hình dựa trên độ phổ biến "
+             "xuất hiện đầy đủ ở cả hai nhóm; gộp hai nhóm vào một chỉ số sẽ pha "
+             "loãng kết quả của mô hình cá nhân hóa bằng một nhóm mà nó không "
+             "phục vụ được.")
     para(doc,
          "Hiệu ứng nhỏ của behavior-time weighting có thể giải thích một phần "
          "bằng cách phép chuẩn hóa đưa trọng số vào lan truyền. Trọng số "
