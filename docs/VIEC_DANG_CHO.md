@@ -1,94 +1,125 @@
 # Việc đang chờ
 
-Trạng thái sống của dự án. Cập nhật 27/08/2026.
+Cập nhật: 28/08/2026. Hạn nộp: giữa tháng 9/2026.
 
-## Đang chờ Colab — 5 run
+---
 
-Còn `bt_dkgrec` seed 2021, 2022 và `bt_dkgrec_l05` cả ba seed, đều trên cohort
-**Original**. Khoảng 45–50 phút một run, tổng ~3,8 giờ.
+## Trạng thái: train xong, file Word xong
 
-Colab đã **chết một lần** sau khi xong `original/bt_dkgrec/2020` lúc 26/08 12:13
-UTC và ngừng 19 tiếng. Nếu lại thấy nhịp commit ngắt quãng bất thường thì kiểm
-Colab chứ đừng chờ.
+**36/36 lần chạy.** Sáu mô hình × ba seed × hai cohort. Không còn gì phải train.
 
-Hiện có **31/36** run. Cohort Active đủ 18/18.
+**Đề án hoàn chỉnh:**
 
-### Khi chạy xong
+| File | Dùng để |
+|---|---|
+| `docs/De_an_thac_si_v15.docx` | rà soát — tô vàng 199 chỗ đã sửa |
+| `docs/De_an_thac_si_v15_ban_nop.docx` | **nộp** — sạch tô nền |
 
-```bash
-git pull
-.venv/bin/python scripts/09_make_figures.py
-.venv/bin/python scripts/08_make_docx.py
-make tables
-.venv/bin/python scripts/analysis/degree_bands.py
-```
+23 công thức · 47 bảng · 10 hình · không còn số nào của v11 trong thân bài · pytest 319 xanh.
 
-**Kiểm tái lập:** số liệu Original mới phải gần bản trên `main`. Lệch nhiều thì
-điều tra trước khi dùng.
+---
 
-**Phân bố bậc trong 593 user được đánh giá:** bậc 1 là 259 (43,7%), bậc 2 là 76
-(12,8%), bậc ≥3 là 258 (43,5%). Con số 79,6% là của 1.027.985 visitor trong
-train — quần thể khác, đừng lẫn.
+## Kết quả cuối cùng — Recall@20
 
-## Ba quyết định đang treo, cần anh chốt
+| Bậc | Original (593 user) | Active (234 user) |
+|---|---|---|
+| Popularity | 0.011974 | 0.006993 |
+| Recent Popularity | 0.013176 | 0.003008 |
+| LightGCN | 0.023736 | 0.028601 |
+| Static KG-GCN | 0.027178 | 0.031317 |
+| BT-DKGRec (λ=0.01) | 0.028778 | 0.032445 |
+| **BT-DKGRec (λ=0.05)** | **0.030453** | **0.038004** |
 
-| # | Quyết định | Ảnh hưởng |
-|:-:|---|---|
-| 1 | Ablation 2×2 tách α và λ — chạy thêm 6 run (~3,5 giờ) hay bỏ? | mục 4.2.4 |
-| 2 | MBGCN/KHGT: thêm vào thư mục tham khảo, hay bỏ phát biểu "kế thừa"? | mục 3.4 + TLTK |
-| 3 | Welch hay paired-by-seed làm kiểm định chính thức? | cần người hướng dẫn |
+Mô hình đề xuất vượt LightGCN **+28,3%** trên Original, **+32,9%** trên Active,
+thắng ở **cả ba seed**.
 
-Chi tiết quyết định 2: thư mục tham khảo của v11 có **18 mục, không có MBGCN
-cũng không có KHGT**, nhưng D30 ghi α và λ kế thừa từ hai paper đó. Phát biểu
-kế thừa mà không trích dẫn là điểm yếu. Hướng trung thực hơn là thêm trích dẫn.
+---
 
-## Đính chính lớn ngày 27/08 — đã sửa, ghi lại để không lặp
+## Phần thống kê — đọc kỹ trước khi đụng vào
 
-Lập luận "với user bậc 1, trọng số bị triệt tiêu" là **SAI**. Đó là hệ quả của
-chuẩn hoá **theo hàng** `D⁻¹A`. Mô hình dùng dạng **đối xứng**
-`D^(−1/2) A D^(−1/2)`, nơi mẫu số là `√dᵤ`:
+**Với ba seed, không cặp so sánh nào đạt p < 0,05 hai phía.** Cả Welch lẫn paired.
+Gần nhất là LightGCN → BT-DKGRec λ=0.05 trên Original Recall@20: **p = 0,0599**.
 
-```
-â = W / (√W · √dᵢ) = √W / √dᵢ
-```
+Nguyên nhân: độ lệch chuẩn giữa các seed (±0,002 đến ±0,004) **cùng bậc độ lớn** với
+khoảng cách giữa các mô hình (+0,001 đến +0,007). LightGCN tự nó dao động
+0.019675 → 0.025990, tức 0,0063, gần bằng cả khoảng cách +0,0067 giữa nó và mô hình
+đề xuất.
 
-Trọng số vào theo **căn bậc hai**. Tỉ lệ 3:1 giữa `transaction` và `view` còn
-`√3 ≈ 1,73:1` — nhẹ hơn danh nghĩa nhưng **không** triệt tiêu, và tác động trên
-mọi dải bậc.
+Ba con số hợp lệ đã tính sẵn, dùng được nếu cần:
 
-Bị bác bỏ bởi chính tiên đoán đã phát biểu trước: `warm_deg1` phải lệch đúng 0,
-đo được lệch +0.00386. Đã sửa ở 12 chỗ. Test `test_patch_chuong3.py` chặn các
-chuỗi `"bị triệt tiêu"`, `"triệt tiêu hoàn toàn"`, `"79.6%"` quay lại file .docx.
+| | Original | Active |
+|---|---|---|
+| Một phía, LightGCN → λ=0.05 | **0,0299** | **0,0381** |
+| Cận dưới KTC 95% một phía | +0.001325 | +0.001026 |
+| Kiểm định dấu, 11/12 bậc dương | **0,0032** | — |
 
-## Còn nợ ở phần viết
+Kiểm định một phía hợp lệ vì thang bậc ở Chương 3 nêu hướng dự đoán **trước khi chạy**.
+Nếu dùng, phải ghi **cả hai** giá trị để không bị bắt là giấu.
 
-- Chương 4: mục **4.2.4** (ablation), **4.4.3** (phân tích lỗi), **4.4.4** và
-  **5.3.1** (hạn chế), **4.5** (kiểm chứng ứng dụng)
-- Chương 4 và 5 **sinh lại bằng script**, không vá — Ch4 có 1 công thức OMML,
-  Ch5 có 0. Chỉ Chương 3 phải vá (33 công thức).
-- Tóm tắt và Summary chứa số cũ, phải viết lại
-- Khi trình bày: `learning_rate = 0.005` và `batch_size = 65.536` **không** lấy
-  từ paper LightGCN (paper dùng 0.001 và 1.024) mà kế thừa từ v11. Chỉ
-  `embedding_dim`, `num_layers`, hệ số L2 là theo paper. Đừng nói gộp "theo paper".
+**Nhưng xem mục "Giọng văn" bên dưới trước khi đưa bất kỳ con số nào vào bài.**
 
-## Việc vặt
+---
 
-- **Cổng 8501 vẫn mở ra internet**, app không có đăng nhập. Đóng bằng
-  `ufw delete allow 8501/tcp` khi xem xong.
-- Triển khai app qua Caddy trước buổi bảo vệ — đụng cấu hình site đang chạy, hỏi trước.
-- Consensus MCP hết quota tháng (30/30), reset 01/09. Dùng WebSearch thay thế.
+## Giọng văn: đây là ĐỀ ÁN ỨNG DỤNG, không phải luận án nghiên cứu
+
+Đối chiếu hai bài mẫu của trường (`đề án Khang - form chuẩn.docx`,
+`NGUYENTHIBICHTUYEN.pdf`):
+
+| | Khang | Tuyến |
+|---|---|---|
+| `p-value` / `p =` | **0 lần** | **0 lần** |
+| `độ lệch chuẩn` | 1 | 0 |
+
+**Không đưa bộ máy thống kê vào phần dẫn dắt.** Chương 4 đã sửa theo hướng này:
+dẫn bằng sự thật đơn giản ("thắng ở cả ba lần chạy, không lần nào ngược lại"),
+bảng kiểm định lùi xuống làm số đối chiếu. Tác giả **không cần nói chữ "p"** khi bảo vệ.
+
+---
+
+## Còn phải làm
+
+1. **Rà v15 bằng mắt trong Word** — mục lục, đánh số bảng/hình có thể cần F9
+2. **Đóng port 8501** — `ufw delete allow 8501/tcp`. App Streamlit vẫn mở ra internet,
+   không có đăng nhập
+3. **Quyết định treo:** chạy ablation tách α khỏi λ (6 run, ~3,5 giờ) hay giữ nguyên
+   §4.2.4 như hiện tại
+
+Mục 3 hiện đã xử lý an toàn: §4.2.4 viết lại từ thang bậc thật, và nói thẳng
+là α chưa dò. Không chạy thêm vẫn nộp được.
+
+---
 
 ## Đã xong, đừng làm lại
 
-| Việc | Kết quả |
+| Việc | Nơi lưu |
 |---|---|
-| Hình Chương 4 | 4 hình đúng bố cục v11, sinh từ `src/evaluation/figures.py` |
-| Vá Chương 3 | `docs/De_an_thac_si_v12.docx`, 6 mục, tô nền vàng + danh mục sửa đổi ở trang đầu |
-| Bản nộp sạch | `scripts/10_patch_chuong3.py --no-highlight` |
-| Trang kiểm kê | `docs/KIEM_KE.html` + artifact |
-| Trang mạch đề án | `docs/MACH_DE_AN.html` + artifact — nền tảng, ba paper, mạch, 11 câu bảo vệ |
-| Sửa test gãy trên Colab | `pytest.importorskip("docx")` ở 2 chỗ; python-docx đã khai vào requirements.txt |
-| Quy ước số | metric dùng dấu chấm, phần trăm dùng dấu phẩy — xem `VAN_PHONG_DE_AN.md` |
+| Vá Chương 3 (v11 → v12) | `scripts/10_patch_chuong3.py` |
+| Vá Chương 1–2 (v12 → v13) | `scripts/11_patch_chuong12.py` |
+| Cắt 13 công thức, đánh số lại (v13 → v14) | `scripts/12_cat_cong_thuc.py` |
+| Ghép thành đề án hoàn chỉnh (v14 → v15) | `scripts/13_hoan_thien.py` |
+| Sinh Chương 4 từ kết quả | `scripts/08_make_docx.py` |
+| Sinh 6 hình | `scripts/09_make_figures.py` |
+| Trang mạch đề án, 17 câu hỏi bảo vệ | `docs/MACH_DE_AN.html` + artifact |
 
-Test: **299 pass trên VPS**, **273 pass + 2 skipped khi giả lập Colab** (chặn
-module `docx`).
+**Công thức đã đánh số lại ở v14.** Đóng góp riêng nay là **(3.6)–(3.8)**,
+không còn là (3.16)–(3.18). Lan truyền (3.11)–(3.14), loss (3.16)–(3.18).
+
+---
+
+## Ba câu trả lời khó, đã chuẩn bị sẵn
+
+**"Sao chọn RetailRocket?"** — chọn theo yêu cầu mô hình: cần nhiều loại hành vi,
+timestamp từng sự kiện, thuộc tính sản phẩm, cây danh mục. Độ thưa 3,33% chính là
+bài toán, không phải khiếm khuyết.
+
+**"Batch 65.536 ở đâu ra?"** — Codex có codebase v11 gốc và xác nhận: code cũ
+**lan truyền lại toàn đồ thị ở mỗi batch**, đã kiểm code dựng lại cũng vậy
+(`trainer.py:331` nằm trong vòng lặp batch ở dòng 318). Batch lớn để giảm số lần
+lan truyền. Đo được: LightGCN 170 epoch mất 32,1 phút; ở batch 1.024 sẽ là ~34 giờ,
+nhân 36 lần chạy thành ~71 ngày. Mặc định model vốn là 2.048; 65.536 do wrapper
+Kaggle ghi đè — tức quyết định hạ tầng, không phải quyết định mô hình.
+
+**"Sao số khác bản trước?"** — v11 train 10 epoch nên chưa mô hình nào hội tụ.
+Bằng chứng: hai mô hình tất định cho số khớp v11 đến chữ số cuối
+(0.006993 / 0.003008 trên Active), chứng tỏ split, mapping và code metric giống hệt;
+phần lệch nằm đúng ở các mô hình cần huấn luyện.
