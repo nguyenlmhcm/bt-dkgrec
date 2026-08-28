@@ -323,8 +323,9 @@ def write_432(doc: Document, frame: pd.DataFrame) -> None:
          "giai đoạn đầu; khi cả hai được huấn luyện đến khi validation không "
          "còn cải thiện, lợi thế đó không còn.")
     para(doc,
-         "Với ba seed, kết luận về ý nghĩa thống kê phụ thuộc phép kiểm được "
-         "chọn, nên đề án báo cáo cả hai.")
+         "Mức cải thiện được ghi nhận ở cả ba lần chạy trên cả hai nhóm người "
+         "dùng, không có lần chạy nào cho kết quả ngược lại. Bảng 4.9 nêu thêm "
+         "giá trị của hai phép kiểm ý nghĩa thống kê để người đọc đối chiếu.")
 
     caption(doc, "Bảng 4.9. Kiểm định ý nghĩa thống kê, BT-DKGRec-GCN so với LightGCN")
     rows = []
@@ -337,14 +338,13 @@ def write_432(doc: Document, frame: pd.DataFrame) -> None:
     table(doc, ["Split", "Chỉ số", "Welch", "Ghép cặp theo seed"], rows)
 
     para(doc,
-         "Kiểm định Welch xử lý hai nhóm như mẫu độc lập. Kiểm định ghép cặp xử "
-         "lý seed như yếu tố khối chung, phù hợp với thiết kế ở đây vì mọi mô "
-         "hình dùng chung bộ seed và chịu cùng các nguồn ngẫu nhiên khởi tạo. "
-         "Phân rã phương sai cho thấy 73% đến 86% biến thiên giữa các lần chạy "
-         "là hiệu ứng seed dùng chung cho mọi mô hình, tức phần mà phép ghép "
-         "cặp loại bỏ. Việc chốt một phép kiểm chính thức để báo cáo cần ý kiến "
-         "người hướng dẫn; trong bản này cả hai giá trị đều được nêu và không "
-         "có phép kiểm nào được chọn sau khi quan sát kết quả.")
+         "Hai phép kiểm được nêu song song và không phép kiểm nào được chọn sau "
+         "khi quan sát kết quả. Với ba lần chạy cho mỗi cấu hình, độ lệch chuẩn "
+         "giữa các lần chạy cùng bậc độ lớn với chênh lệch giữa các mô hình, nên "
+         "chênh lệch của từng cặp mô hình liền kề chưa đạt ngưỡng ý nghĩa thống "
+         "kê thông thường. Kết luận của chương vì vậy dựa trên tính nhất quán "
+         "của thứ tự giữa các mô hình: thứ tự này giữ nguyên trên cả hai nhóm "
+         "người dùng và cả bốn chỉ số đánh giá.")
 
 
 def write_433(doc: Document, frame: pd.DataFrame) -> None:
