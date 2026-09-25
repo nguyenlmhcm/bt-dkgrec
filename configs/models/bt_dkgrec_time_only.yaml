@@ -1,0 +1,27 @@
+# Tach bien: CHI suy giam thoi gian (lambda = 0,05), BO loai hanh vi (alpha = 1/1/1).
+#
+# Giong het bt_dkgrec_l05 o MOI tham so, tru alpha: 1/2/3 -> 1/1/1.
+# Cung voi bt_dkgrec_alpha_only, cap nay tra loi cau hoi hoi dong:
+#   "phan tang cua BT-DKGRec so voi Static KG den tu alpha hay tu lambda?"
+#
+#   static_kg_gcn          alpha 1/1/1   lambda 0      (khong co ca hai)
+#   bt_dkgrec_alpha_only   alpha 1/2/3   lambda 0
+#   bt_dkgrec_time_only    alpha 1/1/1   lambda 0,05   <- file nay
+#   bt_dkgrec_l05          alpha 1/2/3   lambda 0,05   (mo hinh de xuat)
+#
+# Voi alpha = 1 moi hanh vi, trong so canh chi con exp(-lambda * delta).
+# Xem docs/DECISIONS.md muc D35.
+model:
+  name: bt_dkgrec_time_only
+  kind: gcn
+  use_side_info: true
+  trainable: true
+  embedding_dim: 64
+  num_layers: 3
+
+weighting:
+  alpha:
+    view: 1.0
+    addtocart: 1.0
+    transaction: 1.0
+  lambda_decay: 0.05

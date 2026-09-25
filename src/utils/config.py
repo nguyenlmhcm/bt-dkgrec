@@ -30,7 +30,7 @@ SEEDS_FILE = REPO_ROOT / "experiments" / "seeds.json"
 COHORTS = ("original", "active")
 MODELS = (
     "popularity", "recent_popularity", "lightgcn", "static_kg_gcn",
-    "bt_dkgrec", "bt_dkgrec_l05",
+    "bt_dkgrec", "bt_dkgrec_l05", "bt_dkgrec_alpha_only", "bt_dkgrec_time_only",
 )
 
 
@@ -141,7 +141,7 @@ class WeightingConfig(_Strict):
 class ModelConfig(_Strict):
     name: Literal[
         "popularity", "recent_popularity", "lightgcn", "static_kg_gcn",
-        "bt_dkgrec", "bt_dkgrec_l05",
+        "bt_dkgrec", "bt_dkgrec_l05", "bt_dkgrec_alpha_only", "bt_dkgrec_time_only",
     ]
     kind: Literal["heuristic", "gcn"]
     use_side_info: bool

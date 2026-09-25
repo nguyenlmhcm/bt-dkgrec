@@ -1082,3 +1082,48 @@ gì**.
 Không đụng vào mô hình, đồ thị, chia tách hay guard chống rò rỉ. Huấn luyện có seed cố định
 nên **số liệu gộp phải tái lập đúng như cũ** — nếu lệch thì đó là vấn đề tái lập phải điều
 tra. Khẳng định chính (vượt LightGCN) không bị ảnh hưởng.
+
+---
+
+## D35 — Tách α khỏi λ bằng thiết kế 2×2, chạy 12 run bổ sung
+
+**Câu hỏi hội đồng mà quyết định này nhắm tới.** *"Phần tăng của BT-DKGRec so với Static KG
+(+12,0% Original, +21,4% Active, Recall@20) đến từ loại hành vi (α) hay từ suy giảm thời gian
+(λ)?"* Đến v17 chưa trả lời được bằng số đo xếp hạng: λ đã dò (D33), α giữ cố định 1/2/3.
+
+**Bằng chứng gián tiếp đã có (D33, AUC trên CPU):** bỏ suy giảm (λ=0) làm AUC rớt khoảng 0,13;
+α chỉ góp khoảng +0,014. Đó là chỉ báo về trọng số cạnh, không phải về Recall@20.
+
+**Quyết định: thêm hai ô còn thiếu của bảng 2×2, mỗi ô khác mô hình đề xuất đúng một tham số.**
+
+| Mô hình | α | λ | Vai trò |
+|---|---|---|---|
+| `static_kg_gcn` | 1/1/1 | 0 | không có cả hai (đã có) |
+| `bt_dkgrec_alpha_only` | 1/2/3 | **0** | chỉ loại hành vi |
+| `bt_dkgrec_time_only` | **1/1/1** | 0,05 | chỉ thời gian |
+| `bt_dkgrec_l05` | 1/2/3 | 0,05 | mô hình đề xuất (đã có) |
+
+Cả hai dùng **cùng lớp** `BehaviorTimeWeighting` và cùng công thức (3.17); khác biệt chỉ nằm
+trong YAML. `tests/test_ablation.py` chốt ba mức: mỗi nửa khác `bt_dkgrec_l05` đúng một khoá
+trong `weighting`; giá trị α/λ khớp ô đã khai báo; lớp mô hình không thêm hàm nào. Đã kiểm
+bằng cách cố ý đặt λ=0,05 cho `alpha_only`: hai test đỏ.
+
+Dựng thử trên VPS (Active): cả hai đồ thị cùng 1.903.361 cạnh và cùng sparsity pattern với
+`static_kg_gcn`, chỉ khác trọng số; `time_only` có trọng số nhỏ nhất 0,008 = e^(−0,05·97).
+
+**Phạm vi sử dụng kết quả.** 12 run (2 mô hình × 2 cohort × 3 seed), khoảng 7 giờ Colab. Kết
+quả dùng cho **phụ lục hoặc slide bảo vệ**, **không** sinh lại Chương 4: `08_make_docx.py` và
+`14_bang_seed.py` giữ danh sách mô hình riêng nên không tự nhận hai mô hình mới.
+
+**Đọc kết quả thế nào — ghi trước khi đo.** Gọi Δ là mức tăng Recall@20 so với `static_kg_gcn`.
+
+- Δ(time_only) ≥ ⅔·Δ(l05) và Δ(alpha_only) ≤ ⅓·Δ(l05) → phần tăng **chủ yếu từ thời gian**,
+  khớp với D33.
+- Ngược lại (α chiếm từ ⅔ trở lên) → D33 **bị bác bỏ** ở cấp xếp hạng; phải nói thẳng.
+- Nằm giữa → hai tín hiệu **bổ sung nhau**; báo cáo cả hai phần.
+
+Ngưỡng này đặt trước để kết quả nào cũng có một câu trả lời đã cam kết, không chọn cách đọc
+sau khi nhìn số.
+
+**Chi phí phụ:** thêm file vào `configs/` và `src/graph/` làm mất cache `interim` lẫn
+`processed` trên Drive (D29), thêm khoảng 60 phút tiền xử lý.

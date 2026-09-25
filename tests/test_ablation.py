@@ -250,3 +250,76 @@ def test_both_decay_rates_use_the_same_weighting_strategy() -> None:
 
     assert WEIGHTING_BY_MODEL["bt_dkgrec"] is WEIGHTING_BY_MODEL["bt_dkgrec_l05"]
     assert WEIGHTING_BY_MODEL["static_kg_gcn"] is not WEIGHTING_BY_MODEL["bt_dkgrec_l05"]
+
+
+# ══ D35 — tach alpha khoi lambda: thiet ke giai thua 2x2 ══════════════════
+
+#: (model, alpha co bat khong, lambda co bat khong). Bon o cua bang 2x2.
+FACTORIAL = {
+    "static_kg_gcn": (False, False),
+    "bt_dkgrec_alpha_only": (True, False),
+    "bt_dkgrec_time_only": (False, True),
+    "bt_dkgrec_l05": (True, True),
+}
+
+
+@pytest.mark.parametrize("variant", ["bt_dkgrec_alpha_only", "bt_dkgrec_time_only"])
+def test_each_half_differs_from_the_proposed_model_in_one_parameter(variant) -> None:
+    """★ Moi cau hinh tach bien khac mo hinh de xuat DUNG MOT tham so.
+
+    Neu alpha_only con doi ca alpha, hay time_only doi ca lambda, thi bang 2x2
+    khong con quy duoc phan tang ve mot tin hieu nao — cau tra loi cho hoi dong
+    se sai ma khong ai thay.
+    """
+    proposed = _model_section("bt_dkgrec_l05")
+    half = _model_section(variant)
+
+    assert _differing_keys(proposed, half) == {"model", "weighting"}
+    assert _differing_keys(proposed["model"], half["model"]) == {"name"}
+    expected = {"bt_dkgrec_alpha_only": {"lambda_decay"},
+                "bt_dkgrec_time_only": {"alpha"}}[variant]
+    assert _differing_keys(proposed["weighting"], half["weighting"]) == expected
+
+
+@pytest.mark.parametrize("model", sorted(FACTORIAL))
+def test_the_four_cells_switch_exactly_the_intended_signals(model) -> None:
+    """Gia tri thuc cua alpha/lambda khop dung o bang 2x2 da khai bao."""
+    alpha_on, time_on = FACTORIAL[model]
+    weighting = _model_section(model)["weighting"]
+    uniform = set(weighting["alpha"].values()) == {1.0}
+
+    if model == "static_kg_gcn":
+        # static bo qua YAML: UniformWeighting tra 1.0 bat ke tham so.
+        assert WEIGHTING_BY_MODEL[model] is UniformWeighting
+        return
+    assert WEIGHTING_BY_MODEL[model] is BehaviorTimeWeighting
+    assert uniform is (not alpha_on)
+    assert (weighting["lambda_decay"] > 0) is time_on
+    if time_on:
+        assert weighting["lambda_decay"] == 0.05
+
+
+@pytest.mark.parametrize("filename,class_name,name", [
+    ("bt_dkgrec_alpha_only.py", "BTDKGRecAlphaOnly", "bt_dkgrec_alpha_only"),
+    ("bt_dkgrec_time_only.py", "BTDKGRecTimeOnly", "bt_dkgrec_time_only"),
+])
+def test_the_factorial_models_carry_only_a_name(filename, class_name, name) -> None:
+    """Hai lop moi ke thua BTDKGRec va khong them ham nao."""
+    node = _class_body(MODELS_DIR / filename, class_name)
+    assert [base.id for base in node.bases] == ["BTDKGRec"]  # type: ignore[attr-defined]
+    assert not any(isinstance(s, ast.FunctionDef) for s in node.body)
+    assert f'name = "{name}"' in (MODELS_DIR / filename).read_text(encoding="utf-8")
+
+
+def test_alpha_only_edge_weight_equals_alpha_and_time_only_equals_decay() -> None:
+    """Kiem truc tiep cong thuc (3.17) tai hai o tach bien, khong qua config."""
+    codes = np.array([0, 1, 2, 2])
+    delta = np.array([0.0, 10.0, 30.0, 97.0])
+    alpha = np.array([1.0, 2.0, 3.0])
+    behaviors = ("view", "addtocart", "transaction")
+
+    alpha_only = BehaviorTimeWeighting(alpha=alpha, lambda_decay=0.0, behaviors=behaviors)
+    np.testing.assert_allclose(alpha_only.edge_weight(codes, delta), alpha[codes])
+
+    time_only = BehaviorTimeWeighting(alpha=np.ones(3), lambda_decay=0.05, behaviors=behaviors)
+    np.testing.assert_allclose(time_only.edge_weight(codes, delta), np.exp(-0.05 * delta))

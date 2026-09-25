@@ -34,6 +34,7 @@ METRIC_LABELS = {
 #: then the proposed model. Fixed so readers can compare figures side by side.
 MODEL_ORDER = (
     "popularity", "recent_popularity", "lightgcn", "static_kg_gcn",
+    "bt_dkgrec_alpha_only", "bt_dkgrec_time_only",
     "bt_dkgrec", "bt_dkgrec_l05",
 )
 MODEL_LABELS = {
@@ -43,6 +44,8 @@ MODEL_LABELS = {
     "static_kg_gcn": "Static KG-GCN",
     "bt_dkgrec": "BT-DKGRec-GCN (λ=0,01)",
     "bt_dkgrec_l05": "BT-DKGRec-GCN (λ=0,05)",
+    "bt_dkgrec_alpha_only": "Chỉ α (λ=0)",
+    "bt_dkgrec_time_only": "Chỉ thời gian (α=1)",
 }
 #: Models that cannot be run without training; used to flag deterministic std=0.
 DETERMINISTIC_MODELS = ("popularity", "recent_popularity")

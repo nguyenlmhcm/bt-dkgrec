@@ -135,6 +135,9 @@ class UniformWeighting(BehaviorTimeWeighting):
 WEIGHTING_BY_MODEL: dict[str, type[BehaviorTimeWeighting]] = {
     "bt_dkgrec": BehaviorTimeWeighting,
     "bt_dkgrec_l05": BehaviorTimeWeighting,
+    # D35: tach alpha khoi lambda. CUNG cong thuc, chi khac tham so trong YAML.
+    "bt_dkgrec_alpha_only": BehaviorTimeWeighting,
+    "bt_dkgrec_time_only": BehaviorTimeWeighting,
     "static_kg_gcn": UniformWeighting,
     "lightgcn": UniformWeighting,
 }

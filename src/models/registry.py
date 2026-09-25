@@ -28,13 +28,16 @@ def _graph_models() -> dict[str, type[Recommender]]:
     rate its config carries. See ``src/models/static_kg_gcn.py``.
     """
     from src.models.bt_dkgrec import BTDKGRec
+    from src.models.bt_dkgrec_alpha_only import BTDKGRecAlphaOnly
     from src.models.bt_dkgrec_l05 import BTDKGRecL05
+    from src.models.bt_dkgrec_time_only import BTDKGRecTimeOnly
     from src.models.lightgcn import LightGCN
     from src.models.static_kg_gcn import StaticKGGCN
 
     return {
         model.name: model
-        for model in (LightGCN, StaticKGGCN, BTDKGRec, BTDKGRecL05)
+        for model in (LightGCN, StaticKGGCN, BTDKGRec, BTDKGRecL05,
+                      BTDKGRecAlphaOnly, BTDKGRecTimeOnly)
     }
 
 

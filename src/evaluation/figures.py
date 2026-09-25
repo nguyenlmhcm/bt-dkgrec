@@ -49,6 +49,11 @@ MODEL_COLORS = {
     "static_kg_gcn": "#4a3aa7",      # violet
     "bt_dkgrec": "#e8927c",          # muted red -- the untuned setting
     "bt_dkgrec_l05": "#e34948",      # red -- the tuned setting
+    # D35: the two halves of the 2x2 sit between static (violet) and the
+    # proposed model (red). NOT run through the CVD validator above; the
+    # hatch carries the identity in print.
+    "bt_dkgrec_alpha_only": "#9b7fd4",  # light violet -- behavior only
+    "bt_dkgrec_time_only": "#c4478f",   # magenta -- time only
 }
 #: Greyscale-safe secondary encoding, so print readers keep the identity.
 MODEL_HATCH = {
@@ -58,6 +63,8 @@ MODEL_HATCH = {
     "static_kg_gcn": "xx",
     "bt_dkgrec": "..",
     "bt_dkgrec_l05": "++",
+    "bt_dkgrec_alpha_only": "--",
+    "bt_dkgrec_time_only": "||",
 }
 
 @dataclass
