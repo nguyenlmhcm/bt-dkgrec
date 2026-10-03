@@ -1,0 +1,167 @@
+{
+  "run_id": "original_bt_dkgrec_time_only_2021_20261003-042556",
+  "cohort": "original",
+  "model": "bt_dkgrec_time_only",
+  "seed": 2021,
+  "model_description": {
+    "model": "bt_dkgrec_time_only",
+    "supports_cold_start": false,
+    "embedding_dim": 64,
+    "num_layers": 3,
+    "init_std": 0.1,
+    "learnable": "layer-0 embeddings only (khong co ma tran trong so giua cac lop)",
+    "n_nodes": 1262640,
+    "weighting": "behavior_time",
+    "negative_sampling": {
+      "strategy": "uniform_over_train_items",
+      "num_negatives": 1,
+      "n_collisions_resampled": 38802,
+      "n_collisions_unresolved": 0,
+      "rule_6_checks": 170
+    },
+    "training": {
+      "n_epochs": 170,
+      "best_epoch": 70,
+      "best_valid_metric": 0.03686172350401322,
+      "best_valid_metrics": {
+        "recall@10": 0.05340284966643662,
+        "ndcg@10": 0.03193052061608919,
+        "hit_rate@10": 0.07427536231884058,
+        "coverage@10": 0.009638918412918198,
+        "recall@20": 0.07140017540832758,
+        "ndcg@20": 0.03686172350401322,
+        "hit_rate@20": 0.09782608695652174,
+        "coverage@20": 0.01771279240977836
+      },
+      "monitor": "ndcg@20",
+      "stopped_early": true,
+      "first_loss": 0.6740548057813696,
+      "last_loss": 0.007156652350852103,
+      "seconds": 2789.9,
+      "peak_gpu_mb": 4361.0
+    }
+  },
+  "n_train_items": 205106,
+  "n_train_visitors": 1027985,
+  "valid": {
+    "n_users": {
+      "warm": 552,
+      "warm_deg1": 217,
+      "warm_deg2": 87,
+      "warm_deg3plus": 248,
+      "cold": 3136,
+      "all": 3688
+    },
+    "unrankable_targets": {
+      "item_not_in_train": 215,
+      "removed_as_already_seen": 257,
+      "total_targets": 5971
+    },
+    "warm": {
+      "recall@10": 0.05340284966643662,
+      "ndcg@10": 0.03193052061608919,
+      "hit_rate@10": 0.07427536231884058,
+      "coverage@10": 0.009638918412918198,
+      "recall@20": 0.07140017540832758,
+      "ndcg@20": 0.03686172350401322,
+      "hit_rate@20": 0.09782608695652174,
+      "coverage@20": 0.01771279240977836
+    },
+    "warm_deg1": {
+      "recall@10": 0.06758832565284179,
+      "ndcg@10": 0.03901118565753428,
+      "hit_rate@10": 0.06912442396313365,
+      "coverage@10": 0.005762873831092216,
+      "recall@20": 0.08525345622119816,
+      "ndcg@20": 0.043708661257822856,
+      "hit_rate@20": 0.09216589861751152,
+      "coverage@20": 0.010945559856854505
+    },
+    "warm_deg2": {
+      "recall@10": 0.07183908045977011,
+      "ndcg@10": 0.03862720908013866,
+      "hit_rate@10": 0.10344827586206896,
+      "coverage@10": 0.003071582498805496,
+      "recall@20": 0.08333333333333333,
+      "ndcg@20": 0.04150077229852946,
+      "hit_rate@20": 0.11494252873563218,
+      "coverage@20": 0.005826255692178679
+    },
+    "warm_deg3plus": {
+      "recall@10": 0.03452300947260625,
+      "ndcg@10": 0.023385697187194486,
+      "hit_rate@10": 0.06854838709677419,
+      "coverage@10": 0.00541183583122873,
+      "recall@20": 0.05509232590885817,
+      "ndcg@20": 0.029243244722966407,
+      "hit_rate@20": 0.0967741935483871,
+      "coverage@20": 0.010106969079402846
+    },
+    "cold": null,
+    "all": null
+  },
+  "test": {
+    "n_users": {
+      "warm": 593,
+      "warm_deg1": 259,
+      "warm_deg2": 76,
+      "warm_deg3plus": 258,
+      "cold": 6786,
+      "all": 7379
+    },
+    "unrankable_targets": {
+      "item_not_in_train": 1058,
+      "removed_as_already_seen": 164,
+      "total_targets": 12012
+    },
+    "warm": {
+      "recall@10": 0.01938002716230982,
+      "ndcg@10": 0.012397756101263965,
+      "hit_rate@10": 0.04047217537942664,
+      "coverage@10": 0.01031661677376576,
+      "recall@20": 0.02992239373334419,
+      "ndcg@20": 0.01524932758641548,
+      "hit_rate@20": 0.05733558178752108,
+      "coverage@20": 0.018985305159283494
+    },
+    "warm_deg1": {
+      "recall@10": 0.013320463320463322,
+      "ndcg@10": 0.008801936436371394,
+      "hit_rate@10": 0.019305019305019305,
+      "coverage@10": 0.006752605969596209,
+      "recall@20": 0.021042471042471044,
+      "ndcg@20": 0.010833581916051452,
+      "hit_rate@20": 0.02702702702702703,
+      "coverage@20": 0.01255935955067136
+    },
+    "warm_deg2": {
+      "recall@10": 0.019736842105263157,
+      "ndcg@10": 0.00969996990485916,
+      "hit_rate@10": 0.02631578947368421,
+      "coverage@10": 0.002598656304544967,
+      "recall@20": 0.023026315789473683,
+      "ndcg@20": 0.011049090149835765,
+      "hit_rate@20": 0.039473684210526314,
+      "coverage@20": 0.005090050998020536
+    },
+    "warm_deg3plus": {
+      "recall@10": 0.025357969407944665,
+      "ndcg@10": 0.016802209760697847,
+      "hit_rate@10": 0.06589147286821706,
+      "coverage@10": 0.00546546663676343,
+      "recall@20": 0.04086813753439187,
+      "ndcg@20": 0.020919467794959443,
+      "hit_rate@20": 0.09302325581395349,
+      "coverage@20": 0.010131346718282254
+    },
+    "cold": null,
+    "all": null
+  },
+  "selection_check": {
+    "monitor": "ndcg@20",
+    "best_epoch": 70,
+    "value_during_training": 0.03686172350401322,
+    "value_after_restore": 0.03686172350401322,
+    "relative_difference": 0.0
+  }
+}
