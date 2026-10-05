@@ -1,6 +1,6 @@
 # Việc đang chờ
 
-Cập nhật: 25/09/2026. Hạn nộp: **30/09/2026**.
+Cập nhật: 05/10/2026. Hạn nộp: **07/10/2026** (đã gia hạn từ 30/09).
 
 ---
 
@@ -72,9 +72,11 @@ Chuẩn chi phối là khung HUIT + hai bài mẫu.
 3. **Cụm "ứng dụng nguyên mẫu"** còn ở tiêu đề §4.5 và caption Bảng 4.12 — anh đã chê "nguyên mẫu cục bộ"
    trong Tóm tắt; sửa tiêu đề là đụng mục lục nên chờ anh gật
 4. ~~Đóng port 8501~~ — kiểm 25/09: không còn luật ufw, không có tiến trình lắng nghe
-5. **Ablation tách α khỏi λ (D35) — ĐANG LÀM.** 12 run (`bt_dkgrec_alpha_only`, `bt_dkgrec_time_only`),
-   ~7 giờ Colab. Kết quả vào phụ lục/slide, KHÔNG sinh lại Chương 4. Ngưỡng đọc kết quả đã ghi trước ở D35.
-6. Câu "đồ thị động ở chỗ nào": làm thanh trượt τ trong app Streamlit (CPU, chưa bắt đầu)
+5. ~~Ablation tách α khỏi λ (D35)~~ — **xong 05/10**, 12/12 run. Original: hai thành phần bổ sung nhau;
+   Active: chủ yếu từ thời gian. Bảng: `docs/BANG_ABLATION_D35.md` (`scripts/16_bang_ablation.py`).
+   Dùng cho phụ lục/slide; đưa vào quyển nộp hay không — anh Nguyên quyết.
+6. Demo "Mô phỏng online" (D36): module + test xong, **chưa nối app**, để sau ngày nộp.
+   Cần: 1 run `bt_dkgrec_l05` có lưu E₀ trên Colab, trang app riêng, guard trùng `topk.csv`.
 7. Word (F9 mục lục, cụm "nguyên mẫu") để cuối cùng, anh Nguyên chốt rồi nộp
 
 ---

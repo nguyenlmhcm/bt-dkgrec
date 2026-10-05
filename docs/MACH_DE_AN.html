@@ -170,9 +170,9 @@ ul.tight li b{color:var(--ink); font-weight:600}
   <h1>Mạch đề án BT-DKGRec</h1>
   <p class="sub">Nền tảng khái niệm, vị trí học thuật, và mạch xuyên suốt từ ý tưởng đến buổi bảo vệ. Mỗi thuật ngữ được định nghĩa ngay chỗ dùng lần đầu.</p>
   <div class="chips">
-    <span class="chip">Cập nhật 27/08/2026</span>
-    <span class="chip">31/36 run đã xong</span>
-    <span class="chip">299 test pass</span>
+    <span class="chip">Cập nhật 01/10/2026</span>
+    <span class="chip">48/48 run · ablation D35 xong</span>
+    <span class="chip">toàn bộ test xanh</span>
   </div>
 </header>
 
@@ -565,14 +565,14 @@ s(u,i) = z_u · z_i               <span class="c">← điểm xếp hạng</span
 <div class="part">
   <div class="pl">Phần D</div>
   <h2>Chuẩn bị bảo vệ</h2>
-  <p class="pd">Mười bảy câu hỏi khả năng cao, kèm câu trả lời và bằng chứng cụ thể để chỉ ra.</p>
+  <p class="pd">Hai mươi câu hỏi khả năng cao, kèm câu trả lời và bằng chứng cụ thể để chỉ ra.</p>
 </div>
 
 <div class="qa" style="margin-top:26px">
   <div class="q"><p class="ask">Vì sao chọn bộ dữ liệu này để thực nghiệm? Dữ liệu thưa như vậy thì kết quả có đáng tin không?</p>
     <p>Bộ dữ liệu được chọn theo yêu cầu của mô hình, không theo độ dễ của kết quả. Mô hình cần đồng thời nhiều loại hành vi có phân biệt target, timestamp ở mức từng sự kiện để tính suy giảm theo thời gian, và thuộc tính sản phẩm cùng cây danh mục để dựng được đồ thị tri thức. RetailRocket có đủ cả bốn, lại là log thật của một sàn thương mại điện tử chứ không phải dữ liệu tổng hợp.</p>
     <p>Về độ thưa: 3,33% chính là bài toán cần giải, không phải khiếm khuyết. Nếu hành vi mục tiêu dày đặc thì tín hiệu phụ trợ trở nên thừa và đóng góp của đề án không đo được.</p>
-    <p>Về độ tin cậy: kết luận của đề án là <b>hiệu số giữa các mô hình</b>, không phải giá trị Recall tuyệt đối. Mọi mô hình chạy trên cùng split thời gian, cùng ánh xạ, cùng tập ứng viên, cùng ba seed, có kiểm định thống kê. Độ thưa ảnh hưởng như nhau tới mọi dòng nên không làm sai lệch thứ hạng.</p>
+    <p>Về độ tin cậy: kết luận của đề án là <b>hiệu số giữa các mô hình</b>, không phải giá trị Recall tuyệt đối. Mọi mô hình chạy trên cùng split thời gian, cùng ánh xạ, cùng tập ứng viên, cùng ba seed. Độ thưa ảnh hưởng như nhau tới mọi dòng nên không làm sai lệch thứ hạng.</p>
     <p class="ev">Nếu bị hỏi bồi "sao không chọn bộ khác cho số đẹp hơn": Recall cao hơn nhờ đổi sang bộ dữ liệu dễ hơn không phải bằng chứng mô hình tốt hơn — nó chỉ chứng minh bộ dữ liệu dễ hơn. Nên tự nêu trước hạn chế: đề án thực nghiệm trên một bộ dữ liệu, việc lặp lại trên Tmall hoặc Taobao UserBehavior là hướng phát triển.</p></div>
 
   <div class="q"><p class="ask">Baseline LightGCN đã hội tụ chưa, hay bị dừng sớm cho dễ thắng?</p>
@@ -616,14 +616,33 @@ s(u,i) = z_u · z_i               <span class="c">← điểm xếp hạng</span
   <div class="q"><p class="ask">Ứng dụng chạy thật được không, hay chỉ là demo?</p>
     <p>Ứng dụng <b>không tự tính điểm</b>. Nó đọc tệp <code>topk.csv</code> sinh ra từ lần chạy đã lưu và truy vấn Neo4j để hiển thị lịch sử, trọng số cạnh và đồ thị con. Đây là giới hạn <b>có chủ đích</b>, không phải thiếu sót.</p>
     <p>Lý do: nếu app tự suy luận, nó có thể sinh ra con số khác với bảng kết quả trong luận văn, và khi đó không còn biết con số nào là con số được báo cáo. Giữ app ở vai trò phát lại kết quả offline thì mọi thứ hiển thị đều truy ngược được về một lần chạy cụ thể.</p>
-    <p class="ev">Mục 3.7.2 đã nêu thẳng giới hạn này, và đoạn cuối ghi rõ đề án chưa đánh giá độ trễ, thông lượng, A/B testing hay cơ chế cập nhật mô hình trong môi trường thực. Trả lời thẳng, đừng hứa app là hệ thống vận hành.</p></div>
+    <p class="ev">Câu này sẽ viết lại nếu làm demo "Mô phỏng online" (đang chờ quyết định). Mục 3.7.2 đã nêu thẳng giới hạn này, và đoạn cuối ghi rõ đề án chưa đánh giá độ trễ, thông lượng, A/B testing hay cơ chế cập nhật mô hình trong môi trường thực. Trả lời thẳng, đừng hứa app là hệ thống vận hành.</p></div>
 
   <div class="q"><p class="ask">Static KG-GCN có phải là KGAT hay KGCN không?</p>
     <p>Không. Đây là mô hình đối chứng tự xây dựng, chính là mô hình đề xuất bị gỡ đi một thành phần. Nó không đại diện cho nhóm mô hình KG đã công bố, và đề án không đưa điểm số công bố trên bộ dữ liệu khác vào bảng so sánh.</p></div>
 
   <div class="q"><p class="ask">Đóng góp của đề án khác gì MBGCN và KHGT?</p>
     <p>MBGCN <b>học</b> mức đóng góp của từng loại hành vi như tham số mô hình; đề án <b>gán cứng</b> ba giá trị rồi đưa vào trọng số cạnh trước khi huấn luyện. KHGT mã hoá thời gian bên trong cơ chế attention của transformer; đề án dùng một hàm suy giảm mũ tính sẵn trên cạnh, không có attention.</p>
-    <p>Đề án lấy <b>ý tưởng</b> từ hai hướng đó và đơn giản hoá có chủ ý, đổi lại là một phép so sánh có kiểm soát chặt hơn. Đây là lựa chọn thiết kế, không phải hạn chế bị bỏ sót.</p></div>
+    <p>Đề án lấy <b>ý tưởng</b> từ hai hướng đó và đơn giản hoá có chủ ý, đổi lại là một phép so sánh có kiểm soát chặt hơn. Đây là lựa chọn thiết kế, không phải hạn chế bị bỏ sót.</p>
+    <p>Nếu bị hỏi tiếp <i>"sao không học luôn α và λ?"</i>: gán cứng có ba lợi ích. <b>Diễn giải được</b> — nhìn trọng số cạnh là biết vì sao một món được gợi ý. <b>Kiểm soát được</b> — mô hình đề xuất và Static KG-GCN khác nhau đúng một hàm, nên mức chênh quy được về thành phần đó. <b>Nhẹ khi phục vụ</b> — trọng số tính bằng một công thức, không cần mạng attention. λ đã được dò trên tập xác thực; học α, λ đầu-cuối là hướng phát triển.</p></div>
+
+  <div class="q"><p class="ask">Sao không so với KGAT, MBGCN hay SASRec?</p>
+    <p>Câu hỏi của đề án là <b>thêm hành vi-thời gian vào đồ thị tri thức có giúp không</b>, không phải <i>mô hình nào tốt nhất</i>. Trả lời câu đó cần một thang mà mỗi bậc thêm đúng một thành phần: LightGCN → thêm tri thức sản phẩm (Static KG-GCN) → thêm hành vi-thời gian (BT-DKGRec-GCN). KGAT hay MBGCN khác kiến trúc ở nhiều chỗ cùng lúc, nên thắng hay thua đều không quy được về đóng góp của đề án.</p>
+    <p>Đề án cũng không chép điểm công bố trên bộ dữ liệu khác vào bảng. So sánh với các mô hình đó trên cùng giao thức là hướng phát triển.</p>
+    <p class="ev">Đừng nói Static KG-GCN tương đương KGAT — nó là mô hình đối chứng tự xây dựng.</p></div>
+
+  <div class="q"><p class="ask">Tên đề tài là đồ thị <i>động</i> — động ở chỗ nào?</p>
+    <p>Đề án thuộc nhánh <b>đồ thị động rời rạc</b> (discrete-time) — một trong hai dạng chuẩn trong tài liệu tổng quan của Kazemi và cộng sự (JMLR 2020); dạng còn lại là continuous-time. Đồ thị G<sub>τ</sub> định nghĩa tại mọi thời điểm τ: trọng số cạnh suy giảm theo tuổi của hành vi, cạnh mới xuất hiện khi có hành vi mới. Mô hình được huấn luyện trên lát cắt tại T<sub>train</sub>; khi phục vụ, hành vi mới được đưa vào mà không cần huấn luyện lại; mô hình được huấn luyện lại theo chu kỳ.</p>
+    <p>Điểm riêng là dạng <b>lai</b>: cấu trúc là một ảnh chụp tại τ, nhưng trọng số mỗi cạnh tính từ <b>timestamp chính xác đến mili giây</b> của từng sự kiện, không làm tròn về ngày. So với continuous-time (JODIE, TGN), phần mất đi chỉ là <b>thứ tự</b> giữa các sự kiện, còn độ mới thì giữ nguyên — đổi lại mô hình đơn giản và phục vụ nhẹ. Với RetailRocket, 43,7% khách được đánh giá chỉ có một tương tác trong train, nên lợi ích từ thứ tự là hạn chế.</p>
+    <p>Phân biệt với lọc cộng tác: lan truyền đưa sở thích của người giống nhau sang nhau — đồ thị tĩnh cũng làm được. Tính động bảo đảm sở thích được lan truyền là sở thích <b>hiện tại</b>.</p>
+    <p class="ev">Đừng nói thực nghiệm cập nhật đồ thị real-time — thực nghiệm dùng một lát cắt. Nếu có demo online: hành vi mới của chính khách đổi Top-K ngay; hành vi của người khác chỉ tác động ở lần huấn luyện lại kế tiếp.</p></div>
+
+  <div class="q"><p class="ask">Phần tăng của mô hình đề xuất đến từ loại hành vi (α) hay từ thời gian (λ)?</p>
+    <p>Đề án tách bằng thiết kế 2×2: không có cả hai (Static KG-GCN), chỉ α, chỉ thời gian, có cả hai (BT-DKGRec-GCN). Mỗi cấu hình khác mô hình đề xuất đúng một tham số.</p>
+    <p>Kết quả khác nhau theo nhóm khách, và chính sự khác nhau đó là câu trả lời. Ở nhóm <b>Active</b> (từ 5 sự kiện trở lên), suy giảm thời gian một mình đã cho toàn bộ mức tăng Recall@20 và thắng Static KG-GCN ở cả 3 seed; loại hành vi chỉ góp khoảng một phần ba. Ở nhóm <b>Original</b>, từng thành phần đứng riêng không tạo khác biệt rõ; chỉ khi kết hợp mới có mức tăng.</p>
+    <p>Diễn giải: <b>độ mới chỉ phát huy khi khách có đủ lịch sử</b> để có cái cũ mà so với cái mới. Ở Original, 43,7% khách được đánh giá chỉ có một tương tác — với họ, loại hành vi mới là thứ phân biệt được mức độ quan tâm, nên hai thành phần cần đi cùng nhau. Đó cũng là lý do công thức nhân α với suy giảm thời gian.</p>
+    <p>Bằng chứng gián tiếp đã có từ bước dò λ: bỏ yếu tố thời gian (λ=0) làm AUC của trọng số cạnh giảm từ khoảng 0,92 xuống 0,79, còn α chỉ góp khoảng 0,014.</p>
+    <p class="ev">Chỉ ra: bảng phụ lục <code>docs/BANG_ABLATION_D35.md</code>. Ở Original đừng nói "chỉ thời gian làm giảm" — chênh lệch nhỏ hơn dao động giữa seed; nói "không tạo khác biệt rõ". Cách đọc kết quả đã chốt trước khi đo (DECISIONS.md, D35): chỉ thời gian ≥ ⅔ mức tăng → thời gian là chính; α ≥ ⅔ → nói thẳng là bác bỏ phân tích AUC; ở giữa → hai thành phần bổ sung nhau.</p></div>
 
   <div class="q"><p class="ask">Vì sao chọn λ = 0.05?</p>
     <p>Quét λ trên tập validation, đo bằng AUC của trọng số cạnh khi dự báo tương tác target. Đỉnh nằm ở 0.05 trên cả hai cohort. Giá trị 0.01 của bản trước là kế thừa, chưa từng được dò trên dữ liệu này, và đề án giữ cả hai để người đọc thấy cả trước lẫn sau khi dò.</p>
@@ -639,11 +658,14 @@ s(u,i) = z_u · z_i               <span class="c">← điểm xếp hạng</span
   <div class="q"><p class="ask">Làm sao biết không có rò rỉ dữ liệu?</p>
     <p>Mười assertion chạy ngay trong pipeline, kiểm split theo thời gian, ánh xạ chỉ từ train, side information cắt đúng mốc, tập ứng viên và mẫu âm chỉ từ train, và bước chọn mô hình chỉ đọc validation. Assertion không thoả thì pipeline dừng, và chúng không được phép tắt.</p></div>
 
-  <div class="q"><p class="ask">Chênh lệch này có phải chỉ do may mắn của một lần chạy?</p>
-    <p>Mỗi cấu hình chạy ba seed, báo cáo trung bình kèm độ lệch chuẩn, và so sánh bằng kiểm định thống kê. Hai mô hình heuristic có độ lệch chuẩn bằng 0 vì chúng tất định, không phải vì tính sai.</p></div>
+  <div class="q"><p class="ask">Chỉ ba seed thì chênh lệch có phải do may mắn không?</p>
+    <p>Đề án không dựa vào một con số trung bình. Bảng 4.7 liệt kê <b>từng lần chạy</b>: lần chạy thấp nhất của mô hình đề xuất (λ=0.05) vẫn cao hơn lần chạy cao nhất của LightGCN, trên cả hai cohort. Ba seed dùng chung cho mọi mô hình, cùng split, cùng tập ứng viên.</p>
+    <p>Nói luôn phần chưa chắc: NDCG@20 chỉ thắng ở 2/3 seed, và với λ=0.01 các lần chạy có chồng lấn. Kết luận "không chồng lấn" chỉ đúng cho λ=0.05.</p>
+    <p class="ev">Chỉ ra: Bảng 4.7. Không nhắc p-value hay "có ý nghĩa thống kê" — bản v17 đã bỏ phần này theo khung HUIT. Hai mô hình heuristic tất định, nên ba seed cho cùng một số.</p></div>
 
-  <div class="q"><p class="ask">Coverage của mô hình đề xuất thấp hơn baseline ở vài chỗ. Giải thích thế nào?</p>
-    <p>Báo cáo đúng như đo được. Mô hình có xu hướng tập trung vào tập item hẹp hơn; đây là hạn chế được nêu thẳng trong phần thảo luận, không phải chỉ số bị giấu đi.</p></div>
+  <div class="q"><p class="ask">Mô hình có chỉ quanh quẩn gợi ý vài món phổ biến không?</p>
+    <p>Không. Coverage@20 — tỉ lệ item khác nhau xuất hiện trong Top-20 của toàn bộ khách — của mô hình đề xuất <b>cao nhất</b> trong sáu mô hình, ở cả hai cohort: 0.0229 so với 0.0205 của LightGCN trên Original, 0.0346 so với 0.0322 trên Active. Hai mô hình phổ biến chỉ phủ khoảng 0.0003, vì chúng gợi ý gần như cùng một danh sách cho mọi người.</p>
+    <p class="ev">Bản ghi chú trước nói coverage của mô hình đề xuất thấp hơn baseline — điều đó đúng với kết quả cũ, không còn đúng với 36 run hiện tại. Đừng ôn theo câu cũ.</p></div>
 
   <div class="q"><p class="ask">Vì sao số trong bản luận văn cũ khác số bây giờ?</p>
     <p>Vì bản cũ huấn luyện 10 epoch cho mọi mô hình nên chưa mô hình nào hội tụ. Bằng chứng: hai mô hình tất định cho ra số khớp bản cũ đến chữ số cuối cùng, chứng tỏ split, ánh xạ và code metric của hai bản là một; phần lệch nằm đúng ở các mô hình cần huấn luyện.</p>
