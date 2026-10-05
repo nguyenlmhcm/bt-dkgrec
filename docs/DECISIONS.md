@@ -1127,3 +1127,53 @@ sau khi nhìn số.
 
 **Chi phí phụ:** thêm file vào `configs/` và `src/graph/` làm mất cache `interim` lẫn
 `processed` trên Drive (D29), thêm khoảng 60 phút tiền xử lý.
+
+### D35 — Kết quả (05/10/2026, đủ 12/12 run)
+
+Bảng đầy đủ: `docs/BANG_ABLATION_D35.md`, sinh bởi `scripts/16_bang_ablation.py`. Kết luận
+cũng do script tính theo ngưỡng ở trên; `tests/test_bang_ablation.py` chốt ngưỡng và đã kiểm
+bằng ba đột biến (hạ ⅔ → ½, nâng ⅓ → ½, hạ ngưỡng α) — cả ba đều đỏ.
+
+Recall@20, trung bình 3 seed, tỉ lệ so với mức tăng của `bt_dkgrec_l05`:
+
+| | Original | Active |
+|---|---|---|
+| Chỉ α | +10% (thắng Static 2/3 seed) | +31% (3/3) |
+| Chỉ thời gian | **−29%** (1/3) | **+109%** (3/3) |
+| **Kết luận theo ngưỡng** | **hai thành phần bổ sung nhau** | **chủ yếu từ thời gian** |
+
+**Đọc kết quả.**
+
+- **Active:** suy giảm thời gian một mình đã cho toàn bộ mức tăng; thêm α lên trên gần như
+  không đổi gì (0.038628 so với 0.038004). Khớp với phép đo AUC ở D33.
+- **Original:** từng thành phần riêng không tạo khác biệt rõ so với Static KG-GCN; chỉ khi kết
+  hợp mới có mức tăng. D33 (thời gian là chính) **không** được xác nhận ở cohort này.
+- **Câu chuyện chung:** độ mới chỉ phát huy khi khách có đủ lịch sử để có cái "cũ" mà so với
+  cái "mới". 43,7% user được đánh giá của Original có bậc 1 (D34) — với họ không có gì để
+  xếp lại theo thời gian; loại hành vi mới phân biệt được mức độ của tương tác duy nhất đó.
+  Đây là **giả thuyết giải thích**, chưa kiểm bằng phân tầng theo bậc trên bốn ô 2×2.
+
+**Giới hạn phải nói.** Ở Original, khoảng cách của hai ô đơn lẻ so với Static (0.0003–0.001)
+nhỏ hơn nhiều dao động giữa seed (Static từ 0.021 đến 0.031). Phát biểu an toàn: "từng thành
+phần riêng không tạo khác biệt rõ", **không** phát biểu "chỉ thời gian làm giảm".
+
+---
+
+## D36 — Module phục vụ online (`src/serving/online.py`), chưa nối vào app
+
+**Câu hỏi:** mô hình huấn luyện offline thì đưa hành vi mới của khách vào lúc phục vụ thế nào?
+
+**Cách làm:** lưu một lần sau mỗi lần huấn luyện các lớp lan truyền của item (`L_0..L_{K-1}`),
+embedding cuối của item và bậc có trọng số của item. Khi có hành vi mới, tính lại `W_ui` tại
+τ = bây giờ bằng công thức (3.6)–(3.8), rồi `z_u = mean(e0_u, Σ â_ui L_{k-1,i})` — **chính xác**
+cho phía user; chỉ embedding item là của lần huấn luyện gần nhất (cập nhật theo chu kỳ).
+
+**Bằng chứng:** `tests/test_online.py` — với visitor có trong đồ thị, τ = T_train, fold-in
+bằng lan truyền toàn đồ thị (đã kiểm bằng đột biến). Đo trên đồ thị thật Original (1,26 triệu
+node, CPU 4 nhân, embedding ngẫu nhiên): dựng gói 14 giây, 210 MB; Top-20 mỗi lần gọi khoảng
+7 ms (p95 dưới 10 ms).
+
+**Chưa làm, chờ quyết định:** nối vào app. Mục "Demo — giới hạn có chủ đích" trong `CLAUDE.md`
+cấm app tự suy luận sinh số khác bảng kết quả. Phương án đề xuất: trang riêng "Mô phỏng
+online", chỉ mô hình `bt_dkgrec_l05`, kèm guard "khi chưa có hành vi mới thì Top-K trùng
+`topk.csv`". Cần một run có lưu `E₀` trên Colab. Để sau ngày nộp 07/10.

@@ -120,6 +120,7 @@ cắt 13 công thức thừa rồi đánh số lại.
 | KG tĩnh | `static_kg_gcn` | Ablation — có side info, **không** behavior-time |
 | Đề xuất | `bt_dkgrec` | Đầy đủ — `λ = 0,01` kế thừa từ MBGCN/KHGT, **chưa dò** |
 | Đề xuất (dò λ) | `bt_dkgrec_l05` | Đầy đủ — `λ = 0,05` dò trên tập xác thực (D33) |
+| Tách α/λ (D35) | `bt_dkgrec_alpha_only`, `bt_dkgrec_time_only` | Ablation 2×2 — mỗi cái khác `bt_dkgrec_l05` đúng một tham số; chỉ phụ lục, không vào Chương 4 |
 
 **Lập luận cốt lõi của luận văn** nằm ở cặp `static_kg_gcn` vs `bt_dkgrec`. Hai mô hình phải khác **đúng một biến**: hàm `edge_weight()`. Mọi thứ khác dùng chung code.
 

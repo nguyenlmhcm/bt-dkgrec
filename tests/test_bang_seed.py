@@ -79,7 +79,11 @@ def toan_van(path: Path) -> str:
 # ── 1. Khang dinh trong Tom tat phai dung ───────────────────────────────
 
 
-def test_ba_seed_du_cho_moi_cau_hinh(so):
+def test_ba_seed_du_cho_moi_cau_hinh(mod, so):
+    # Chi dem 6 mo hinh cua Chuong 4. Run ablation D35 (alpha_only, time_only)
+    # nam chung thu muc runs/ nhung khong thuoc Bang 4.7.
+    chuong4 = {model for model, _ in mod.MODEL_ORDER}
+    so = {khoa: v for khoa, v in so.items() if khoa[1] in chuong4}
     assert len(so) == 12, f"can 6 mo hinh x 2 cohort, co {len(so)}"
     for khoa, gia_tri in so.items():
         assert sorted(gia_tri) == [2020, 2021, 2022], f"{khoa} thieu seed"
