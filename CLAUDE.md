@@ -223,7 +223,7 @@ src/evaluation/   metrics, evaluator, segments, stats
 src/guards/       leakage  ← không được bỏ qua
 src/export/       neo4j_export
 scripts/          01_preprocess → 07_export_neo4j
-app/              demo Streamlit + Neo4j
+app/              demo Streamlit, đọc CSV (không kết nối Neo4j)
 experiments/      seeds.json, runs/<run_id>/
 tests/            pytest
 docs/             KG_DESIGN.md, PLAN.md
@@ -327,7 +327,7 @@ Làm tuần tự, mỗi bước phải xanh trước khi sang bước sau.
 
 ## Demo — giới hạn có chủ đích
 
-App **không tự tính điểm**. Nó đọc `topk.csv` từ run artifact (offline evaluation replay) và truy vấn Neo4j để hiển thị lịch sử, trọng số cạnh, subgraph.
+App **không tự tính điểm**. Nó đọc `topk.csv` từ run artifact (offline evaluation replay) và bộ tệp CSV trong `data/neo4j/` để hiển thị lịch sử, trọng số cạnh, subgraph. Neo4j nạp cùng bộ tệp đó, chỉ để kiểm tra lược đồ (D37).
 
 Giới hạn này đã được nêu trung thực trong luận văn (mục 3.7.2) — **giữ nguyên**. Không để app tự suy luận rồi sinh số khác với bảng kết quả.
 

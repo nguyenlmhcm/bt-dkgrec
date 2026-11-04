@@ -39,7 +39,7 @@ BEHAVIOR_LABEL = {"view": "xem", "addtocart": "thêm giỏ", "transaction": "mua
 st.set_page_config(page_title="BT-DKGRec-GCN — Demo truy vết", layout="wide")
 
 
-@st.cache_data(show_spinner="Đang nạp lớp truy vết…")
+@st.cache_data(show_spinner="Đang nạp đồ thị truy vết…")
 def _trace(export_dir: str):
     return load_trace(Path(export_dir))
 
@@ -94,7 +94,7 @@ if manifest:
     check = manifest.get("layer_consistency", {})
     if check:
         st.sidebar.caption(
-            f"Hai lớp khớp: {check['n_pairs']:,} cặp, "
+            f"Hai đồ thị khớp: {check['n_pairs']:,} cặp, "
             f"lệch tối đa {check['worst_relative_difference']:.1e}"
         )
 
@@ -115,7 +115,7 @@ middle.metric("Sản phẩm đã chạm", f"{len(edges):,}")
 right.metric("Tổng trọng số W(u,·)", f"{edges['weight'].sum():.3f}" if len(edges) else "0")
 
 tab_trace, tab_projected, tab_topk = st.tabs(
-    ["Lớp truy vết — từng sự kiện", "Lớp chiếu — W(u,i)", "Gợi ý Top-K"]
+    ["Đồ thị truy vết — từng sự kiện", "Đồ thị huấn luyện — W(u,i)", "Gợi ý Top-K"]
 )
 
 with tab_trace:

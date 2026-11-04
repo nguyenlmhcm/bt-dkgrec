@@ -425,9 +425,9 @@ Nếu đề án phát biểu là kế thừa mà không trích dẫn, đó là m
       <div class="step"><span class="s">05</span><span class="w">Thêm tri thức</span><span class="d">category, property, cây danh mục</span></div>
     </div>
     <p>Trong bốn loại quan hệ, chỉ quan hệ tương tác giữa visitor và item mang thời gian — đó là phần động. Ba quan hệ còn lại là tri thức sản phẩm tĩnh.</p>
-    <div class="box"><span class="lbl">Hai lớp biểu diễn — chỗ hay bị hiểu nhầm</span>
-      <b>Lớp lưu vết</b> giữ mỗi sự kiện thành một node riêng, dùng cho Neo4j và cho việc truy vết khi trình diễn. <b>Lớp chiếu</b> gộp mọi sự kiện cùng cặp visitor-item thành <b>một</b> cạnh có trọng số tổng hợp, và đây mới là thứ mô hình học trên đó.<br><br>
-      Trên cohort Original: <b class="mono">2.024.042</b> sự kiện chiếu thành <b class="mono">1.570.409</b> cạnh. Một assertion đối chiếu tổng trọng số hai lớp trên từng cặp; sai khác tương đối lớn nhất bằng <b class="mono">0</b>.
+    <div class="box"><span class="lbl">Hai đồ thị — chỗ hay bị hiểu nhầm</span>
+      <b>Đồ thị truy vết</b> giữ mỗi sự kiện thành một node riêng, dùng cho Neo4j và cho việc truy vết khi trình diễn. <b>Đồ thị huấn luyện</b> gộp mọi sự kiện cùng cặp visitor-item thành <b>một</b> cạnh có trọng số tổng hợp, và đây mới là thứ mô hình học trên đó.<br><br>
+      Trên cohort Original: <b class="mono">2.024.042</b> sự kiện chiếu thành <b class="mono">1.570.409</b> cạnh. Một assertion đối chiếu tổng trọng số hai đồ thị trên từng cặp; sai khác tương đối lớn nhất bằng <b class="mono">0</b>.
     </div>
   </div>
 </section>
@@ -614,7 +614,7 @@ s(u,i) = z_u · z_i               <span class="c">← điểm xếp hạng</span
     <p class="ev">Chỉ ra: <code>curves.csv</code> của từng lần chạy, cột <code>valid_ndcg@20</code>. Đây cũng là bằng chứng cho câu "baseline đã hội tụ chưa" — đường đi xuống chứng tỏ đã qua đỉnh, không phải bị dừng khi còn đang lên.</p></div>
 
   <div class="q"><p class="ask">Ứng dụng chạy thật được không, hay chỉ là demo?</p>
-    <p>Ứng dụng <b>không tự tính điểm</b>. Nó đọc tệp <code>topk.csv</code> sinh ra từ lần chạy đã lưu và truy vấn Neo4j để hiển thị lịch sử, trọng số cạnh và đồ thị con. Đây là giới hạn <b>có chủ đích</b>, không phải thiếu sót.</p>
+    <p>Ứng dụng <b>không tự tính điểm</b>. Nó đọc tệp <code>topk.csv</code> sinh ra từ lần chạy đã lưu và bộ tệp CSV của đồ thị để hiển thị lịch sử, trọng số cạnh và đồ thị con. Neo4j nạp cùng bộ tệp đó, dùng riêng để kiểm tra lược đồ. Đây là giới hạn <b>có chủ đích</b>, không phải thiếu sót.</p>
     <p>Lý do: nếu app tự suy luận, nó có thể sinh ra con số khác với bảng kết quả trong luận văn, và khi đó không còn biết con số nào là con số được báo cáo. Giữ app ở vai trò phát lại kết quả offline thì mọi thứ hiển thị đều truy ngược được về một lần chạy cụ thể.</p>
     <p class="ev">Câu này sẽ viết lại nếu làm demo "Mô phỏng online" (đang chờ quyết định). Mục 3.7.2 đã nêu thẳng giới hạn này, và đoạn cuối ghi rõ đề án chưa đánh giá độ trễ, thông lượng, A/B testing hay cơ chế cập nhật mô hình trong môi trường thực. Trả lời thẳng, đừng hứa app là hệ thống vận hành.</p></div>
 

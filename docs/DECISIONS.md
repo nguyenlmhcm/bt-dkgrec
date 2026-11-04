@@ -1177,3 +1177,23 @@ node, CPU 4 nhân, embedding ngẫu nhiên): dựng gói 14 giây, 210 MB; Top-2
 cấm app tự suy luận sinh số khác bảng kết quả. Phương án đề xuất: trang riêng "Mô phỏng
 online", chỉ mô hình `bt_dkgrec_l05`, kèm guard "khi chưa có hành vi mới thì Top-K trùng
 `topk.csv`". Cần một run có lưu `E₀` trên Colab. Để sau ngày nộp 07/10.
+
+---
+
+## D37 — Ứng dụng đọc CSV; Neo4j chỉ để kiểm tra lược đồ
+
+**Phát hiện (04/11/2026):** `app/main.py` và `src/export/trace.py` đọc thẳng CSV và `topk.csv`, không
+kết nối Neo4j. Hình 3.1 và hai câu của v18 lại nói ứng dụng truy vấn Neo4j. Chạy thử `import.cypher`
+còn lộ ra gói nạp hỏng: 7 dòng thô trùng hoàn toàn tạo `event_id` trùng, `LOAD CSV` dừng ở ràng buộc
+UNIQUE, Neo4j không có node Event nào. Bản xuất có sẵn cũng là λ=0,01, không phải mô hình đề xuất.
+
+**Quyết định (anh Nguyên duyệt):** sửa quyển và hình theo code, không viết thêm kết nối Neo4j, để
+demo không phụ thuộc một dịch vụ đang chạy. Dòng trùng được giữ và đánh số vì vẫn cộng vào W(u,i).
+
+**Bằng chứng:** `tests/test_export.py`, `tests/test_v19.py`. Nạp thật `original_bt_dkgrec_l05_evaluated`
+vào Neo4j 5.26 (Docker, 31 giây): 25.510 Event, 14.696 INTERACTED_WITH, tổng trọng số sự kiện so với
+trọng số cạnh lệch tối đa 4,4e-16 trên 14.696 cặp.
+
+**Tên gọi (anh Nguyên chốt):** trong quyển, hình, app chỉ dùng "đồ thị truy vết" và "đồ thị huấn luyện". Code và tài liệu kỹ thuật giữ tên cũ (`trace`, lớp truy vết, lớp chiếu).
+
+**Chưa kiểm:** nạp phạm vi đầy đủ (`--scope all`, 2,02 triệu sự kiện).

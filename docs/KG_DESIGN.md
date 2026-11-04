@@ -73,7 +73,7 @@ RetailRocket có `property` và `value` ẩn danh (đã hash). Gộp thành mộ
 
 | Property | Kiểu | Nguồn |
 |---|---|---|
-| `event_id` | string | `f"{visitorid}_{itemid}_{timestamp}"` |
+| `event_id` | string | `f"{visitorid}_{itemid}_{timestamp}"`, thêm `_1`, `_2`… cho dòng thô trùng hoàn toàn |
 | `behavior` | string | `view` \| `addtocart` \| `transaction` |
 | `timestamp` | long | ms |
 | `w_event` | float | `α_b · exp(-λ·Δt)` — trọng số sự kiện |

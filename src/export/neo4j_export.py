@@ -74,6 +74,10 @@ def build_event_layer(
         + out["itemid"].astype(str) + "_"
         + out["timestamp"].astype(str)
     )
+    # Raw data has fully duplicated rows; each still adds to W(u,i), so number them
+    # instead of dropping them, or the UNIQUE constraint stops LOAD CSV.
+    lap = out.groupby("event_id").cumcount()
+    out.loc[lap > 0, "event_id"] += "_" + lap[lap > 0].astype(str)
     return out
 
 

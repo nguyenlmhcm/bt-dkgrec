@@ -76,6 +76,21 @@ def test_event_id_is_unique_per_event() -> None:
     assert layer["event_id"].is_unique
 
 
+def test_duplicate_raw_rows_keep_separate_event_ids() -> None:
+    """RetailRocket co dong trung hoan toan; ca hai van duoc cong vao trong so canh.
+
+    Trung event_id lam LOAD CSV dung o rang buoc UNIQUE, Neo4j khong co Event nao.
+    """
+    cfg = load_config(model="bt_dkgrec", cohort="original")
+    events = pd.concat([_events(), _events().iloc[[0]]], ignore_index=True)
+    layer = build_event_layer(events, cfg, T_TRAIN)
+
+    assert len(layer) == len(events)
+    assert layer["event_id"].is_unique
+    assert layer.loc[0, "event_id"] == f"1_10_{90 * DAY}"
+    assert layer.loc[4, "event_id"] == f"1_10_{90 * DAY}_1"
+
+
 def test_an_unknown_behavior_is_refused_rather_than_silently_coded() -> None:
     cfg = load_config(model="bt_dkgrec", cohort="original")
     events = _events()
