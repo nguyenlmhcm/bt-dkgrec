@@ -1,6 +1,6 @@
 """Ve lai sau hinh Chuong 4 cho quyen in: dung kho 16 cm, font Times, chu nam ngang.
 
-Chi doi cach trinh bay. So doc tu experiments/runs/ qua load_runs(), cung nguon voi
+Chi doi cach trinh bay. Thanh sai so chi ve phia ngoai cot de khong de len cot. So doc tu experiments/runs/ qua load_runs(), cung nguon voi
 bang ket qua. Mau: mo hinh de xuat do, con lai xam, in den trang van doc duoc vi
 moi cot co ten va so ngay ben canh.
 
@@ -91,7 +91,7 @@ def so_sanh(frame: pd.DataFrame, cohort: str, name: str) -> Path:
         mean = [sub[sub["model"] == m][col].mean() for m in models]
         std = [sub[sub["model"] == m][col].std(ddof=0) for m in models]
         ax.barh(y, mean, height=0.68, color=[COLOR[m] for m in models])
-        ax.errorbar(mean, y, xerr=std, fmt="none", ecolor=INK, elinewidth=0.7, capsize=1.8, capthick=0.7)
+        ax.errorbar(mean, y, xerr=[np.zeros(len(std)), std], fmt="none", ecolor=MUTED, elinewidth=0.8, capsize=1.8, capthick=0.8)
         top = max(a + b for a, b in zip(mean, std))
         d = so_le(mean)
         for yi, a, b, m in zip(y, mean, std, models):
@@ -146,7 +146,7 @@ def tinh_dong(frame: pd.DataFrame, name: str, pair=("static_kg_gcn", "bt_dkgrec"
             mean = [sub[sub["model"] == model][f"{m}@{K}"].mean() for m, _ in METRICS]
             std = [sub[sub["model"] == model][f"{m}@{K}"].std(ddof=0) for m, _ in METRICS]
             ax.barh(y + off, mean, height=0.37, color=COLOR[model], label=LABEL[model])
-            ax.errorbar(mean, y + off, xerr=std, fmt="none", ecolor=INK, elinewidth=0.7, capsize=1.8, capthick=0.7)
+            ax.errorbar(mean, y + off, xerr=[np.zeros(len(std)), std], fmt="none", ecolor=MUTED, elinewidth=0.8, capsize=1.8, capthick=0.8)
             for yi, a, b in zip(y + off, mean, std):
                 ax.text(a + b + top * 0.025, yi, so(a, 4), va="center", fontsize=8.2, color=INK)
         ax.set_xlim(0, top * 1.5)
