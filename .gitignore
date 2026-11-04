@@ -32,3 +32,6 @@ __pycache__/
 .DS_Store
 .vscode/
 .idea/
+
+# Run phuc vu demo (D38): nang va khong thuoc bang ket qua.
+experiments/serving/

@@ -8,6 +8,7 @@ recommending from a different model than the one evaluated in Chapter 4.
 
 from __future__ import annotations
 
+import json
 import numpy as np
 import pandas as pd
 import scipy.sparse as sp
@@ -181,3 +182,32 @@ def test_top_k_breaks_ties_by_ascending_item_index() -> None:
     scores = np.array([0.5, 0.9, 0.5, 0.9, 0.1])
     assert list(top_k(scores, 3)) == [1, 3, 0]
     assert list(top_k(scores, 3, exclude=np.array([1]))) == [3, 0, 2]
+
+
+# ── Luu E0 tot nhat trong luc huan luyen ──────────────────────────────────
+
+
+def test_best_e0_keeper_only_writes_on_improvement(tmp_path):
+    from src.serving.online import BestE0Keeper
+
+    keeper = BestE0Keeper(tmp_path, monitor="ndcg@20")
+    assert keeper.offer(np.ones((2, 3)), {"ndcg@20": 0.1}) is True
+    assert keeper.offer(np.full((2, 3), 2.0), {"ndcg@20": 0.05}) is False
+    assert keeper.offer(np.full((2, 3), 3.0), {"ndcg@20": 0.1}) is False      # bang: khong tot hon
+
+    saved = np.load(tmp_path / "e0_best.npy")
+    assert saved.dtype == np.float32 and (saved == 1.0).all()
+    assert keeper.offer(np.full((2, 3), 4.0), {"ndcg@20": 0.2}) is True
+    assert (np.load(tmp_path / "e0_best.npy") == 4.0).all()
+    meta = json.loads((tmp_path / "e0_best.json").read_text(encoding="utf-8"))
+    assert meta["monitor"] == "ndcg@20" and meta["value"] == 0.2
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["e0_best.json", "e0_best.npy"]
+
+
+def test_best_e0_keeper_ignores_missing_metric(tmp_path):
+    from src.serving.online import BestE0Keeper
+
+    keeper = BestE0Keeper(tmp_path, monitor="ndcg@20")
+    assert keeper.offer(np.ones((2, 3)), None) is False
+    assert keeper.offer(np.ones((2, 3)), {"recall@20": 0.5}) is False
+    assert not (tmp_path / "e0_best.npy").exists()

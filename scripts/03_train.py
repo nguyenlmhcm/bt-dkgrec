@@ -38,6 +38,7 @@ from src.evaluation.evaluator import Evaluator, build_evaluation_set, build_seen
 from src.guards.consistency import assert_selection_restored  # noqa: E402
 from src.models.base import ModelContext, Recommender  # noqa: E402
 from src.models.registry import build_model, is_trainable  # noqa: E402
+from src.serving.online import BestE0Keeper  # noqa: E402
 from src.training.curves import add_identity, order_columns, valid_column  # noqa: E402
 from src.training.seeding import set_seed  # noqa: E402
 from src.utils.config import Config, load_config  # noqa: E402
@@ -151,6 +152,11 @@ def main() -> int:
         help="ghi de training.max_epochs (san >= 300 do config chan — xem CLAUDE.md); "
              "dung cho smoke test, ket qua bao cao chay theo configs/",
     )
+    parser.add_argument(
+        "--serving-dir", type=Path, default=None,
+        help="luu E0 tot nhat cho dich vu du bao (D38) va ghi run vao day, KHONG vao "
+             "experiments/runs/ vi script sinh bang doc toan bo thu muc do",
+    )
     args = parser.parse_args()
 
     overrides: dict = {}
@@ -163,7 +169,8 @@ def main() -> int:
     overrides = overrides or None
     cfg = load_config(model=args.model, cohort=args.cohort, seed=args.seed, overrides=overrides)
 
-    run_dir = cfg.paths.resolved()["runs"] / cfg.run_id
+    run_root = args.serving_dir or cfg.paths.resolved()["runs"]
+    run_dir = run_root / cfg.run_id
     run_dir.mkdir(parents=True, exist_ok=True)
     setup_logging(run_dir / "train.log")
     set_seed(cfg.seed)
@@ -189,6 +196,8 @@ def main() -> int:
     del events
     gc.collect()
 
+    keeper = BestE0Keeper(run_dir, cfg.training.monitor) if args.serving_dir else None
+
     if is_trainable(cfg):
         def validate(fitted: Recommender) -> dict[str, float] | None:
             """Every warm metric on VALID only — never test (leakage rule 7).
@@ -200,6 +209,8 @@ def main() -> int:
             """
             split_metrics, _ = evaluator.evaluate(fitted, eval_sets["valid"])
             warm = split_metrics["warm"]
+            if keeper is not None:
+                keeper.offer(fitted.embeddings.weight.detach().cpu().numpy(), warm)
             return dict(warm) if warm else None
 
         model.attach_validation(validate)  # type: ignore[attr-defined]

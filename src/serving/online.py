@@ -31,6 +31,7 @@ Nothing here imports torch: serving runs wherever numpy runs.
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -86,6 +87,35 @@ class ServingBundle:
                 item_degree=f["item_degree"], alpha=f["alpha"],
                 lambda_decay=float(f["lambda_decay"]), d_day=int(f["d_day"]),
             )
+
+
+class BestE0Keeper:
+    """Write ``E_0`` to disk each time the monitored validation metric improves.
+
+    Lets a long run on a machine that may stop still leave the best model so far.
+    It only reads the parameters, so training is unchanged. Selection uses the same
+    strict comparison as the trainer.
+    """
+
+    def __init__(self, out_dir: Path, monitor: str) -> None:
+        self.out_dir = Path(out_dir)
+        self.monitor = monitor
+        self.best: float | None = None
+        self.out_dir.mkdir(parents=True, exist_ok=True)
+
+    def offer(self, e0: np.ndarray, metrics: dict[str, float] | None) -> bool:
+        """Save ``e0`` if ``metrics`` beats the best seen; return whether it did."""
+        value = None if metrics is None else metrics.get(self.monitor)
+        if value is None or (self.best is not None and value <= self.best):
+            return False
+        self.best = float(value)
+        # Replace in one step: a crash mid-write must not destroy the previous best.
+        tmp = self.out_dir / "e0_best.tmp.npy"
+        np.save(tmp, np.asarray(e0, dtype="float32"))
+        tmp.replace(self.out_dir / "e0_best.npy")
+        (self.out_dir / "e0_best.json").write_text(
+            json.dumps({"monitor": self.monitor, "value": self.best}), encoding="utf-8")
+        return True
 
 
 def build_bundle(
