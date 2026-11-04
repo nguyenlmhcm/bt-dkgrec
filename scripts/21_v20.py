@@ -112,7 +112,8 @@ def dong_bo_danh_muc(doc) -> int:
     return n
 
 
-def hinh_3_1() -> str:
+def hinh_3_1(da_noi: bool = False) -> str:
+    """da_noi: demo da chay theo thiet ke, chi con nhanh anh chup do thi la net dut."""
     g = dio.Do()
     ink, muted, accent = dio.INK, dio.MUTED, dio.ACCENT
 
@@ -126,6 +127,7 @@ def hinh_3_1() -> str:
     lan = "rounded=1;arcSize=3;html=1;strokeColor=#C9CDD3;strokeWidth=1;fillColor=#F6F7F8;"
     lien = f"rounded=1;strokeWidth=1.3;strokeColor={ink};"
     dut = f"rounded=1;strokeWidth=1.2;strokeColor={muted};dashed=1;dashPattern=5 4;"
+    moi = lien if da_noi else dut
     x = [0, 216, 432, 648]
     w = 164
 
@@ -149,21 +151,23 @@ def hinh_3_1() -> str:
     g.edge(rr, kho, "", lien + "exitX=0.5;exitY=1;entryX=0.5;entryY=0;")
     g.text(x[3] - 92, 70, 170, 20, "nạp ban đầu", size=14, align="right")
     g.edge(rr, hl, "", lien + "exitX=1;exitY=0.5;entryX=1;entryY=0.5;", points=[(836, 30), (836, 388)])
-    g.edge(app, tn, "", dut + "exitX=1;exitY=0.5;entryX=0;entryY=0.5;")
-    g.edge(tn, cn, "", dut + "exitX=1;exitY=0.5;entryX=0;entryY=0.5;")
-    g.edge(cn, kho, "", dut + "exitX=1;exitY=0.5;entryX=0;entryY=0.5;")
-    g.edge(kho, app, "", dut + "exitX=0.15;exitY=1;entryX=0.75;entryY=1;", points=[(x[3] + 24.6, 250), (x[0] + 123, 250)])
+    g.edge(app, tn, "", moi + "exitX=1;exitY=0.5;entryX=0;entryY=0.5;")
+    g.edge(tn, cn, "", moi + "exitX=1;exitY=0.5;entryX=0;entryY=0.5;")
+    g.edge(cn, kho, "", moi + "exitX=1;exitY=0.5;entryX=0;entryY=0.5;")
+    g.edge(kho, app, "", moi + "exitX=0.15;exitY=1;entryX=0.75;entryY=1;", points=[(x[3] + 24.6, 250), (x[0] + 123, 250)])
     g.text(340, 227, 200, 22, "lịch sử hành vi", size=14)
-    g.edge(kho, top, "", dut + "exitX=0.4;exitY=1;entryX=0.75;entryY=0;", points=[(x[3] + 65.6, 296), (x[0] + 123, 296)])
-    g.text(340, 273, 200, 22, "trọng số cạnh của khách", size=14)
+    g.edge(kho, top, "", moi + "exitX=0.4;exitY=1;entryX=0.75;entryY=0;", points=[(x[3] + 65.6, 296), (x[0] + 123, 296)])
+    g.text(340, 273, 200, 22, "lịch sử của khách" if da_noi else "trọng số cạnh của khách", size=14)
     g.edge(kho, hl, "", dut + "exitX=0.72;exitY=1;entryX=0.72;entryY=0;")
     g.text(x[3] + 124, 258, 76, 40, "ảnh chụp<br>đồ thị", size=14, align="left")
     g.edge(hl, top, "", lien + "exitX=0;exitY=0.5;entryX=1;entryY=0.5;")
-    g.text(340, 364, 200, 22, "kết quả huấn luyện", size=14)
+    g.text(340, 364, 200, 22, "mô hình đã huấn luyện" if da_noi else "kết quả huấn luyện", size=14)
     g.edge(top, app, "", lien + "exitX=0.25;exitY=0;entryX=0.25;entryY=1;")
     g.text(-40, 256, 76, 40, "danh sách<br>Top-K", size=14, align="right")
     g.text(-10, 478, 850, 42,
-           "<i>Nét liền: đã hiện thực. Nét đứt: theo thiết kế, bản hiện tại chưa nối.<br>"
+           ("<i>Nét liền: đã hiện thực. Nét đứt: theo thiết kế, huấn luyện lại theo chu kỳ chưa tự động.<br>" if da_noi else
+            "<i>Nét liền: đã hiện thực. Nét đứt: theo thiết kế, bản hiện tại chưa nối.<br>")
+           +
            "Màu đỏ: phần đóng góp của đề án (trọng số cạnh). Kiến trúc lan truyền giữ nguyên LightGCN.</i>", size=14)
     return g.xml("Hinh 3.1")
 

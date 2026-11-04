@@ -1071,6 +1071,8 @@ Hai guard cưỡng chế điều này, và đã được kiểm chứng là **th
 
 ### Vì sao KHÔNG lưu checkpoint
 
+> **Đính chính 04/11/2026:** lập luận dưới đây sai: `topk.csv` vẫn chép lên Drive được thì trọng số cũng vậy. Quyết định này khiến 48 run không còn mô hình; xem D38.
+
 Đã cân nhắc lưu trọng số để lần sau đo lại mà không phải huấn luyện lại. **Bác bỏ.** Bảng
 embedding ≈ 64 MB/run × 24 run ≈ 1,5 GB, mà `experiments/runs/` **được commit vào git** —
 đó là kênh đồng bộ Colab→VPS duy nhất. Checkpoint không đẩy lên git được, mà không đẩy lên
@@ -1197,3 +1199,16 @@ trọng số cạnh lệch tối đa 4,4e-16 trên 14.696 cặp.
 **Tên gọi (anh Nguyên chốt):** trong quyển, hình, app chỉ dùng "đồ thị truy vết" và "đồ thị huấn luyện". Code và tài liệu kỹ thuật giữ tên cũ (`trace`, lớp truy vết, lớp chiếu).
 
 **Chưa kiểm:** nạp phạm vi đầy đủ (`--scope all`, 2,02 triệu sự kiện).
+
+---
+
+## D38 — Demo chạy theo thiết kế 3.7.1, có lưu mô hình
+
+**Quyết định (anh Nguyên, 04/11/2026):** Hình 3.1 và demo phải theo thiết kế. Thay giới hạn cũ "app không tự suy luận".
+
+**Làm thế nào giữ liêm chính:** trang truy vết vẫn phát lại `topk.csv`. Trang mô phỏng là trang riêng, dùng một lần huấn luyện riêng của `bt_dkgrec_l05`, nhóm Active, seed 2020, trên CPU VPS, lưu ở `experiments/serving/` (gitignore) nên script sinh bảng không đọc tới. Nhóm Original không đủ RAM trên VPS 4 GB. `--serving-dir` lưu `E₀` tốt nhất mỗi lần valid cải thiện, không đổi vòng huấn luyện.
+
+**Bằng chứng:** `tests/test_serving_service.py`. Trên đồ thị thật với `E₀` đang huấn luyện: 30/30 khách có Top-K trùng lan truyền toàn đồ thị; bấm Mua làm đổi danh sách, hoàn tác thì khôi phục; khoảng 89 ms mỗi lần khi VPS đang bận huấn luyện.
+
+**Chưa làm:** tự động huấn luyện lại theo chu kỳ từ ảnh chụp đồ thị; Neo4j chỉ chứa 234 khách được đánh giá; chưa đo hiệu năng tải.
+

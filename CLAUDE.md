@@ -222,8 +222,9 @@ src/training/     loss (BPR), sampler, trainer, seeding
 src/evaluation/   metrics, evaluator, segments, stats
 src/guards/       leakage  ← không được bỏ qua
 src/export/       neo4j_export
+src/serving/      online (fold-in), service, store (Neo4j)
 scripts/          01_preprocess → 07_export_neo4j
-app/              demo Streamlit, đọc CSV (không kết nối Neo4j)
+app/              demo Streamlit: trang truy vết đọc CSV, trang mô phỏng online dùng Neo4j (D38)
 experiments/      seeds.json, runs/<run_id>/
 tests/            pytest
 docs/             KG_DESIGN.md, PLAN.md
@@ -325,11 +326,13 @@ Làm tuần tự, mỗi bước phải xanh trước khi sang bước sau.
 
 ---
 
-## Demo — giới hạn có chủ đích
+## Demo — hai trang (D38)
 
-App **không tự tính điểm**. Nó đọc `topk.csv` từ run artifact (offline evaluation replay) và bộ tệp CSV trong `data/neo4j/` để hiển thị lịch sử, trọng số cạnh, subgraph. Neo4j nạp cùng bộ tệp đó, chỉ để kiểm tra lược đồ (D37).
+**Trang truy vết (`app/main.py`)** không tự tính điểm: đọc `topk.csv` của run và bộ CSV trong `data/neo4j/`, nên số trên màn hình trùng bảng kết quả.
 
-Giới hạn này đã được nêu trung thực trong luận văn (mục 3.7.2) — **giữ nguyên**. Không để app tự suy luận rồi sinh số khác với bảng kết quả.
+**Trang mô phỏng online (`app/pages/1_Mo_phong_online.py`)** theo thiết kế mục 3.7.1: ghi hành vi vào Neo4j, đọc lịch sử từ Neo4j, tính lại Top-K bằng fold-in. Chỉ dùng `bt_dkgrec_l05` nhóm Active, lần huấn luyện riêng lưu ở `experiments/serving/` — **không vào `experiments/runs/`**, không vào bảng kết quả. Guard: chưa có hành vi mới thì Top-K phải trùng lan truyền toàn đồ thị (`tests/test_serving_service.py`).
+
+Bật: `bash scripts/23_neo4j_demo.sh` rồi `make app`.
 
 ---
 

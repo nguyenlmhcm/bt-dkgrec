@@ -1,8 +1,29 @@
 # Việc đang chờ
 
-Cập nhật: 05/10/2026. Hạn nộp: **07/10/2026** (đã gia hạn từ 30/09).
+Cập nhật: 04/11/2026. Mai (05/11) trình bày cho cô.
+
+## Bản hiện hành
+
+| File | Dùng khi |
+|---|---|
+| `docs/De_an_thac_si_v21_ban_nop.docx` | Demo mô phỏng online chạy được khi gặp cô |
+| `docs/De_an_thac_si_v20_ban_nop.docx` | Không demo mô phỏng: Hình 3.1 có nét đứt, quyển ghi chưa nối |
+
+Bản `_v20.docx`, `_v21.docx` không có hậu tố là bản rà soát, tô vàng chỗ vừa sửa.
+
+## Demo
+
+`bash scripts/23_neo4j_demo.sh` rồi `make app`, mở trang "Mo phong online". Model huấn luyện ở `experiments/serving/` (nhóm Active, seed 2020, CPU VPS, xem D38). Model tốt nhất được lưu liên tục, dùng được cả khi chưa chạy xong.
+
+## Còn việc
+
+- Vẽ lại Hình 3.2, 3.3; đồng bộ 10 bảng (3.6, 4.3–4.11). F9 mục lục; sửa ngày ký "năm 2025".
+- Hình 4.5 và cặp ablation dùng λ=0.01, còn mô hình đề xuất là λ=0.05: hỏi cô.
+- Hỏi cô về khai báo dùng AI.
 
 ---
+
+## Lịch sử: trạng thái ngày 05/10
 
 ## Trạng thái: file Word ở bản v17 (đã commit + push `211de1f`)
 
