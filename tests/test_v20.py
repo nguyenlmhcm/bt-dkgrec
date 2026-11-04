@@ -76,3 +76,17 @@ def test_hinh_3_1_moi_co_trong_quyen_va_tep_chinh_tay(nop):
     assert moi in anh and len(anh) == 10
     assert "Nét đứt" in png.with_suffix(".drawio").read_text(encoding="utf-8")
     assert not any(r.font.highlight_color for p in nop.paragraphs for r in p.runs)
+
+
+def test_sau_bieu_do_chuong_4_la_anh_moi(nop):
+    png = sorted((ROOT / "docs" / "figures").glob("fig_v20_4_*.png"))
+    moi = {hashlib.sha1(p.read_bytes()).hexdigest() for p in png}
+    anh = {hashlib.sha1(nop.part.rels[b.get(qn("r:embed"))].target_part.blob).hexdigest()
+           for b in nop.element.body.iter(qn("a:blip"))}
+    assert len(png) == 6 and moi <= anh
+
+
+def test_so_tren_bieu_do_lay_tu_cung_nguon_voi_bang():
+    code = (ROOT / "scripts" / "22_bieu_do_chuong4.py").read_text(encoding="utf-8")
+    assert "load_runs(runs" in code and "assert_no_duplicate_cells" in code
+

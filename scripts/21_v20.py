@@ -1,6 +1,7 @@
 """v19 -> v20: ban trinh bay cho co.
 
 Hinh 3.1 ve he thong theo thiet ke muc 3.7.1, net dut la phan ban hien tai chua noi.
+Ve lai sau hinh Chuong 4 (scripts/22).
 Sua cau ve hoi tu cho dung voi curves.csv, dong bo danh muc hinh/bang voi chu thich.
 
 Chay:
@@ -38,6 +39,7 @@ def _nap(ten: str, file: str):
 
 v18 = _nap("v18", "17_v18.py")
 dio = _nap("dio", "19_drawio_chuong3.py")
+bd = _nap("bd", "22_bieu_do_chuong4.py")
 
 from docx import Document  # noqa: E402
 from docx.oxml.ns import qn  # noqa: E402
@@ -47,6 +49,8 @@ CHANGELOG = [
      "Tên hình là kiến trúc tổng quan của hệ thống, hình cũ chỉ tả bản demo."),
     ("Mục 4.2.1 và 5.3.1", "Sửa khoảng epoch tốt nhất và câu về hội tụ, đọc từ curves.csv.",
      "Nhóm Active phần lớn chạm trần 1000 epoch; một lần chạy λ=0.05 trên Original tốt nhất ở epoch 400."),
+    ("Hình 4.1–4.6", "Vẽ lại đúng khổ in, font Times, chữ nằm ngang; số đọc lại từ experiments/runs.",
+     "Bản cũ có vân sọc, số ghi nhiều kiểu, nhãn tiếng Anh, chữ đè nhau."),
     ("Danh mục hình và bảng", "Đồng bộ với chú thích.", "Sáu dòng gõ tay lệch với chú thích dưới hình, trên bảng."),
 ]
 
@@ -164,14 +168,14 @@ def hinh_3_1() -> str:
     return g.xml("Hinh 3.1")
 
 
-def thay_hinh_3_1(doc) -> None:
+def thay_anh(doc, caption: str, path: Path) -> None:
+    """Thay anh ngay truoc chu thich, giu chieu rong, chieu cao theo ti le anh moi."""
     from PIL import Image
 
-    dio.render(hinh_3_1(), HINH_3_1, 930, 560)
-    cap, blip = v18._blip_truoc_caption(doc, "Hình 3.1.")
-    rid, _ = doc.part.get_or_add_image(io.BytesIO(HINH_3_1.read_bytes()))
+    cap, blip = v18._blip_truoc_caption(doc, caption)
+    rid, _ = doc.part.get_or_add_image(io.BytesIO(path.read_bytes()))
     blip.set(qn("r:embed"), rid)
-    w, h = Image.open(HINH_3_1).size
+    w, h = Image.open(path).size
     inline = blip
     while inline is not None and inline.tag not in (qn("wp:inline"), qn("wp:anchor")):
         inline = inline.getparent()
@@ -202,7 +206,10 @@ def main() -> None:
     cu, moi = khoang_original(so)
     v18.bo_cum(doc, "Thứ nhất, mô hình được huấn luyện đến khi validation", cu, moi)
     print(f"dong bo danh muc: {dong_bo_danh_muc(doc)} dong")
-    thay_hinh_3_1(doc)
+    dio.render(hinh_3_1(), HINH_3_1, 930, 560)
+    thay_anh(doc, "Hình 3.1.", HINH_3_1)
+    for caption, path in bd.main(args.runs).items():
+        thay_anh(doc, caption, path)
 
     bang = [t for t in doc.tables if t.rows and "Mục" in t.rows[0].cells[0].text]
     if len(bang) != 1:
