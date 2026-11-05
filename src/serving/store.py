@@ -39,7 +39,7 @@ class GraphStore:
         """Record one event and add its weight to the visitor-item edge."""
         counter = COUNTER[behavior]     # fixed names only: never user input
         self._driver.execute_query(
-            "MATCH (v:Visitor {visitor_id: $v}) "
+            "MERGE (v:Visitor {visitor_id: $v}) ON CREATE SET v.demo_created = true "
             "MERGE (i:Item {item_id: $i}) "
             "CREATE (e:Event {event_id: $eid, behavior: $b, timestamp: $t, w_event: $w, demo: true}) "
             "CREATE (v)-[:PERFORMED]->(e) CREATE (e)-[:TARGETS]->(i) "
@@ -60,6 +60,22 @@ class GraphStore:
             "r.n_cart = r.n_cart - size([x IN es WHERE x.behavior = 'addtocart']), "
             "r.n_txn = r.n_txn - size([x IN es WHERE x.behavior = 'transaction']) "
             "WITH r, es, size(es) AS n FOREACH (x IN es | DETACH DELETE x) "
-            "WITH r, n CALL { WITH r WITH r WHERE r.demo_created = true DELETE r } "
+            "WITH r, n CALL (r) { WITH r WHERE r.demo_created = true DELETE r } "
             "RETURN sum(n) AS n", v=int(visitor_id))
+        self._driver.execute_query(
+            "MATCH (v:Visitor {visitor_id: $v, demo_created: true}) WHERE NOT (v)-[:PERFORMED]->() DETACH DELETE v",
+            v=int(visitor_id))
         return int(records[0]["n"] or 0)
+
+    def demo_visitors(self) -> list[int]:
+        """Visitors that currently hold demo events."""
+        records, _, _ = self._driver.execute_query(
+            "MATCH (v:Visitor)-[:PERFORMED]->(:Event {demo: true}) RETURN DISTINCT v.visitor_id AS v")
+        return [int(r["v"]) for r in records]
+
+    def all_events(self) -> pd.DataFrame:
+        """Every visitor's events, for seller-side lists over the whole store."""
+        records, _, _ = self._driver.execute_query(
+            "MATCH (v:Visitor)-[:PERFORMED]->(e:Event)-[:TARGETS]->(i:Item) "
+            "RETURN v.visitor_id AS visitor_id, i.item_id AS item_id, e.behavior AS behavior, e.timestamp AS timestamp")
+        return pd.DataFrame([r.data() for r in records], columns=["visitor_id", "item_id", "behavior", "timestamp"])

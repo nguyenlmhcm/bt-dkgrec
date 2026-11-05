@@ -77,3 +77,11 @@ class DemoService:
             lambda_decay=cfg.weighting.lambda_decay, d_day=cfg.weighting.d_day,
         )
         return cls(bundle, e0[: space.n_visitor].copy(), mapping.visitor_ids, int(split["t_train"]))
+
+
+def rank_change(before: list[int], item_id: int, rank: int) -> str:
+    """Label an item's move against the previous list: "mới", "▲ n", "▼ n" or empty."""
+    if item_id not in before:
+        return "mới"
+    delta = before.index(item_id) + 1 - rank
+    return f"▲ {delta}" if delta > 0 else f"▼ {-delta}" if delta < 0 else ""

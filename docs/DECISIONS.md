@@ -1214,3 +1214,19 @@ trọng số cạnh lệch tối đa 4,4e-16 trên 14.696 cặp.
 
 **Chưa làm:** tự động huấn luyện lại theo chu kỳ từ ảnh chụp đồ thị; Neo4j chỉ chứa 234 khách được đánh giá; chưa đo hiệu năng tải.
 
+## D39. Demo chính là cửa hàng có kênh người bán, không phải trang kỹ thuật (05/11/2026)
+
+**Bối cảnh.** Anh Nguyên chê bản Streamlit: còn thuần kỹ thuật, giao diện giống AI, chưa chứng minh được đây là sản phẩm ứng dụng. RetailRocket đã ẩn danh nên mã sản phẩm không nói lên điều gì với người xem.
+
+**Quyết định.** Dựng cửa hàng Chợ Hiên (FastAPI, HTML/CSS/JS thuần) trên đúng `DemoService` và `GraphStore` của D38. Trang truy vết Streamlit giữ lại để đối chiếu số trong quyển. Trang mô phỏng Streamlit vẫn còn, không dùng khi trình bày.
+
+**Tính năng chứng minh tính ứng dụng.** Mua hàng trọn luồng phát sinh sự kiện thật; khách mới đi từ bán chạy sang cá nhân hóa; giải thích gợi ý; dự báo khách theo sản phẩm và gửi ưu đãi, ưu đãi về đúng khách và đo lại được; phát lại dữ liệu thật; API công khai; khách tự xóa dữ liệu.
+
+**Giới hạn phải nói.** Tên, giá, màu nhãn là minh họa và màn hình có ghi. Loại sản phẩm gán theo danh mục gốc nên cấu trúc là thật, nhưng ý nghĩa của từng danh mục là tự đặt. Điểm ở tab dự báo chỉ để xếp hạng, không phải xác suất. Giải thích đọc đường nối sau khi xếp hạng, không quy điểm mô hình. Tab dự báo tính trên đồ thị đã huấn luyện cho 234 khách trong kho, chưa gồm hành vi mới. Chưa có: tự động huấn luyện lại, xác thực thật, thanh toán.
+
+**Cách đo phát lại.** Top-K loại sản phẩm khách đã chạm, nên đo ở lần thêm giỏ hoặc mua gần như luôn trượt vì trước đó khách đã xem. Bản đầu mắc lỗi này (0/12). Đo đúng: ở lần đầu khách chạm một sản phẩm, sản phẩm đó đã có trong Top-20 chưa. Lần chạy 05/11, 1.000 sự kiện đầu của giai đoạn kiểm thử với 49 khách: mô hình 26/492 (5,3%), bán chạy 6/492 (1,2%); độ trễ trung vị 161 ms, p95 596 ms trên VPS CPU. Đây là phép đo minh họa của bản CPU, khác cách đo Chương 4, không đưa vào bảng kết quả.
+
+**Thiết kế.** Theo quy tắc của fork `hallmark`, chỉ đọc quy tắc: công cụ soát `sloplint` không chạy vì bị chặn thực thi code từ repo ngoài; `tests/test_shop.py` kiểm phần nền. Không dùng ảnh sản phẩm giả: nhãn hàng màu là điểm nhận diện. Giá gốc thuộc tính 790 đọc như VND, kẹp 15.000đ đến 9.000.000đ. Phông Be Vietnam Pro và Lora tự lưu để chạy không cần mạng.
+
+
+**Công khai (05/11/2026).** `https://nguyenlm.io.vn`: `/seller/*` có mật khẩu qua Caddy, `POST /api/v1/events` cần khóa riêng, mọi thao tác ghi giới hạn theo IP (`src/shop/limits.py`). Phần khách không đăng nhập thật: ai mở cũng thao tác được trên cùng các khách mẫu, nên trước buổi trình bày cần đưa dữ liệu về ban đầu.

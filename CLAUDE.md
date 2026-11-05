@@ -224,7 +224,8 @@ src/guards/       leakage  ← không được bỏ qua
 src/export/       neo4j_export
 src/serving/      online (fold-in), service, store (Neo4j)
 scripts/          01_preprocess → 07_export_neo4j
-app/              demo Streamlit: trang truy vết đọc CSV, trang mô phỏng online dùng Neo4j (D38)
+app/              trang truy vết và mô phỏng (Streamlit, D38), cửa hàng Chợ Hiên `app/shop/` (D39)
+src/shop/         danh mục minh họa, nghiệp vụ và API của cửa hàng demo (D39)
 experiments/      seeds.json, runs/<run_id>/
 tests/            pytest
 docs/             KG_DESIGN.md, PLAN.md
@@ -333,6 +334,18 @@ Làm tuần tự, mỗi bước phải xanh trước khi sang bước sau.
 **Trang mô phỏng online (`app/pages/1_Mo_phong_online.py`)** theo thiết kế mục 3.7.1: ghi hành vi vào Neo4j, đọc lịch sử từ Neo4j, tính lại Top-K bằng fold-in. Chỉ dùng `bt_dkgrec_l05` nhóm Active, lần huấn luyện riêng lưu ở `experiments/serving/` — **không vào `experiments/runs/`**, không vào bảng kết quả. Guard: chưa có hành vi mới thì Top-K phải trùng lan truyền toàn đồ thị (`tests/test_serving_service.py`).
 
 Bật: `bash scripts/23_neo4j_demo.sh` rồi `make app`.
+
+## Cửa hàng demo Chợ Hiên (D39)
+
+Công khai tại https://nguyenlm.io.vn (service `bt-shop`, khối riêng trong `/etc/caddy/Caddyfile`, mật khẩu kênh người bán và khóa API ở `/etc/bt-shop.env`); sửa code xong phải `systemctl restart bt-shop`. Chạy tay: `make shop`, mở `http://localhost:8600`. Thay trang mô phỏng khi trình bày; trang truy vết vẫn là nơi đối chiếu số trong quyển (`make app`).
+
+| | |
+|---|---|
+| Thật | Hành vi, danh mục, trạng thái còn hàng, thuộc tính giá, Top-K, Neo4j, độ trễ, số chiến dịch trên màn hình |
+| Minh họa, phải ghi rõ trên màn hình | Tên sản phẩm, tên khách, màu nhãn, giá quy đổi; `src/shop/names.py` |
+| Không dùng số của cửa hàng cho bảng kết quả | Model là bản huấn luyện CPU; tab "Hiệu quả mô hình" đọc `experiments/runs/` |
+
+`src/shop/engine.py` chứa nghiệp vụ, `src/shop/app.py` là HTTP, `app/shop/` là giao diện, API công khai ở `/docs`. `scripts/25_build_catalog.py` sinh `data/app/catalog.parquet`.
 
 ---
 

@@ -94,3 +94,13 @@ def test_event_weight_follows_the_formula() -> None:
     service, _, _ = _service()
     assert event_weight(service.bundle, "transaction", age_days=2) == pytest.approx(
         H.ALPHA[2] * np.exp(-H.LAMBDA * 2))
+
+
+def test_rank_change_labels_moves_against_the_previous_list():
+    from src.serving.service import rank_change
+
+    before = [10, 20, 30]
+    assert rank_change(before, 40, 3) == "mới"
+    assert rank_change(before, 20, 1) == "▲ 1"
+    assert rank_change(before, 10, 3) == "▼ 2"
+    assert rank_change(before, 30, 3) == ""

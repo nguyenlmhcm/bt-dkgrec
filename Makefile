@@ -8,7 +8,7 @@ MODEL     ?= bt_dkgrec
 SEED      ?= 2020
 DEVICE    ?= cuda
 
-.PHONY: help setup preprocess graph train evaluate multiseed tables figures docx neo4j app test clean-venv
+.PHONY: help setup preprocess graph train evaluate multiseed tables figures docx neo4j app shop test clean-venv
 
 help:
 	@echo "BT-DKGRec-GCN"
@@ -89,4 +89,9 @@ neo4j:
 
 app:
 	@test -f app/main.py || { echo "CHUA TRIEN KHAI: app/main.py (Buoc 10)"; exit 1; }
-	.venv/bin/streamlit run app/main.py
+	.venv/bin/streamlit run app/streamlit_app.py
+
+shop:
+	bash scripts/23_neo4j_demo.sh
+	@test -f data/app/catalog.parquet || .venv/bin/python scripts/25_build_catalog.py
+	.venv/bin/uvicorn src.shop.app:app --host 127.0.0.1 --port 8600
