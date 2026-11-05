@@ -1,11 +1,26 @@
 # Việc đang chờ
 
-Cập nhật: 04/11/2026. Mai (05/11) trình bày cho cô.
+Cập nhật: 05/11/2026. Tối 20:00 trình bày cho cô.
 
 ## Bản hiện hành
 
 | File | Dùng khi |
 |---|---|
+| `docs/De_an_thac_si_v22_ban_nop.docx` | Gửi cô, khớp demo ba phân hệ |
+| `docs/De_an_thac_si_v22.docx` | Rà soát: tô vàng chỗ sửa, có trang danh mục sửa đổi |
+
+## Demo
+
+https://nguyenlm.io.vn, service `bt-shop`. Xem D39, D40.
+
+## Còn việc
+
+- Anh Nguyên: F9 mục lục trong Word; ngày giao nhiệm vụ theo QĐ; địa chỉ, email, quá trình đào tạo và công tác ở lý lịch; bỏ cột Người hướng dẫn 2 nếu chỉ có một người.
+- Vẽ lại Hình 3.2, 3.3; đồng bộ định dạng bảng còn lệch.
+- Hỏi cô về khai báo dùng AI; báo cô việc Bảng 4.9, Hình 4.5 đã đổi sang λ=0.05.
+- Huấn luyện lại hằng tuần: chưa làm, chờ chốt.
+
+---|---|
 | `docs/De_an_thac_si_v21_ban_nop.docx` | Demo mô phỏng online chạy được khi gặp cô |
 | `docs/De_an_thac_si_v20_ban_nop.docx` | Không demo mô phỏng: Hình 3.1 có nét đứt, quyển ghi chưa nối |
 

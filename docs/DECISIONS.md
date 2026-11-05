@@ -1224,9 +1224,34 @@ trọng số cạnh lệch tối đa 4,4e-16 trên 14.696 cặp.
 
 **Giới hạn phải nói.** Tên, giá, màu nhãn là minh họa và màn hình có ghi. Loại sản phẩm gán theo danh mục gốc nên cấu trúc là thật, nhưng ý nghĩa của từng danh mục là tự đặt. Điểm ở tab dự báo chỉ để xếp hạng, không phải xác suất. Giải thích đọc đường nối sau khi xếp hạng, không quy điểm mô hình. Tab dự báo tính trên đồ thị đã huấn luyện cho 234 khách trong kho, chưa gồm hành vi mới. Chưa có: tự động huấn luyện lại, xác thực thật, thanh toán.
 
-**Cách đo phát lại.** Top-K loại sản phẩm khách đã chạm, nên đo ở lần thêm giỏ hoặc mua gần như luôn trượt vì trước đó khách đã xem. Bản đầu mắc lỗi này (0/12). Đo đúng: ở lần đầu khách chạm một sản phẩm, sản phẩm đó đã có trong Top-20 chưa. Lần chạy 05/11, 1.000 sự kiện đầu của giai đoạn kiểm thử với 49 khách: mô hình 26/492 (5,3%), bán chạy 6/492 (1,2%); độ trễ trung vị 161 ms, p95 596 ms trên VPS CPU. Đây là phép đo minh họa của bản CPU, khác cách đo Chương 4, không đưa vào bảng kết quả.
+**Cách đo phát lại.** Top-K loại sản phẩm khách đã chạm, nên đo ở lần thêm giỏ hoặc mua gần như luôn trượt vì trước đó khách đã xem. Bản đầu mắc lỗi này (0/12). Đo đúng: ở lần đầu khách chạm một sản phẩm, sản phẩm đó đã có trong Top-20 chưa. Lần chạy 05/11, 1.000 sự kiện đầu của giai đoạn kiểm thử với 49 khách: mô hình 26/492 (5,3%), bán chạy 6/492 (1,2%); thời gian xử lý trung vị 161 ms, 95% số lần dưới 596 ms trên VPS CPU. Đây là phép đo minh họa của bản CPU, khác cách đo Chương 4, không đưa vào bảng kết quả.
 
 **Thiết kế.** Theo quy tắc của fork `hallmark`, chỉ đọc quy tắc: công cụ soát `sloplint` không chạy vì bị chặn thực thi code từ repo ngoài; `tests/test_shop.py` kiểm phần nền. Không dùng ảnh sản phẩm giả: nhãn hàng màu là điểm nhận diện. Giá gốc thuộc tính 790 đọc như VND, kẹp 15.000đ đến 9.000.000đ. Phông Be Vietnam Pro và Lora tự lưu để chạy không cần mạng.
 
 
 **Công khai (05/11/2026).** `https://nguyenlm.io.vn`: `/seller/*` có mật khẩu qua Caddy, `POST /api/v1/events` cần khóa riêng, mọi thao tác ghi giới hạn theo IP (`src/shop/limits.py`). Phần khách không đăng nhập thật: ai mở cũng thao tác được trên cùng các khách mẫu, nên trước buổi trình bày cần đưa dữ liệu về ban đầu.
+
+**Sửa D39 (05/11/2026): tách ba cổng, bám đúng cơ chế mô hình.** Anh Nguyên chốt khung: giải pháp gợi ý cho một doanh nghiệp, phần khách hàng, cửa hàng, nhà cung cấp tách riêng; bản đầu chưa thấy đồ thị tri thức động.
+
+Sửa ba chỗ sai so với Chương 3. (1) Giải thích theo cùng danh mục là suy diễn riêng; nay đọc đường ba bước từ Â, cạnh đầu tính lại như fold-in (không có hành vi mới thì trùng Â). Đo trên khách mẫu: đường qua khách khác thường mạnh nhất, qua danh mục yếu. Đây chỉ là một thành phần của Â^3, không phân rã điểm. (2) Thuộc tính sản phẩm (1.418.287 cạnh) nay có trên đồ thị. (3) Bỏ đề xuất kéo thời gian về quá khứ: E0 học tới T_train nên đã mang thông tin về sau (ở mốc 21/5 của 437888, có E0 và không E0 cho danh sách lệch nhau). Chỉ đi tới: nút "Sự kiện thật tiếp theo" đưa sự kiện valid/test thật qua đúng luồng ghi, τ tiến theo thời điểm thật, trọng số cũ giảm theo công thức.
+
+Sự kiện thật đi tiếp, tối đa 60 sự kiện mỗi khách, 230 khách: lần đầu chạm sản phẩm có sẵn trong Top-20 là 86/2.202 (3,9%), 56/230 khách có ít nhất một lần; 962057 là 6/8, là ví dụ được chọn, không đại diện.
+
+Không gọi là dự báo nhập hàng: xếp sản phẩm theo số lần có trong Top-20 của 6.000 khách, Top 100 chiếm 4,5% nhu cầu thật giai đoạn sau, bán chạy 30 ngày chiếm 7,1%, Top 1.000 là 17,1% so với 17,5%. Màn hình chỉ ghi "sản phẩm được quan tâm". "Thường mua kèm" đếm khách chung ở mức thêm giỏ hoặc mua trong tập huấn luyện.
+
+**Tài khoản và phần cửa hàng (05/11/2026).** Bốn tài khoản, mỗi cổng một phiên nên mở song song được. Anh Nguyên yêu cầu chèn thêm hành vi quá khứ: dùng hành vi thật đã có của 234 khách (24.892 sự kiện, 1.051 lượt mua), không sinh dữ liệu giả vì sẽ làm sai Top-K và lẫn với kết quả. `khach1` là 962057 (0 lượt mua, 28 thêm giỏ), `khach2` là 481437 (7 lượt mua). Thêm, sửa, xóa danh mục và sản phẩm là lớp phủ trong SQLite: mô hình không đổi, sản phẩm mới bán được nhưng chưa được gợi ý cho tới khi huấn luyện lại; sản phẩm xóa ẩn khỏi cửa hàng và gợi ý.
+
+**Chưa làm: huấn luyện lại hằng tuần.** Đã có danh sách phiên bản, áp dụng và quay lại không cần tắt dịch vụ. Chưa có ảnh chụp đồ thị gộp hành vi mới, khách mới, sản phẩm mới vào `IdMapping` và `adjacency`, chưa có lịch chạy. `03_train.py --serving-dir` hiện chỉ huấn luyện lại trên đồ thị cũ. Một lần trên VPS CPU mất khoảng 4 giờ.
+
+## D40. Quyển v22: tả đúng demo ba phân hệ, Bảng 4.9 và Hình 4.5 dùng λ=0.05 (05/11/2026)
+
+**Bối cảnh.** Trước buổi gặp cô tối 05/11, rà v21 thấy còn tả demo hai trang và có câu lệch bảng số.
+
+**Quyết định.** `scripts/27_v22.py` vá từ v21. Bảng 4.9 và Hình 4.5 đổi từ λ=0.01 sang λ=0.05 vì mô hình đề xuất đã chốt là λ=0.05; trước đó mục 4.3.3 nói chưa thấy tác dụng, trong khi 4.2.4 và 5.1.2 nói tăng 12,0%. Kết luận vẫn có phòng hộ: chênh lệch không lặp lại ở mọi seed. Việc này trước đây định hỏi cô; nếu cô muốn giữ cặp λ=0.01 thì sửa lại ở script.
+
+**Sửa câu lệch số.** "Tri thức sản phẩm đóng góp phần lớn hơn" sai ở Active (0.002716 so với 0.006687). "Thứ tự giữ nguyên trên hai nhóm và bốn chỉ số" sai: chỉ vị trí đứng đầu của mô hình đề xuất giữ nguyên. "Cạnh tranh với LightGCN", "lợi thế chỉ ở nhóm tích cực", "Coverage thấp hơn trên active" đều là chữ cũ. Gỡ các câu so với bản v11.
+
+**Đo thêm.** `scripts/analysis/do_nhay_top_k.py`, khoảng 170 sản phẩm: một lần thêm giỏ với khách 962057 (36 sự kiện) có tối đa 2 sản phẩm mới trong Top-20, trung vị 0; 481437 (30 sự kiện) tối đa 2; 437888 (7 sự kiện) trung vị 4, tối đa 15. Khi trình bày, khách lịch sử dày không thấy danh sách đổi rõ.
+
+**Mục lục.** Số trang lấy từ bản render LibreOffice, mở bằng Word phải F9 để chốt.
+
