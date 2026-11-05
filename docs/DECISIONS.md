@@ -1210,5 +1210,7 @@ trọng số cạnh lệch tối đa 4,4e-16 trên 14.696 cặp.
 
 **Bằng chứng:** `tests/test_serving_service.py`. Trên đồ thị thật với `E₀` đang huấn luyện: 30/30 khách có Top-K trùng lan truyền toàn đồ thị; bấm Mua làm đổi danh sách, hoàn tác thì khôi phục; khoảng 89 ms mỗi lần khi VPS đang bận huấn luyện.
 
+**Kết quả lần huấn luyện riêng (05/11/2026):** dừng sớm ở epoch 565, tốt nhất ở epoch 315. Test nhóm Active: Recall@20 0.0317, NDCG@20 0.0182, HitRate@20 0.0897, Coverage@20 0.0278; thấp hơn run GPU cùng seed 2020 (0.0442, 0.0260, 0.0940, 0.0347), nên chỉ dùng minh họa luồng, không dùng làm bằng chứng độ chính xác. Top-K của dịch vụ trùng `topk.csv` của chính lần chạy này ở 234/234 khách.
+
 **Chưa làm:** tự động huấn luyện lại theo chu kỳ từ ảnh chụp đồ thị; Neo4j chỉ chứa 234 khách được đánh giá; chưa đo hiệu năng tải.
 
