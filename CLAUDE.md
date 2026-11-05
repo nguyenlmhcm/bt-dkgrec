@@ -337,15 +337,17 @@ Bật: `bash scripts/23_neo4j_demo.sh` rồi `make app`.
 
 ## Cửa hàng demo Chợ Hiên (D39)
 
-Công khai tại https://nguyenlm.io.vn (service `bt-shop`, khối riêng trong `/etc/caddy/Caddyfile`, mật khẩu kênh người bán và khóa API ở `/etc/bt-shop.env`); sửa code xong phải `systemctl restart bt-shop`. Chạy tay: `make shop`, mở `http://localhost:8600`. Thay trang mô phỏng khi trình bày; trang truy vết vẫn là nơi đối chiếu số trong quyển (`make app`).
+Công khai tại https://nguyenlm.io.vn (service `bt-shop`, khối riêng trong `/etc/caddy/Caddyfile`, mật khẩu và khóa API ở `/etc/bt-shop.env`); sửa code xong phải `systemctl restart bt-shop`. Chạy tay: `make shop`, mở `http://localhost:8600`. Thay trang mô phỏng khi trình bày; trang truy vết vẫn là nơi đối chiếu số trong quyển (`make app`).
 
 | | |
 |---|---|
-| Thật | Hành vi, danh mục, trạng thái còn hàng, thuộc tính giá, Top-K, Neo4j, độ trễ, số chiến dịch trên màn hình |
+| Thật | Hành vi, danh mục, trạng thái còn hàng, thuộc tính giá, Top-K, Neo4j, thời điểm và trọng số sự kiện, số chiến dịch trên màn hình |
 | Minh họa, phải ghi rõ trên màn hình | Tên sản phẩm, tên khách, màu nhãn, giá quy đổi; `src/shop/names.py` |
 | Không dùng số của cửa hàng cho bảng kết quả | Model là bản huấn luyện CPU; tab "Hiệu quả mô hình" đọc `experiments/runs/` |
 
-`src/shop/engine.py` chứa nghiệp vụ, `src/shop/app.py` là HTTP, `app/shop/` là giao diện, API công khai ở `/docs`. `scripts/25_build_catalog.py` sinh `data/app/catalog.parquet`.
+Ba cổng, mỗi bên chỉ thấy phần của mình: **khách hàng** (`app/shop/customer.js`, không có thuật ngữ mô hình), **cửa hàng** (`store.js`), **nhà cung cấp** (`owner.js`: đồ thị, đường lan truyền, sự kiện thật tiếp theo, hiệu quả mô hình). Đăng nhập do ứng dụng xử lý (`src/shop/auth.py`, phiên riêng cho từng cổng): `khach1` (962057), `khach2` (481437), `cuahang`, `nhacungcap`; tạo bằng `scripts/26_create_accounts.py`, mật khẩu ở `/etc/bt-shop.env`. Lịch sử khách là hành vi thật, không chèn dữ liệu giả.
+
+`src/shop/paths.py` đọc đường lan truyền từ đúng ma trận Â, không tự suy luận. `src/shop/engine.py` chứa nghiệp vụ, `src/shop/app.py` là HTTP, `app/shop/` là giao diện, API công khai ở `/docs`. `scripts/25_build_catalog.py` sinh `data/app/catalog.parquet`.
 
 ---
 

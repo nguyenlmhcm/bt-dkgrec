@@ -19,3 +19,4 @@ streamlit==1.62.0
 neo4j==6.2.0
 fastapi==0.128.0
 uvicorn==0.52.4
+httpx==0.28.1

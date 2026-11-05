@@ -12,6 +12,12 @@ CREATE TABLE IF NOT EXISTS order_items(order_id INTEGER, item INTEGER, qty INTEG
 CREATE TABLE IF NOT EXISTS campaigns(id INTEGER PRIMARY KEY AUTOINCREMENT, item INTEGER, discount INTEGER, created REAL);
 CREATE TABLE IF NOT EXISTS campaign_targets(campaign_id INTEGER, visitor INTEGER, seen REAL, clicked REAL, bought REAL,
     PRIMARY KEY(campaign_id, visitor));
+CREATE TABLE IF NOT EXISTS users(username TEXT PRIMARY KEY, hash TEXT, role TEXT, display TEXT, visitor_id INTEGER);
+CREATE TABLE IF NOT EXISTS sessions(token TEXT PRIMARY KEY, username TEXT, expires REAL);
+CREATE TABLE IF NOT EXISTS product_edits(item_id INTEGER PRIMARY KEY, name TEXT, department TEXT, price INTEGER,
+    available INTEGER, deleted INTEGER DEFAULT 0, is_new INTEGER DEFAULT 0);
+CREATE TABLE IF NOT EXISTS department_edits(name TEXT PRIMARY KEY, original TEXT);
+CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY, value TEXT);
 CREATE TABLE IF NOT EXISTS event_log(id INTEGER PRIMARY KEY AUTOINCREMENT, created REAL, visitor INTEGER, item INTEGER,
     behavior TEXT, source TEXT, total_ms REAL);
 """
@@ -46,5 +52,5 @@ class ShopDB:
 
     def clear(self) -> None:
         with self._connect() as con:
-            for table in ("cart", "orders", "order_items", "campaigns", "campaign_targets", "event_log", "sqlite_sequence"):
+            for table in ("cart", "orders", "order_items", "campaigns", "campaign_targets", "event_log", "product_edits", "department_edits", "sqlite_sequence"):
                 con.execute(f"DELETE FROM {table}")  # noqa: S608 - fixed names only

@@ -32,7 +32,7 @@ def round_price(value: float) -> int:
 
 
 #: Fixed names for the customers shown on the sign-in screen, so none repeats there.
-SHOWCASE = {437888: "Thu Hà", 962057: "Minh Anh", 481437: "Quốc Bảo", 282844: "Gia Huy", 468111: "Ngọc Lan", 553749: "Hoàng Nam"}
+SHOWCASE = {962057: "Minh Anh", 437888: "Thu Hà", 481437: "Quốc Bảo", 282844: "Gia Huy", 468111: "Ngọc Lan", 553749: "Hoàng Nam"}
 
 
 def persona_name(visitor_id: int) -> str:
